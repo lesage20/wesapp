@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, TextInput, Image, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, TextInput, Image, Alert, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -53,17 +53,26 @@ export default function ProfileSetupScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white px-6">
-      <Text className="text-2xl font-bold text-center mt-8 mb-12 text-gray-900">
-        Profile Details
-      </Text>
+    <SafeAreaView className="flex-1 bg-white">
+      <KeyboardAvoidingView 
+        className="flex-1" 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <ScrollView 
+          className="flex-1 px-6" 
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ flexGrow: 1 }}
+        >
+          <Text className="text-2xl font-bold text-center mt-8 mb-12 text-gray-900">
+            Profile Details
+          </Text>
 
-      <Text className="text-gray-900 font-medium mb-8 text-center leading-6">
-        Enter your username and choose your profile photo
-      </Text>
+          <Text className="text-gray-900 font-medium mb-8 text-center leading-6">
+            Enter your username and choose your profile photo
+          </Text>
 
-      {/* Profile Image */}
-      <View className="items-center mb-12">
+          {/* Profile Image */}
+          <View className="items-center mb-12">
         <TouchableOpacity
           onPress={pickImage}
           className="w-32 h-32 rounded-full bg-gray-200 items-center justify-center"
@@ -104,8 +113,10 @@ export default function ProfileSetupScreen() {
       >
         <Text className={`text-center font-semibold text-lg ${username.trim() ? 'text-white' : 'text-gray-500'}`}>
           Next
-        </Text>
-      </TouchableOpacity>
+          </Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
