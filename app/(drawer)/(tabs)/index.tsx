@@ -8,6 +8,7 @@ import { DrawerActions } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
 import CallsMaskInput, { FormatType } from '~/components/calls/calls-mask-input';
 import CallsKeyboard from '~/components/calls/calls-keyboard';
+import MenuIcon from '~/assets/svgs/header/menu';
 
 export default function CallsScreen() {
   const [wesappCode, setWesappCode] = useState('');
@@ -53,7 +54,7 @@ export default function CallsScreen() {
               onPress={() => navigation.dispatch(DrawerActions.openDrawer())} 
               className="p-2"
             >
-              <Ionicons name="menu" size={24} color="#4A5568" />
+              <MenuIcon width={24} height={24} />
             </TouchableOpacity>
           ),
           headerRight: () => (

@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { DrawerActions } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
 import QrCodeIcon from '../../../assets/svgs/conversations/header-qr-code';
+import MenuIcon from '~/assets/svgs/header/menu';
 
 export default function ConversationsScreen() {
   const [searchText, setSearchText] = useState('');
@@ -27,7 +28,7 @@ export default function ConversationsScreen() {
               onPress={() => navigation.dispatch(DrawerActions.openDrawer())} 
               className="p-2 bg-white/20 rounded-lg"
             >
-              <Ionicons name="menu" size={24} color="white" />
+              <MenuIcon width={24} height={24} color="white" />
             </TouchableOpacity>
           </View>
 
@@ -51,7 +52,7 @@ export default function ConversationsScreen() {
         {/* White Content Section */}
         <View className="flex-1 bg-white rounded-t-3xl">
           {/* Header */}
-          <View className="flex-row items-center justify-between px-6 py-6">
+          <View className="flex-row items-center justify-between px-6 py-6 ">
             <Text className="text-2xl font-bold text-gray-900">Conversations</Text>
             <TouchableOpacity className="w-12 h-12 bg-teal-500 rounded-full items-center justify-center">
               <Ionicons name="add" size={24} color="white" />
@@ -60,7 +61,7 @@ export default function ConversationsScreen() {
 
           {/* Search Bar */}
           <View className="px-6 mb-6">
-            <View className="flex-row items-center bg-gray-100 rounded-full px-4 py-3">
+            <View className="flex-row items-center bg-gray-100 rounded-full px-4 py-0 border border-gray-200 border-1">
               <Ionicons name="search" size={20} color="#9CA3AF" />
               <TextInput
                 className="flex-1 ml-3 text-gray-900"

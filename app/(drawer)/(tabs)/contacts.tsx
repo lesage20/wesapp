@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Contacts from 'expo-contacts';
 import { DrawerActions } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
+import MenuIcon from '~/assets/svgs/header/menu';
 
 interface Contact {
   id: string;
@@ -127,7 +128,7 @@ export default function ContactsScreen() {
                 onPress={() => navigation.dispatch(DrawerActions.openDrawer())} 
                 className="p-2"
               >
-                <Ionicons name="menu" size={24} color="#4A5568" />
+                <MenuIcon width={24} height={24} />
               </TouchableOpacity>
             ),
           }} 
@@ -161,7 +162,7 @@ export default function ContactsScreen() {
               onPress={() => navigation.dispatch(DrawerActions.openDrawer())} 
               className="p-2"
             >
-              <Ionicons name="menu" size={24} color="#4A5568" />
+              <MenuIcon width={24} height={24} />
             </TouchableOpacity>
           ),
         }} 
@@ -169,7 +170,7 @@ export default function ContactsScreen() {
       <SafeAreaView className="flex-1 bg-white">
         {/* Search Bar */}
         <View className="px-4 py-4">
-          <View className="flex-row items-center bg-gray-100 rounded-full px-4 py-1 border border-gray-200 border-1">
+          <View className="flex-row items-center bg-gray-100 rounded-full px-4 py-0 border border-gray-200 border-1">
             <Ionicons name="search" size={20} color="#9CA3AF" />
             <TextInput
               className="flex-1 ml-3 text-gray-900"
