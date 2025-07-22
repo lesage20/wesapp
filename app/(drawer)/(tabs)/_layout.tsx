@@ -6,7 +6,14 @@ export default function TabLayout() {
   const TabBarIcon = ({ name, focused }: { name: keyof typeof icons; focused: boolean }) => {
     const IconComponent = icons[name];
     return (
-      <View className="items-center">
+      <View className="items-center relative">
+        {/* Top border for active tab */}
+        {focused && (
+          <View 
+            className="absolute -top-3 left-1/2 w-8 h-1 bg-teal-500 rounded-b-full"
+            style={{ transform: [{ translateX: -16 }] }}
+          />
+        )}
         <IconComponent 
           width={24} 
           height={24} 
@@ -26,9 +33,9 @@ export default function TabLayout() {
           backgroundColor: 'white',
           borderTopWidth: 1,
           borderTopColor: '#E5E7EB',
-          paddingTop: 8,
-          paddingBottom: 8,
-          height: 60,
+          paddingTop: 12,
+          paddingBottom: 20,
+          height: 75,
         },
         tabBarLabelStyle: {
           fontSize: 12,
