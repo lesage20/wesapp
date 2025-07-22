@@ -10,7 +10,7 @@ export default function TabLayout() {
         {/* Top border for active tab */}
         {focused && (
           <View 
-            className="absolute -top-3 left-1/2 w-8 h-1 bg-teal-500 rounded-b-full"
+            className="absolute -top-3 left-1/2 w-8 h-1 bg-teal-500 "
             style={{ transform: [{ translateX: -16 }] }}
           />
         )}
@@ -33,8 +33,8 @@ export default function TabLayout() {
           backgroundColor: 'white',
           borderTopWidth: 1,
           borderTopColor: '#E5E7EB',
-          paddingTop: 12,
-          paddingBottom: 20,
+          paddingTop: 0,
+          paddingBottom: 30,
           height: 75,
         },
         tabBarLabelStyle: {

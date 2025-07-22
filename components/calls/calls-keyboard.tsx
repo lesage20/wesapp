@@ -1,8 +1,6 @@
-import { Button, ButtonText } from "@/components/ui/button";
-
-import { DeleteIcon } from "@/assets/svgs/calls";
-import { HStack } from "@/components/ui/hstack";
-import { VStack } from "@/components/ui/vstack";
+import React from 'react';
+import { View, TouchableOpacity, Text } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 interface CallsKeyboardProps {
   onKeyPress?: (key: string | number) => void;
@@ -22,40 +20,48 @@ const CallsKeyboard = ({
   };
 
   const isDisabled = (key: string | number) => {
-    if (key === "delete") return false;
+    if (key === "backspace") return false;
     if (disableLetters && typeof key === "string") return true;
     if (disableNumbers && typeof key === "number") return true;
     return false;
   };
 
   return (
-    <VStack space="sm">
+    <View className="w-full ">
       {[
         [1, 2, 3, 4, 5, 6, 7, 8, 9, 0],
         ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
         ["A", "S", "D", "F", "G", "H", "J", "K", "L", "M"],
         ["Z", "X", "C", "V", "B", "N", "backspace"],
       ].map((row, rowIndex) => (
-        <HStack key={rowIndex} className="flex-nowrap justify-between w-full">
+        <View key={rowIndex} className="flex-row justify-between mb-3">
           {row.map((key) => (
-            <Button
+            <TouchableOpacity
               key={key}
-              variant="solid"
-              action="default"
               onPress={() => handleKeyPress(key)}
               disabled={isDisabled(key)}
-              className={`bg-white rounded-md h-12 p-0 ${
-                key === "backspace" ? "w-[38%]" : "w-[9.5%]"
+              className={`bg-white rounded-lg items-center justify-center shadow-sm ${
+                key === "backspace" 
+                  ? "flex-[2.8] h-12" 
+                  : "flex-1 h-12 mx-0.5"
               } ${isDisabled(key) ? "opacity-50" : ""}`}
+              style={{
+                minHeight: 48,
+                elevation: 2,
+              }}
             >
-              <ButtonText className="font-inter-medium text-black text-2xl">
-                {key === "backspace" ? <DeleteIcon /> : key}
-              </ButtonText>
-            </Button>
+              {key === "backspace" ? (
+                <Ionicons name="backspace-outline" size={22} color="#000" />
+              ) : (
+                <Text className="text-black text-lg font-semibold">
+                  {key}
+                </Text>
+              )}
+            </TouchableOpacity>
           ))}
-        </HStack>
+        </View>
       ))}
-    </VStack>
+    </View>
   );
 };
 

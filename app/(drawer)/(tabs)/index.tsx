@@ -1,20 +1,38 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, useRouter } from 'expo-router';
 import { useAuthStore } from '~/store/store';
 import { Ionicons } from '@expo/vector-icons';
 import { DrawerActions } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
+import CallsMaskInput, { FormatType } from '~/components/calls/calls-mask-input';
+import CallsKeyboard from '~/components/calls/calls-keyboard';
 
 export default function CallsScreen() {
   const [wesappCode, setWesappCode] = useState('');
+  const [codeFormat, setCodeFormat] = useState<FormatType | ''>('');
   const { user } = useAuthStore();
   const navigation = useNavigation();
 
+  const handleCodeChange = (masked: string, format: FormatType | '') => {
+    setWesappCode(masked);
+    setCodeFormat(format);
+  };
+
+  const handleKeyPress = (key: string | number) => {
+    if (key === 'backspace') {
+      const newValue = wesappCode.slice(0, -1);
+      handleCodeChange(newValue, '');
+    } else {
+      const newValue = wesappCode + key.toString();
+      handleCodeChange(newValue, '');
+    }
+  };
+
   const handleAddCode = () => {
     if (wesappCode.trim()) {
-      console.log('Adding WeSapp Code:', wesappCode);
+      console.log('Adding WeSapp Code:', wesappCode, 'Format:', codeFormat);
       // Handle code addition logic here
     }
   };
@@ -65,20 +83,24 @@ export default function CallsScreen() {
 
             {/* Code Input Section */}
             <View className="mb-8">
-              <View className="border border-gray-300 rounded-lg mb-4">
-                <TextInput
-                  className="px-4 py-4 text-gray-900 text-lg"
-                  placeholder="Entrez le code WeSapp"
-                  value={wesappCode}
-                  onChangeText={setWesappCode}
-                  autoCapitalize="characters"
-                  autoCorrect={false}
-                />
-              </View>
+              <CallsMaskInput
+                value={wesappCode}
+                onChange={handleCodeChange}
+                className="mb-4"
+              />
               
               <Text className="text-center text-teal-600 text-lg font-medium">
                 Add this WeSapp Code
               </Text>
+            </View>
+
+            {/* Custom Keyboard */}
+            <View className=" h-auto">
+              <CallsKeyboard
+                onKeyPress={handleKeyPress}
+                disableLetters={false}
+                disableNumbers={false}
+              />
             </View>
           </View>
         </KeyboardAvoidingView>

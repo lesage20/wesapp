@@ -1,6 +1,5 @@
 import MaskInput, { formatWithMask } from "react-native-mask-input";
 import { useEffect, useState } from "react";
-import clsx from "clsx";
 
 const FORMAT_MASKS = {
   FREEMIUM_1: [/\d/, /\d/, /\d/, "-", /[A-Z]/, /[A-Z]/, "-", /\d/, /\d/, /\d/, "-", /[A-Z]/, /[A-Z]/, /[A-Z]/],
@@ -64,12 +63,14 @@ export interface CallsMaskInputProps {
   value: string;
   className?: string;
   onChange: (masked: string, format: FormatType | "") => void;
+  placeholder?: string;
 }
 
 const CallsMaskInput = ({
   value,
   onChange,
   className = "",
+  placeholder = "Entrez le code WeSapp"
 }: CallsMaskInputProps) => {
   const [currentFormat, setCurrentFormat] = useState<FormatType | undefined>(undefined);
 
@@ -111,14 +112,11 @@ const CallsMaskInput = ({
       maskAutoComplete={true}
       showSoftInputOnFocus={false}
       mask={currentFormat ? FORMAT_MASKS[currentFormat] : undefined}
-      className={clsx(
-        "w-[300px] border border-background-300 rounded text-4xl text-center align-baseline px-3",
-        className
-      )}
+      placeholder={placeholder}
+      placeholderTextColor="#9CA3AF"
+      className={`w-auto border border-gray-300 rounded-lg text-xl text-center  py-3 text-gray-900 ${className}`}
     />
   );
 };
 
 export default CallsMaskInput;
-
-export { FORMAT_MASKS, detectFormat };

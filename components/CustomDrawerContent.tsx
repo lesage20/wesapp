@@ -62,10 +62,10 @@ export default function CustomDrawerContent(props: DrawerContentComponentProps) 
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView className="flex-1 bg-white mt-5">
       <DrawerContentScrollView {...props} contentContainerStyle={{ paddingTop: 0 }}>
         {/* User Header */}
-        <View className="px-6 py-8 border-b border-gray-100">
+        <View className="px-2 pt-8 pb-4 border-b border-gray-100">
           <View className="flex-row items-center justify-between">
             <View className="flex-row items-center flex-1">
               <View className="w-12 h-12 rounded-full bg-blue-600 items-center justify-center mr-3">
@@ -85,14 +85,14 @@ export default function CustomDrawerContent(props: DrawerContentComponentProps) 
         </View>
 
         {/* Menu Items */}
-        <View className="px-4 py-4">
+        <View className=" py-4 flex-column">
           {menuItems.map((item) => {
             const IconComponent = icons[item.icon];
             return (
               <TouchableOpacity
                 key={item.name}
                 onPress={item.onPress}
-                className="flex-row items-center py-4 px-4 rounded-lg mb-2"
+                className="flex-row items-center py-2 px-2 rounded-lg "
               >
                 <View className="w-12 h-12 rounded-full bg-gray-100 items-center justify-center mr-4">
                   <IconComponent width={24} height={24} />
