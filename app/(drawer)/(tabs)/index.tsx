@@ -22,8 +22,13 @@ export default function CallsScreen() {
 
   const handleKeyPress = (key: string | number) => {
     if (key === 'backspace') {
-      const newValue = wesappCode.slice(0, -1);
-      handleCodeChange(newValue, '');
+      // Supprimer le dernier caractère réel (pas les tirets du masque)
+      const cleanValue = wesappCode.replace(/[^A-Z0-9]/g, '');
+      const newCleanValue = cleanValue.slice(0, -1);
+      
+      // Laisser le MaskInput reformater
+      const event = { target: { value: newCleanValue } };
+      handleCodeChange(newCleanValue, '');
     } else {
       const newValue = wesappCode + key.toString();
       handleCodeChange(newValue, '');

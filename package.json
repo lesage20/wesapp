@@ -21,6 +21,7 @@
     "@react-navigation/native": "^7.0.3",
     "expo": "~53.0.20",
     "expo-constants": "~17.1.4",
+    "expo-contacts": "^14.2.5",
     "expo-dev-client": "~5.2.4",
     "expo-dev-launcher": "^5.0.17",
     "expo-image-picker": "^16.1.4",
