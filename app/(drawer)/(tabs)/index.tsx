@@ -90,7 +90,7 @@ export default function CallsScreen() {
                 className="mb-4"
               />
               
-              <Text className="text-center text-teal-600 text-lg font-medium">
+              <Text className="text-center text-teal-600 text-2xl py-2 font-medium">
                 Add this WeSapp Code
               </Text>
             </View>
