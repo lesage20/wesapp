@@ -32,10 +32,7 @@ export default function CustomDrawerContent(props: DrawerContentComponentProps) 
       label: 'My Connections',
       icon: '(connections)',
       badge: 3,
-      onPress: () => {
-        // Navigate to connections screen
-        console.log('Navigate to connections');
-      },
+      onPress: () => router.push('/my-connections'),
     },
     {
       name: 'active-call',

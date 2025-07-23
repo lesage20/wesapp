@@ -13,7 +13,9 @@ interface CustomHeaderProps {
   title?: string;
   showBackButton?: boolean;
   showMenuButton?: boolean;
+  showDismissButton?: boolean;
   onBackPress?: () => void;
+  onDismissPress?: () => void;
   
   // Avatar props
   showAvatar?: boolean;
@@ -44,7 +46,9 @@ export default function CustomHeader({
   title = '',
   showBackButton = true,
   showMenuButton = false,
+  showDismissButton = false,
   onBackPress,
+  onDismissPress,
   showAvatar = false,
   avatarImage,
   avatarText = 'A',
@@ -71,16 +75,22 @@ export default function CustomHeader({
   };
 
   const handleBackPress = () => {
-    console.log('handleBackPress', onBackPress);
-    // if (onBackPress) {
-    //   onBackPress();
-    // } else {
+    if (onBackPress) {
+      onBackPress();
+    } else {
       router.back();
-    // }
+    }
+  };
+
+  const handleDismissPress = () => {
+    if (onDismissPress) {
+      onDismissPress();
+    } else {
+      router.back();
+    }
   };
 
   const handleMenuPress = () => {
-    console.log('handleMenuPress');
     navigation.dispatch(DrawerActions.openDrawer());
   };
 
@@ -93,6 +103,18 @@ export default function CustomHeader({
           hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
         >
           <MenuIcon width={24} height={24} />
+        </TouchableOpacity>
+      );
+    }
+    
+    if (showDismissButton) {
+      return (
+        <TouchableOpacity 
+          onPress={handleDismissPress} 
+          className="p-2 bg-gray-200 rounded-lg"
+          hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+        >
+          <Text className="text-teal-600 font-bold text-xl">✕</Text>
         </TouchableOpacity>
       );
     }
