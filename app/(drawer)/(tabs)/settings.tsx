@@ -5,6 +5,7 @@ import { Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { DrawerActions } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
+import { useRouter } from 'expo-router';
 import { useAuthStore } from '~/store/store';
 import { AccountIcon, NotificationIcon, SecurityIcon, QrCodeIcon } from '~/assets/svgs/settings';
 import InviteIcon from '~/assets/svgs/settings/add-account';
@@ -19,6 +20,7 @@ interface SettingsItem {
 
 export default function SettingsScreen() {
   const navigation = useNavigation();
+  const router = useRouter();
   const { user, logout } = useAuthStore();
 
   const settingsItems: SettingsItem[] = [
@@ -32,13 +34,13 @@ export default function SettingsScreen() {
       id: 'privacy',
       title: 'Privacy and Security',
       icon: SecurityIcon,
-      onPress: () => console.log('Privacy and Security'),
+      onPress: () => router.push('/privacy-and-security'),
     },
     {
       id: 'notifications',
       title: 'Notifications and Sounds',
       icon: NotificationIcon,
-      onPress: () => console.log('Notifications and Sounds'),
+      onPress: () => router.push('/notifications'),
     },
     {
       id: 'invite',
@@ -58,6 +60,7 @@ export default function SettingsScreen() {
         options={{ 
           title: 'Settings',
           headerShown: true,
+          headerTitleAlign: 'center',
           headerLeft: () => (
             <TouchableOpacity 
               onPress={() => navigation.dispatch(DrawerActions.openDrawer())} 
@@ -71,11 +74,14 @@ export default function SettingsScreen() {
       <SafeAreaView className="flex-1 bg-gray-50">
         <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
           {/* User Profile Section */}
-          <View className=" mx-4 mt-4 rounded-2xl p-6 shadow-sm">
+          <View className=" mx-4  rounded-2xl px-6 pb-4 pt-2shadow-sm">
             <View className="flex-row items-center justify-between">
               <View className="flex-row items-center flex-1">
                 {/* User Avatar */}
-                <View className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 items-center justify-center mr-4">
+                <TouchableOpacity 
+                  className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 items-center justify-center mr-4"
+                  onPress={() => router.push('/profile')}
+                >
                   {user?.profileImage ? (
                     <Image 
                       source={{ uri: user.profileImage }} 
@@ -87,7 +93,7 @@ export default function SettingsScreen() {
                       {user?.username?.charAt(0)?.toUpperCase() || 'U'}
                     </Text>
                   )}
-                </View>
+                </TouchableOpacity>
                 
                 {/* User Info */}
                 <View className="flex-1">
@@ -111,7 +117,7 @@ export default function SettingsScreen() {
               <TouchableOpacity
                 key={item.id}
                 onPress={item.onPress}
-                className="bg-white rounded-lg px-6 py-3 border border-gray-200 border-1 shadow-sm flex-row items-center justify-between"
+                className=" rounded-lg px-6 py-3 border border-gray-200 border-1 shadow-sm flex-row items-center justify-between"
               >
                 <View className="flex-row items-center flex-1">
                   <View className="w-8 h-8 items-center justify-center mr-4">

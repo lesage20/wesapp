@@ -49,6 +49,7 @@ export default function CallsScreen() {
         options={{ 
           title: 'Calls',
           headerShown: true,
+          headerTitleAlign: 'center',
           headerLeft: () => (
             <TouchableOpacity 
               onPress={() => navigation.dispatch(DrawerActions.openDrawer())} 

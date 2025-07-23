@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Stack } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { DrawerActions } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
@@ -11,6 +11,11 @@ import MenuIcon from '~/assets/svgs/header/menu';
 export default function ConversationsScreen() {
   const [searchText, setSearchText] = useState('');
   const navigation = useNavigation();
+  const router = useRouter();
+
+  const handleConversationPress = (conversationId: string) => {
+    router.push(`/chat/${conversationId}`);
+  };
 
   return (
     <>
@@ -72,17 +77,84 @@ export default function ConversationsScreen() {
             </View>
           </View>
 
-          {/* Loading State */}
-          <View className="flex-1 items-center justify-center">
-            <View className="items-center">
-              <View className="w-16 h-16 rounded-full bg-gray-100 items-center justify-center mb-4">
-                <Ionicons name="chatbubbles-outline" size={32} color="#9CA3AF" />
+          {/* Conversations List */}
+          <View className="flex-1 px-6">
+            {/* Conversation Item 1 */}
+            <TouchableOpacity 
+              className="flex-row items-center py-4 border-b border-gray-100"
+              onPress={() => handleConversationPress('456-qsns-civ')}
+            >
+              <View className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 items-center justify-center mr-4">
+                <Text className="text-white font-bold text-lg">A</Text>
               </View>
-              <Text className="text-gray-500 text-lg">Loading...</Text>
-              <Text className="text-gray-400 text-sm mt-2">
-                Vos conversations vont apparaître ici
-              </Text>
-            </View>
+              <View className="flex-1">
+                <View className="flex-row items-center justify-between mb-1">
+                  <Text className="text-gray-900 font-semibold text-lg">456-QSNS-CIV</Text>
+                  <Text className="text-gray-500 text-sm">il y a 11 jours</Text>
+                </View>
+                <Text className="text-gray-600">Azerty</Text>
+              </View>
+            </TouchableOpacity>
+
+            {/* Conversation Item 2 */}
+            <TouchableOpacity 
+              className="flex-row items-center py-4 border-b border-gray-100"
+              onPress={() => handleConversationPress('narcisse-pro')}
+            >
+              <View className="w-12 h-12 rounded-2xl bg-orange-400 items-center justify-center mr-4">
+                <View className="w-10 h-10 rounded-xl overflow-hidden">
+                  <View className="w-full h-full bg-yellow-400 items-center justify-center">
+                    <Text className="text-xs font-bold">OEUFS</Text>
+                  </View>
+                </View>
+              </View>
+              <View className="flex-1">
+                <View className="flex-row items-center justify-between mb-1">
+                  <View className="flex-row items-center">
+                    <Text className="text-gray-900 font-semibold text-lg">Narcisse professionnels</Text>
+                    <View className="w-5 h-5 bg-teal-500 rounded-full items-center justify-center ml-2">
+                      <Ionicons name="checkmark" size={12} color="white" />
+                    </View>
+                  </View>
+                  <Text className="text-gray-500 text-sm">il y a 14 jours</Text>
+                </View>
+                <Text className="text-gray-600">Des oeufs de qualité</Text>
+              </View>
+            </TouchableOpacity>
+
+            {/* Conversation Item 3 */}
+            <TouchableOpacity 
+              className="flex-row items-center py-4 border-b border-gray-100"
+              onPress={() => handleConversationPress('akissi')}
+            >
+              <View className="w-12 h-12 rounded-2xl bg-gray-300 items-center justify-center mr-4">
+                <Ionicons name="image-outline" size={20} color="#6B7280" />
+              </View>
+              <View className="flex-1">
+                <View className="flex-row items-center justify-between mb-1">
+                  <Text className="text-gray-900 font-semibold text-lg">Akissi ❤️</Text>
+                  <Text className="text-gray-500 text-sm">il y a 16 jours</Text>
+                </View>
+                <Text className="text-gray-600">Coucou</Text>
+              </View>
+            </TouchableOpacity>
+
+            {/* Conversation Item 4 */}
+            <TouchableOpacity 
+              className="flex-row items-center py-4 border-b border-gray-100"
+              onPress={() => handleConversationPress('kamate-drissa')}
+            >
+              <View className="w-12 h-12 rounded-2xl bg-gray-300 items-center justify-center mr-4">
+                <Ionicons name="image-outline" size={20} color="#6B7280" />
+              </View>
+              <View className="flex-1">
+                <View className="flex-row items-center justify-between mb-1">
+                  <Text className="text-gray-900 font-semibold text-lg">Kamaté drissa</Text>
+                  <Text className="text-gray-500 text-sm">il y a 21 jours</Text>
+                </View>
+                <Text className="text-gray-600">Salut</Text>
+              </View>
+            </TouchableOpacity>
           </View>
         </View>
       </SafeAreaView>
