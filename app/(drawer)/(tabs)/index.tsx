@@ -7,7 +7,11 @@ import { Ionicons } from '@expo/vector-icons';
 import CallsMaskInput, { FormatType } from '~/components/calls/calls-mask-input';
 import CallsKeyboard from '~/components/calls/calls-keyboard';
 import CustomHeader from '~/components/CustomHeader';
-
+import VoiceCallIcon from '~/assets/svgs/chat/voice-call';
+import VideoCallIcon from '~/assets/svgs/chat/video-call';
+import TimeIcon from '~/assets/svgs/header/time';
+import MessageIcon from '~/assets/svgs/contact/message';
+import { ScrollView } from 'react-native-gesture-handler';
 export default function CallsScreen() {
   const [wesappCode, setWesappCode] = useState('');
   const [codeFormat, setCodeFormat] = useState<FormatType | ''>('');
@@ -49,7 +53,7 @@ export default function CallsScreen() {
         rightContent={
           <View className="relative mr-4">
             <TouchableOpacity className="p-2">
-              <Ionicons name="notifications" size={24} color="#4A5568" />
+              <TimeIcon width={24} height={24} color="#4A5568" />
             </TouchableOpacity>
             <View className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full items-center justify-center">
               <Text className="text-white text-xs font-bold">3</Text>
@@ -57,22 +61,25 @@ export default function CallsScreen() {
           </View>
         }
       />
-      <View className="flex-1 bg-gray-50">
-        <KeyboardAvoidingView 
-          className="flex-1" 
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      <KeyboardAvoidingView 
+        className="flex-1 bg-gray-50" 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <ScrollView 
+          className="flex-1"
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 5 }}
         >
-          <View className="flex-1 px-6">
             {/* User Avatar */}
-            <View className="items-center mt-12 mb-8">
-              <View className="w-16 h-16 rounded-full bg-gray-300 items-center justify-center">
-                <Text className="text-2xl font-bold text-gray-700">
+            <View className="items-center mt-10 mb-8">
+              <View className=" rounded flex-row space-x-2 gap-3  items-center justify-center text-center">
+                <Text className="text-lg font-bold text-gray-700 px-2 rounded-lg border border-gray-200">
                   {user?.username?.charAt(0)?.toUpperCase() || 'D'}
                 </Text>
+                <Text className="text-lg text-gray-700 font-medium">
+                  {user?.username || 'Développeur'}
+                </Text>
               </View>
-              <Text className="text-lg text-gray-700 mt-2 font-medium">
-                {user?.username || 'Développeur'}
-              </Text>
             </View>
 
             {/* Code Input Section */}
@@ -89,16 +96,43 @@ export default function CallsScreen() {
             </View>
 
             {/* Custom Keyboard */}
-            <View className=" h-auto">
+            <View className="h-auto bg-gray-300 p-2 rounded-lg">
               <CallsKeyboard
                 onKeyPress={handleKeyPress}
                 disableLetters={false}
                 disableNumbers={false}
               />
+              
+              {/* Action Icons */}
+            <View className="flex-row items-center justify-center mt-6 mb-4">
+              <TouchableOpacity 
+                className="w-14 h-14 bg-white border border-gray-100 rounded-full items-center justify-center mr-8"
+                onPress={() => console.log('Voice call pressed')}
+                hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+              >
+                <VoiceCallIcon width={20} height={20} color="#14B8A6" />
+              </TouchableOpacity>
+
+              <TouchableOpacity 
+                className="w-14 h-14 bg-white border border-gray-100 rounded-full items-center justify-center mr-8"
+                onPress={() => console.log('Video call pressed')}
+                hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+              >
+                <VideoCallIcon width={20} height={20} color="#14B8A6" />
+              </TouchableOpacity>
+
+              <TouchableOpacity 
+                className="w-14 h-14 bg-white border border-gray-100 rounded-full items-center justify-center"
+                onPress={() => console.log('Message pressed')}
+                hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+              >
+                <MessageIcon width={20} height={20} color="#14B8A6" stroke="#14B8A6" />
+              </TouchableOpacity>
             </View>
-          </View>
-        </KeyboardAvoidingView>
-      </View>
+            </View>
+
+        </ScrollView>
+      </KeyboardAvoidingView>
     </>
   );
 }

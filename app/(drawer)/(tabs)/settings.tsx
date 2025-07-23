@@ -26,7 +26,7 @@ export default function SettingsScreen() {
       id: 'account',
       title: 'Change Account',
       icon: AccountIcon,
-      onPress: () => console.log('Change Account'),
+      onPress: () => router.push('/change-account'),
     },
     {
       id: 'privacy',
