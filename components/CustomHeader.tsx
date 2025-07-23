@@ -147,7 +147,7 @@ export default function CustomHeader({
           disabled={!onAvatarPress}
           hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
         >
-          <View className="mr-3">
+          <View className="mr-3 ml-3">
             <Avatar
               imageUrl={avatarImage}
               text={avatarText}
