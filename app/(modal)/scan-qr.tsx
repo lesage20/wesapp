@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert, Platform, useColorScheme, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { CameraView, Camera } from 'expo-camera';
@@ -8,8 +8,12 @@ import CustomHeader from '~/components/CustomHeader';
 
 export default function ScanQRScreen() {
   const router = useRouter();
+  const colorScheme = useColorScheme();
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [scanned, setScanned] = useState(false);
+  
+  // Android navigation bar height (typical values: 48dp = ~24-48px depending on density)
+  const androidNavHeight = Platform.OS === 'android' ? 48 : 0;
 
   useEffect(() => {
     const getCameraPermissions = async () => {
@@ -62,6 +66,20 @@ export default function ScanQRScreen() {
         <SafeAreaView className="flex-1 bg-black items-center justify-center">
           <Text className="text-white text-lg">Requesting camera permission...</Text>
         </SafeAreaView>
+        
+        {/* Android Navigation Bar Background - Only on Android */}
+        {Platform.OS === 'android' && (
+          <View 
+            style={{
+              position: 'absolute',
+              bottom: 0,
+              left: 0,
+              right: 0,
+              height: androidNavHeight,
+              backgroundColor: '#000000',
+            }}
+          />
+        )}
       </>
     );
   }
@@ -88,6 +106,20 @@ export default function ScanQRScreen() {
             <Text className="text-white font-semibold">Grant Permission</Text>
           </TouchableOpacity>
         </SafeAreaView>
+        
+        {/* Android Navigation Bar Background - Only on Android */}
+        {Platform.OS === 'android' && (
+          <View 
+            style={{
+              position: 'absolute',
+              bottom: 0,
+              left: 0,
+              right: 0,
+              height: androidNavHeight,
+              backgroundColor: '#000000',
+            }}
+          />
+        )}
       </>
     );
   }
@@ -137,7 +169,12 @@ export default function ScanQRScreen() {
           </View>
 
           {/* Bottom Navigation */}
-          <View className="absolute bottom-8 left-0 right-0 flex-row justify-center">
+          <View 
+            className="absolute left-0 right-0 flex-row justify-center"
+            style={{ 
+              bottom: Platform.OS === 'android' ? (androidNavHeight ) : 32 
+            }}
+          >
             <View className="flex-row justify-center gap-4 space-x-4 bg-gray-200 rounded-full px-2 py-2">
               <TouchableOpacity
                 onPress={handleGoToScanQR}
@@ -158,6 +195,20 @@ export default function ScanQRScreen() {
           </View>
         </View>
       </SafeAreaView>
+      
+      {/* Android Navigation Bar Background - Only on Android */}
+      {Platform.OS === 'android' && (
+        <View 
+          style={{
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: androidNavHeight,
+            backgroundColor: '#000000',
+          }}
+        />
+      )}
     </>
   );
 }

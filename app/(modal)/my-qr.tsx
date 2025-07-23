@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Share, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, Share, Alert, Platform, useColorScheme } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import QRCode from 'react-native-qrcode-svg';
@@ -11,7 +11,11 @@ import { getTailwindColor } from '~/utils/colors';
 
 export default function MyQRScreen() {
   const router = useRouter();
+  const colorScheme = useColorScheme();
   const { user } = useAuthStore();
+  
+  // Android navigation bar height (typical values: 48dp = ~24-48px depending on density)
+  const androidNavHeight = Platform.OS === 'android' ? 48 : 0;
 
   // Generate QR data for the user
   const qrData = JSON.stringify({
@@ -109,7 +113,12 @@ export default function MyQRScreen() {
           
         </View>
         {/* Bottom Navigation */}
-        <View className="absolute bottom-8 left-0 right-0 flex-row justify-center">
+        <View 
+          className="absolute left-0 right-0 flex-row justify-center"
+          style={{ 
+            bottom: Platform.OS === 'android' ? (androidNavHeight + 32) : 32 
+          }}
+        >
           <View className="flex-row justify-center gap-4 space-x-4 bg-gray-200 rounded-full px-2 py-2">
             <TouchableOpacity
               onPress={handleGoToScanQR}
@@ -129,6 +138,20 @@ export default function MyQRScreen() {
           </View>
         </View>
       </SafeAreaView>
+      
+      {/* Android Navigation Bar Background - Only on Android */}
+      {Platform.OS === 'android' && (
+        <View 
+          style={{
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: androidNavHeight,
+            backgroundColor: colorScheme === 'dark' ? '#000000' : '#FFFFFF',
+          }}
+        />
+      )}
     </>
   );
 }
