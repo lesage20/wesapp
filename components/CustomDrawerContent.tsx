@@ -5,6 +5,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuthStore } from '~/store/store';
 import { icons } from '~/assets/svgs/drawer';
 import { Ionicons } from '@expo/vector-icons';
+import Avatar from './Avatar';
+import { useRouter } from 'expo-router';
 
 interface DrawerMenuItem {
   name: string;
@@ -16,14 +18,14 @@ interface DrawerMenuItem {
 
 export default function CustomDrawerContent(props: DrawerContentComponentProps) {
   const { user } = useAuthStore();
-
+  const router = useRouter()
   const menuItems: DrawerMenuItem[] = [
     {
-      name: '(tabs)',
+      name: 'conversation',
       label: 'Conversations',
       icon: '(tabs)',
       badge: 3,
-      onPress: () => props.navigation.navigate('(tabs)'),
+      onPress: () => router.push('/conversations'),
     },
     {
       name: 'connections',
@@ -67,10 +69,8 @@ export default function CustomDrawerContent(props: DrawerContentComponentProps) 
         {/* User Header */}
         <View className="px-2 pt-8 pb-4 border-b border-gray-100">
           <View className="flex-row items-center justify-between">
-            <View className="flex-row items-center flex-1">
-              <View className="w-12 h-12 rounded-full bg-blue-600 items-center justify-center mr-3">
-                <Text className="text-white font-bold text-lg">S</Text>
-              </View>
+            <View className="flex-row items-center flex-1 gap-4">
+            <Avatar size={40} text={user?.username?.charAt(0)} backgroundColor="teal-700" />
               <View className="flex-1">
                 <Text className="text-lg font-semibold text-gray-900">
                   {user?.username || 'Sneezy'}
@@ -104,7 +104,7 @@ export default function CustomDrawerContent(props: DrawerContentComponentProps) 
                 </View>
                 <View className="flex-row items-center">
                   {item.badge && (
-                    <View className="w-6 h-6 rounded-full bg-teal-500 items-center justify-center mr-2">
+                    <View className="w-6 h-6 rounded-full bg-teal-700 items-center justify-center mr-2">
                       <Text className="text-white text-xs font-bold">
                         {item.badge}
                       </Text>

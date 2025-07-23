@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, TouchableOpacity, TextInput, Image, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, TextInput, Image, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
@@ -44,19 +44,26 @@ export default function VerificationScreen() {
     <SafeAreaView className="flex-1 bg-black">
       <KeyboardAvoidingView 
         className="flex-1" 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
       >
-        {/* Logo Section */}
-        <View className="flex-1 justify-center items-center">
-          <Image 
-            source={require('~/assets/images/logo.png')}
-            className="w-20 h-20"
-            resizeMode="contain"
-          />
-        </View>
+        <ScrollView 
+          className="flex-1"
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ flexGrow: 1 }}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Logo Section */}
+          <View className="flex-1 justify-center items-center min-h-[40vh]">
+            <Image 
+              source={require('~/assets/images/logo.png')}
+              className="w-20 h-20"
+              resizeMode="contain"
+            />
+          </View>
 
-        {/* Form Section */}
-        <View className="bg-white rounded-t-3xl px-6 py-8">
+          {/* Form Section */}
+          <View className="bg-white rounded-t-3xl px-6 py-8">
         <Text className="text-2xl font-bold text-center mb-2 text-gray-900">
           Enter your verification code
         </Text>
@@ -87,17 +94,18 @@ export default function VerificationScreen() {
           ))}
         </View>
 
-        {/* Verify Button */}
-        <TouchableOpacity
-          className={`py-4 rounded-lg ${isCodeComplete ? 'bg-teal-600' : 'bg-gray-300'}`}
-          onPress={handleVerifyCode}
-          disabled={!isCodeComplete}
-        >
-          <Text className={`text-center font-semibold text-lg ${isCodeComplete ? 'text-white' : 'text-gray-500'}`}>
-            Vérifier le code
-          </Text>
-        </TouchableOpacity>
-        </View>
+          {/* Verify Button */}
+          <TouchableOpacity
+            className={`py-4 rounded-lg ${isCodeComplete ? 'bg-teal-600' : 'bg-gray-300'}`}
+            onPress={handleVerifyCode}
+            disabled={!isCodeComplete}
+          >
+            <Text className={`text-center font-semibold text-lg ${isCodeComplete ? 'text-white' : 'text-gray-500'}`}>
+              Vérifier le code
+            </Text>
+          </TouchableOpacity>
+          </View>
+        </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

@@ -25,9 +25,9 @@ export default function ProfileScreen() {
           <View className="items-center mb-8">
             <View className="relative">
               {/* Main avatar with complex design */}
-              <Avatar size={100} text={user?.username?.charAt(0)}  />
+              <Avatar size={100} text={user?.username?.charAt(0)} backgroundColor="teal-700" />
               {/* Camera icon */}
-              <View className="absolute bottom-0 right-0 w-8 h-8 bg-teal-600 rounded-lg items-center justify-center">
+              <View className="absolute bottom-0 right-0 w-8 h-8 bg-teal-500 rounded-lg items-center justify-center">
                 <CameraIcon width={16} height={16} color="white" />
               </View>
             </View>
@@ -45,7 +45,7 @@ export default function ProfileScreen() {
                   </Text>
                 </View>
                 <TouchableOpacity className="p-2">
-                  <Ionicons name="pencil-outline" size={20} color={getTailwindColor('teal-500')} />
+                  <Ionicons name="pencil-outline" size={20} color={getTailwindColor('teal-700')} />
                 </TouchableOpacity>
               </View>
             </View>
@@ -79,7 +79,7 @@ export default function ProfileScreen() {
                   <Text className="text-gray-900 font-semibold text-lg">Développeur</Text>
                 </View>
                 <TouchableOpacity className="p-2">
-                  <Ionicons name="chevron-forward" size={20} color={getTailwindColor('teal-500')} />
+                  <Ionicons name="chevron-forward" size={20} color={getTailwindColor('teal-700')} />
                 </TouchableOpacity>
               </View>
             </View>
@@ -93,7 +93,7 @@ export default function ProfileScreen() {
                 <Text className="text-gray-900 font-semibold text-lg">Le temps c est de l argent..</Text>
               </View>
               <TouchableOpacity className="p-2">
-                <Ionicons name="pencil-outline" size={20} color={getTailwindColor('teal-500')} />
+                <Ionicons name="pencil-outline" size={20} color={getTailwindColor('teal-700')} />
               </TouchableOpacity>
             </View>
           </View>

@@ -85,7 +85,7 @@ export default function ContactProfileScreen() {
             <View className="flex-row items-center mb-2">
               <Text className="text-gray-900 font-bold text-2xl">{contact.name}</Text>
               {contact.verified && (
-                <View className="w-6 h-6 bg-teal-500 rounded-full items-center justify-center ml-2">
+                <View className="w-6 h-6 bg-teal-700 rounded-full items-center justify-center ml-2">
                   <Ionicons name="checkmark" size={16} color="white" />
                 </View>
               )}

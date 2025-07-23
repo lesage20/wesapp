@@ -30,7 +30,7 @@ export default function Avatar({
   text,
   iconName,
   size = 40,
-  backgroundColor = 'teal-500',
+  backgroundColor = 'bg-teal-700',
   textColor = 'white',
   iconColor = 'white',
   className = '',

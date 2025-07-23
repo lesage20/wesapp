@@ -101,7 +101,7 @@ export default function CustomHeader({
       return (
         <TouchableOpacity 
           onPress={handleBackPress} 
-          className="p-2"
+          className="p-2 bg-gray-200 rounded-lg"
           hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
         >
           <BackIcon width={24} height={24} />
@@ -136,7 +136,7 @@ export default function CustomHeader({
           <View className="flex-1">
             <Text className="text-gray-900 font-semibold text-lg">{title}</Text>
             {subtitle && (
-              <Text className="text-teal-500 text-sm">{subtitle}</Text>
+              <Text className="text-bg-teal-700 text-sm">{subtitle}</Text>
             )}
           </View>
         </TouchableOpacity>

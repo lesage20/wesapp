@@ -29,12 +29,12 @@ export default function ConversationsScreen() {
       />
       <View className="flex-1">
         {/* Header with QR Code Scan */}
-        <View className="bg-teal-500 px-4 py-2">
-          <View className="mt-7 pb-3">
+        <View className="bg-teal-700 px-4 py-2">
+          <SafeAreaView>
             <View className="flex-row items-center justify-between mb-3">
               <TouchableOpacity 
                 onPress={() => navigation.dispatch(DrawerActions.openDrawer())} 
-                className="p-2 bg-white/20 rounded-lg"
+                className="p-2 bg-gray-200 rounded-lg"
               >
                 <MenuIcon width={24} height={24} color="white" />
               </TouchableOpacity>
@@ -59,15 +59,15 @@ export default function ConversationsScreen() {
                 <Text className="text-white font-semibold ml-2">Scan</Text>
               </View>
             </ImageBackground>
-          </View>
+          </SafeAreaView>
         </View>
 
         {/* White Content Section */}
-        <View className="flex-1 bg-white rounded-t-3xl ">
+        <View className="flex-1 bg-white rounded-t-3xl " style={{  top: -18 }}>
           {/* Header */}
-          <View className="flex-row items-center justify-between px-6 py-4 ">
-            <Text className="text-2xl font-bold text-gray-900">Conversations</Text>
-            <TouchableOpacity className="w-12 h-12 bg-teal-500 rounded-full items-center justify-center">
+          <View className="flex-row items-center text-center justify-between px-6 py-4 ">
+            <Text className="text-2xl text-center font-bold text-gray-900 flex-1">Conversations</Text>
+            <TouchableOpacity className="w-10 h-10 bg-teal-700 rounded-full items-center justify-center">
               <Ionicons name="add" size={24} color="white" />
             </TouchableOpacity>
           </View>
@@ -129,7 +129,7 @@ export default function ConversationsScreen() {
                 <View className="flex-row items-center justify-between mb-1">
                   <View className="flex-row items-center">
                     <Text className="text-gray-900 font-semibold text-lg">Narcisse professionnels</Text>
-                    <View className="w-5 h-5 bg-teal-500 rounded-full items-center justify-center ml-2">
+                    <View className="w-5 h-5 bg-teal-700 rounded-full items-center justify-center ml-2">
                       <Ionicons name="checkmark" size={12} color="white" />
                     </View>
                   </View>

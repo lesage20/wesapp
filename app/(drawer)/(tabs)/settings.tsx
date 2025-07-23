@@ -78,7 +78,7 @@ export default function SettingsScreen() {
                     imageUrl={user?.profileImage}
                     text={(user?.username && user.username.length > 0) ? user.username : 'Sneezy'}
                     size={64}
-                    backgroundColor="blue-500"
+                    backgroundColor="teal-700"
                   />
                 </TouchableOpacity>
                 
@@ -128,7 +128,7 @@ export default function SettingsScreen() {
                 <Ionicons 
                   name="chevron-forward" 
                   size={20} 
-                  color={getTailwindColor('teal-500')} 
+                  color={getTailwindColor('teal-700')} 
                 />
               </TouchableOpacity>
             ))}

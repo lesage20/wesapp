@@ -57,11 +57,13 @@ export default function ProfileSetupScreen() {
       <KeyboardAvoidingView 
         className="flex-1" 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
       >
         <ScrollView 
           className="flex-1 px-6" 
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ flexGrow: 1 }}
+          contentContainerStyle={{ flexGrow: 1, paddingBottom: 50 }}
+          keyboardShouldPersistTaps="handled"
         >
           <Text className="text-2xl font-bold text-center mt-8 mb-12 text-gray-900">
             Profile Details
@@ -107,7 +109,7 @@ export default function ProfileSetupScreen() {
 
       {/* Next Button */}
       <TouchableOpacity
-        className={`py-4 rounded-lg ${username.trim() ? 'bg-teal-400' : 'bg-gray-300'}`}
+        className={`py-4 rounded-lg ${username.trim() ? 'bg-teal-700' : 'bg-gray-300'}`}
         onPress={handleNext}
         disabled={!username.trim()}
       >

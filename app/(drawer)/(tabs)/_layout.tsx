@@ -2,6 +2,7 @@ import { Tabs } from 'expo-router';
 import { View, Text, Platform, useColorScheme } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { icons } from '~/assets/svgs/tabbar-icon';
+import { getTailwindColor } from '~/utils/colors';
 
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
@@ -14,14 +15,14 @@ export default function TabLayout() {
         {/* Top border for active tab */}
         {focused && (
           <View 
-            className="absolute -top-3 left-1/2 w-8 h-1 bg-teal-500 "
+            className="absolute -top-3 left-1/2 w-8 h-1 bg-teal-700 "
             style={{ transform: [{ translateX: -16 }] }}
           />
         )}
         <IconComponent 
           width={24} 
           height={24} 
-          color={focused ? '#14B8A6' : '#9CA3AF'} 
+          color={focused ? getTailwindColor('teal-700') : '#9CA3AF'} 
         />
       </View>
     );
@@ -32,7 +33,7 @@ export default function TabLayout() {
       <Tabs
         screenOptions={{
           headerShown: false,
-          tabBarActiveTintColor: '#14B8A6',
+          tabBarActiveTintColor: getTailwindColor('teal-700'),
           tabBarInactiveTintColor: '#9CA3AF',
           safeAreaInsets: { bottom: 0 },
           tabBarStyle: {

@@ -119,7 +119,7 @@ export default function ChangeAccountScreen() {
                       {account.name}
                     </Text>
                     {account.isVerified && (
-                      <View className="w-6 h-6 bg-teal-500 rounded-full items-center justify-center">
+                      <View className="w-6 h-6 bg-teal-700 rounded-full items-center justify-center">
                         <Ionicons name="checkmark" size={16} color="white" />
                       </View>
                     )}
