@@ -57,7 +57,7 @@ export default function CallsScreen() {
           </View>
         }
       />
-      <SafeAreaView className="flex-1 bg-gray-50">
+      <View className="flex-1 bg-gray-50">
         <KeyboardAvoidingView 
           className="flex-1" 
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -98,7 +98,7 @@ export default function CallsScreen() {
             </View>
           </View>
         </KeyboardAvoidingView>
-      </SafeAreaView>
+      </View>
     </>
   );
 }

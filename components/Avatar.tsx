@@ -45,7 +45,6 @@ export default function Avatar({
     // If it's already a hex color, return as is
     if (color.startsWith('#')) return color;
     // Otherwise, resolve from Tailwind colors
-    console.log(color, getTailwindColor(color as TailwindColorName));
     return getTailwindColor(color as TailwindColorName);
   };
 

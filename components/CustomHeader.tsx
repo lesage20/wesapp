@@ -71,14 +71,16 @@ export default function CustomHeader({
   };
 
   const handleBackPress = () => {
-    if (onBackPress) {
-      onBackPress();
-    } else {
+    console.log('handleBackPress', onBackPress);
+    // if (onBackPress) {
+    //   onBackPress();
+    // } else {
       router.back();
-    }
+    // }
   };
 
   const handleMenuPress = () => {
+    console.log('handleMenuPress');
     navigation.dispatch(DrawerActions.openDrawer());
   };
 
@@ -88,6 +90,7 @@ export default function CustomHeader({
         <TouchableOpacity 
           onPress={handleMenuPress} 
           className="p-2 ml-4 bg-gray-200 rounded-lg"
+          hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
         >
           <MenuIcon width={24} height={24} />
         </TouchableOpacity>
@@ -99,6 +102,7 @@ export default function CustomHeader({
         <TouchableOpacity 
           onPress={handleBackPress} 
           className="p-2"
+          hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
         >
           <BackIcon width={24} height={24} />
         </TouchableOpacity>
@@ -116,21 +120,20 @@ export default function CustomHeader({
     if (showAvatar) {
       return (
         <TouchableOpacity 
-          className="flex-row items-center justify-between"
+          className="flex-row items-center"
           onPress={onAvatarPress}
           disabled={!onAvatarPress}
+          hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
         >
           <View className="mr-3">
-            
-              <Avatar
-                imageUrl={avatarImage}
-                text={avatarText}
-                size={40}
-                backgroundColor={avatarBg}
-              />
-            
+            <Avatar
+              imageUrl={avatarImage}
+              text={avatarText}
+              size={40}
+              backgroundColor={avatarBg}
+            />
           </View>
-          <View>
+          <View className="flex-1">
             <Text className="text-gray-900 font-semibold text-lg">{title}</Text>
             {subtitle && (
               <Text className="text-teal-500 text-sm">{subtitle}</Text>
@@ -158,7 +161,11 @@ export default function CustomHeader({
 
     if (rightText && onRightPress) {
       return (
-        <TouchableOpacity className="p-2" onPress={onRightPress}>
+        <TouchableOpacity 
+          className="p-2" 
+          onPress={onRightPress}
+          hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+        >
           <Text className="text-teal-600 font-semibold text-lg">{rightText}</Text>
         </TouchableOpacity>
       );

@@ -59,6 +59,7 @@ export default function ContactProfileScreen() {
   return (
     <>
       <CustomHeader 
+        showBackButton={true}
         title=""
         rightText="Edit"
         onRightPress={() => console.log('Edit contact')}

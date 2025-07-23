@@ -68,7 +68,11 @@ export default function SettingsScreen() {
                 {/* User Avatar */}
                 <TouchableOpacity 
                   className="mr-4"
-                  onPress={() => router.push('/profile')}
+                  onPress={() => {
+                    console.log('Navigating to profile from settings');
+                    router.push('/profile');
+                  }}
+                  hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
                 >
                   <Avatar
                     imageUrl={user?.profileImage}
@@ -81,7 +85,11 @@ export default function SettingsScreen() {
                 {/* User Info */}
                 <TouchableOpacity 
                   className="flex-1"
-                  onPress={() => router.push('/profile')}
+                  onPress={() => {
+                    console.log('Navigating to profile from username');
+                    router.push('/profile');
+                  }}
+                  hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
                 >
                   <Text className="text-xl font-bold text-gray-900">
                     {(user?.username && user.username.length > 0) ? user.username : 'Sneezy'}
@@ -91,7 +99,10 @@ export default function SettingsScreen() {
               </View>
 
               {/* QR Code Icon */}
-              <TouchableOpacity className="w-10 h-10 items-center justify-center">
+              <TouchableOpacity 
+                className="w-10 h-10 items-center justify-center"
+                hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+              >
                 <QrCodeIcon width={24} height={24} />
               </TouchableOpacity>
             </View>
@@ -104,6 +115,7 @@ export default function SettingsScreen() {
                 key={item.id}
                 onPress={item.onPress}
                 className=" rounded-lg px-6 py-3 border border-gray-200 border-1 shadow-sm flex-row items-center justify-between"
+                hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
               >
                 <View className="flex-row items-center flex-1">
                   <View className="w-8 h-8 items-center justify-center mr-4">
@@ -127,6 +139,7 @@ export default function SettingsScreen() {
             <TouchableOpacity
               onPress={handleLogout}
               className="bg-red-50 border border-red-200 rounded-2xl px-6 py-5 flex-row items-center justify-center"
+              hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
             >
               <Ionicons name="log-out-outline" size={24} color={getTailwindColor('red-500')} />
               <Text className="text-red-500 font-semibold text-lg ml-3">

@@ -1,10 +1,11 @@
 import { Tabs } from 'expo-router';
-import { View, Text, Platform } from 'react-native';
+import { View, Text, Platform, useColorScheme } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { icons } from '~/assets/svgs/tabbar-icon';
 
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
+  const colorScheme = useColorScheme();
   
   const TabBarIcon = ({ name, focused }: { name: keyof typeof icons; focused: boolean }) => {
     const IconComponent = icons[name];
@@ -27,25 +28,29 @@ export default function TabLayout() {
   };
 
   return (
-    <Tabs
-      screenOptions={{
-        headerShown: false,
-        tabBarActiveTintColor: '#14B8A6',
-        tabBarInactiveTintColor: '#9CA3AF',
-        tabBarStyle: {
-          backgroundColor: 'white',
-          borderTopWidth: 1,
-          borderTopColor: '#E5E7EB',
-          paddingTop: 0,
-          paddingBottom: Platform.OS === 'android' ? Math.max(insets.bottom, 20) : 30,
-          height: Platform.OS === 'android' ? 75 + Math.max(insets.bottom, 10) : 75,
-        },
-        tabBarLabelStyle: {
-          fontSize: 12,
-          fontWeight: '500',
-          marginTop: 4,
-        },
-      }}>
+    <>
+      <Tabs
+        screenOptions={{
+          headerShown: false,
+          tabBarActiveTintColor: '#14B8A6',
+          tabBarInactiveTintColor: '#9CA3AF',
+          safeAreaInsets: { bottom: 0 },
+          tabBarStyle: {
+            position: 'absolute',
+            backgroundColor: 'white',
+            borderTopWidth: 1,
+            borderTopColor: '#E5E7EB',
+            paddingTop: 8,
+            paddingBottom: 12,
+            height: 65,
+            bottom: Platform.OS === 'android' ? insets.bottom : 0,
+          },
+          tabBarLabelStyle: {
+            fontSize: 12,
+            fontWeight: '500',
+            marginTop: 4,
+          },
+        }}>
       <Tabs.Screen
         name="index"
         options={{
@@ -89,5 +94,20 @@ export default function TabLayout() {
         }}
       />
     </Tabs>
+    
+    {/* Android Navigation Bar Background - Only on Android */}
+    {Platform.OS === 'android' && insets.bottom > 0 && (
+      <View 
+        style={{
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: insets.bottom,
+          backgroundColor: colorScheme === 'dark' ? '#000000' : '#FFFFFF',
+        }}
+      />
+    )}
+  </>
   );
 }
