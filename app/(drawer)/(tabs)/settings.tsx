@@ -1,15 +1,12 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { DrawerActions } from '@react-navigation/native';
-import { useNavigation } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '~/store/store';
 import { AccountIcon, NotificationIcon, SecurityIcon, QrCodeIcon } from '~/assets/svgs/settings';
 import InviteIcon from '~/assets/svgs/settings/add-account';
-import MenuIcon from '~/assets/svgs/header/menu';
+import CustomHeader from '~/components/CustomHeader';
 
 interface SettingsItem {
   id: string;
@@ -19,7 +16,6 @@ interface SettingsItem {
 }
 
 export default function SettingsScreen() {
-  const navigation = useNavigation();
   const router = useRouter();
   const { user, logout } = useAuthStore();
 
@@ -56,20 +52,10 @@ export default function SettingsScreen() {
 
   return (
     <>
-      <Stack.Screen 
-        options={{ 
-          title: 'Settings',
-          headerShown: true,
-          headerTitleAlign: 'center',
-          headerLeft: () => (
-            <TouchableOpacity 
-              onPress={() => navigation.dispatch(DrawerActions.openDrawer())} 
-              className="p-2"
-            >
-              <MenuIcon width={24} height={24} />
-            </TouchableOpacity>
-          ),
-        }} 
+      <CustomHeader 
+        title="Settings"
+        showMenuButton={true}
+        showBackButton={false}
       />
       <SafeAreaView className="flex-1 bg-gray-50">
         <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
@@ -90,7 +76,7 @@ export default function SettingsScreen() {
                     />
                   ) : (
                     <Text className="text-white font-bold text-xl">
-                      {user?.username?.charAt(0)?.toUpperCase() || 'U'}
+                      {(user?.username && user.username.length > 0) ? user.username.charAt(0).toUpperCase() : 'S'}
                     </Text>
                   )}
                 </TouchableOpacity>
@@ -98,7 +84,7 @@ export default function SettingsScreen() {
                 {/* User Info */}
                 <View className="flex-1">
                   <Text className="text-xl font-bold text-gray-900">
-                    {user?.username || 'Sneezy'}
+                    {(user?.username && user.username.length > 0) ? user.username : 'Sneezy'}
                   </Text>
                   <Text className="text-gray-600 mt-1">Développeur</Text>
                 </View>

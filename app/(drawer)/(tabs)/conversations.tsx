@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, TextInput } from 'react-native';
+import { View, Text, TouchableOpacity, TextInput, ScrollView, ImageBackground } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -7,6 +7,7 @@ import { DrawerActions } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
 import QrCodeIcon from '../../../assets/svgs/conversations/header-qr-code';
 import MenuIcon from '~/assets/svgs/header/menu';
+import CameraIcon from '~/assets/svgs/conversations/camera-scan';
 
 export default function ConversationsScreen() {
   const [searchText, setSearchText] = useState('');
@@ -25,39 +26,45 @@ export default function ConversationsScreen() {
           headerShown: false,
         }} 
       />
-      <SafeAreaView className="flex-1 bg-teal-500">
+      <View className="flex-1">
         {/* Header with QR Code Scan */}
-        <View className="px-4 py-6">
-          <View className="flex-row items-center justify-between mb-6">
-            <TouchableOpacity 
-              onPress={() => navigation.dispatch(DrawerActions.openDrawer())} 
-              className="p-2 bg-white/20 rounded-lg"
-            >
-              <MenuIcon width={24} height={24} color="white" />
-            </TouchableOpacity>
-          </View>
+        <View className="bg-teal-500 px-4 py-2">
+          <View className="mt-7 pb-3">
+            <View className="flex-row items-center justify-between mb-3">
+              <TouchableOpacity 
+                onPress={() => navigation.dispatch(DrawerActions.openDrawer())} 
+                className="p-2 bg-white/20 rounded-lg"
+              >
+                <MenuIcon width={24} height={24} color="white" />
+              </TouchableOpacity>
+            </View>
 
-          {/* QR Code Scan Section */}
-          <View className="bg-black/20 rounded-2xl p-6 items-center">
-            <View className="w-32 h-32 bg-white rounded-2xl items-center justify-center mb-4">
-              {/* QR Code Placeholder */}
-              <View className="w-24 h-24 ">
-                <View className="flex-1 flex-row items-center justify-center">
-                <QrCodeIcon width={200} height={90}  className="text-black"/>
+            {/* QR Code Scan Section */}
+            <ImageBackground 
+              source={require('~/assets/images/header-qr-card.png')}
+              className="rounded-2xl px-6 py-4 items-center overflow-hidden"
+              resizeMode="cover"
+            >
+              <View className="w-32 h-32 bg-white rounded-2xl items-center justify-center mb-4">
+                {/* QR Code Placeholder */}
+                <View className="w-24 h-24 ">
+                  <View className="flex-1 flex-row items-center justify-center">
+                  <QrCodeIcon width={200} height={90}  className="text-black"/>
+                  </View>
                 </View>
               </View>
-            </View>
-            <View className="flex-row items-center">
-              <Ionicons name="scan" size={20} color="white" />
-              <Text className="text-white font-semibold ml-2">Scan</Text>
-            </View>
+              <View className="flex-row items-center">
+                <CameraIcon width={20} height={20} color="white" />
+                <Text className="text-white font-semibold ml-2">Scan</Text>
+              </View>
+            </ImageBackground>
           </View>
         </View>
 
         {/* White Content Section */}
-        <View className="flex-1 bg-white rounded-t-3xl">
+        <View className="flex-1 bg-white rounded-t-3xl ">
           {/* Header */}
-          <View className="flex-row items-center justify-between px-6 py-6 ">
+          <View className="flex-row items-center justify-between px-6 py-4 ">
             <Text className="text-2xl font-bold text-gray-900">Conversations</Text>
             <TouchableOpacity className="w-12 h-12 bg-teal-500 rounded-full items-center justify-center">
               <Ionicons name="add" size={24} color="white" />
@@ -65,7 +72,7 @@ export default function ConversationsScreen() {
           </View>
 
           {/* Search Bar */}
-          <View className="px-6 mb-6">
+          <View className="px-6 mb-4">
             <View className="flex-row items-center bg-gray-100 rounded-full px-4 py-0 border border-gray-200 border-1">
               <Ionicons name="search" size={20} color="#9CA3AF" />
               <TextInput
@@ -78,7 +85,11 @@ export default function ConversationsScreen() {
           </View>
 
           {/* Conversations List */}
-          <View className="flex-1 px-6">
+          <ScrollView 
+            className="flex-1 px-6 my-0 py-0" 
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ paddingBottom: 20 }}
+          >
             {/* Conversation Item 1 */}
             <TouchableOpacity 
               className="flex-row items-center py-4 border-b border-gray-100"
@@ -127,8 +138,8 @@ export default function ConversationsScreen() {
               className="flex-row items-center py-4 border-b border-gray-100"
               onPress={() => handleConversationPress('akissi')}
             >
-              <View className="w-12 h-12 rounded-2xl bg-gray-300 items-center justify-center mr-4">
-                <Ionicons name="image-outline" size={20} color="#6B7280" />
+              <View className="w-12 h-12 rounded-2xl bg-pink-500 items-center justify-center mr-4">
+                <Text className="text-white font-bold text-lg">A</Text>
               </View>
               <View className="flex-1">
                 <View className="flex-row items-center justify-between mb-1">
@@ -144,8 +155,8 @@ export default function ConversationsScreen() {
               className="flex-row items-center py-4 border-b border-gray-100"
               onPress={() => handleConversationPress('kamate-drissa')}
             >
-              <View className="w-12 h-12 rounded-2xl bg-gray-300 items-center justify-center mr-4">
-                <Ionicons name="image-outline" size={20} color="#6B7280" />
+              <View className="w-12 h-12 rounded-2xl bg-green-500 items-center justify-center mr-4">
+                <Text className="text-white font-bold text-lg">K</Text>
               </View>
               <View className="flex-1">
                 <View className="flex-row items-center justify-between mb-1">
@@ -155,9 +166,42 @@ export default function ConversationsScreen() {
                 <Text className="text-gray-600">Salut</Text>
               </View>
             </TouchableOpacity>
-          </View>
+
+            {/* Additional conversations to demonstrate scrolling */}
+            <TouchableOpacity 
+              className="flex-row items-center py-4 border-b border-gray-100"
+              onPress={() => handleConversationPress('sarah')}
+            >
+              <View className="w-12 h-12 rounded-2xl bg-purple-500 items-center justify-center mr-4">
+                <Text className="text-white font-bold text-lg">S</Text>
+              </View>
+              <View className="flex-1">
+                <View className="flex-row items-center justify-between mb-1">
+                  <Text className="text-gray-900 font-semibold text-lg">Sarah Martin</Text>
+                  <Text className="text-gray-500 text-sm">il y a 2 jours</Text>
+                </View>
+                <Text className="text-gray-600">À bientôt!</Text>
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              className="flex-row items-center py-4 border-b border-gray-100"
+              onPress={() => handleConversationPress('tech-team')}
+            >
+              <View className="w-12 h-12 rounded-2xl bg-indigo-500 items-center justify-center mr-4">
+                <Text className="text-white font-bold text-lg">T</Text>
+              </View>
+              <View className="flex-1">
+                <View className="flex-row items-center justify-between mb-1">
+                  <Text className="text-gray-900 font-semibold text-lg">Tech Team</Text>
+                  <Text className="text-gray-500 text-sm">il y a 1 semaine</Text>
+                </View>
+                <Text className="text-gray-600">Réunion demain à 14h</Text>
+              </View>
+            </TouchableOpacity>
+          </ScrollView>
         </View>
-      </SafeAreaView>
+      </View>
     </>
   );
 }

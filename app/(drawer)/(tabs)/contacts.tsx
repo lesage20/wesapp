@@ -1,12 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, TextInput, FlatList, Image, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as Contacts from 'expo-contacts';
-import { DrawerActions } from '@react-navigation/native';
-import { useNavigation } from '@react-navigation/native';
-import MenuIcon from '~/assets/svgs/header/menu';
+import CustomHeader from '~/components/CustomHeader';
 
 interface Contact {
   id: string;
@@ -20,7 +17,6 @@ export default function ContactsScreen() {
   const [filteredContacts, setFilteredContacts] = useState<Contact[]>([]);
   const [searchText, setSearchText] = useState('');
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
-  const navigation = useNavigation();
 
   useEffect(() => {
     loadContacts();
@@ -119,19 +115,10 @@ export default function ContactsScreen() {
   if (hasPermission === false) {
     return (
       <>
-        <Stack.Screen 
-          options={{ 
-            title: 'Contacts',
-            headerShown: true,
-            headerLeft: () => (
-              <TouchableOpacity 
-                onPress={() => navigation.dispatch(DrawerActions.openDrawer())} 
-                className="p-2"
-              >
-                <MenuIcon width={24} height={24} />
-              </TouchableOpacity>
-            ),
-          }} 
+        <CustomHeader 
+          title="Contacts"
+          showMenuButton={true}
+          showBackButton={false}
         />
         <SafeAreaView className="flex-1 bg-white">
           <View className="flex-1 items-center justify-center px-6">
@@ -153,19 +140,10 @@ export default function ContactsScreen() {
 
   return (
     <>
-      <Stack.Screen 
-        options={{ 
-          title: 'Contacts',
-          headerShown: true,
-          headerLeft: () => (
-            <TouchableOpacity 
-              onPress={() => navigation.dispatch(DrawerActions.openDrawer())} 
-              className="p-2"
-            >
-              <MenuIcon width={24} height={24} />
-            </TouchableOpacity>
-          ),
-        }} 
+      <CustomHeader 
+        title="Contacts"
+        showMenuButton={true}
+        showBackButton={false}
       />
       <SafeAreaView className="flex-1 bg-white">
         {/* Search Bar */}

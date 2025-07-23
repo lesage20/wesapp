@@ -1,9 +1,9 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import BackIcon from '~/assets/svgs/header/back';
+import CustomHeader from '~/components/CustomHeader';
 import MessageIcon from '~/assets/svgs/contact/message';
 import VideoCallIcon from '~/assets/svgs/contact/video-call';
 import VoiceCallIcon from '~/assets/svgs/contact/voice-call';
@@ -58,26 +58,10 @@ export default function ContactProfileScreen() {
 
   return (
     <>
-      <Stack.Screen 
-        options={{ 
-          headerShown: true,
-          headerStyle: { backgroundColor: 'white' },
-          headerShadowVisible: false,
-          headerLeft: () => (
-            <TouchableOpacity 
-              onPress={() => router.back()} 
-              className="p-2"
-            >
-              <BackIcon width={24} height={24} />
-            </TouchableOpacity>
-          ),
-          headerTitle: '',
-          headerRight: () => (
-            <TouchableOpacity className="p-2">
-              <Text className="text-teal-600 font-semibold text-lg">Edit</Text>
-            </TouchableOpacity>
-          ),
-        }} 
+      <CustomHeader 
+        title=""
+        rightText="Edit"
+        onRightPress={() => console.log('Edit contact')}
       />
       <SafeAreaView className="flex-1 bg-white">
         <ScrollView className="flex-1">
@@ -131,7 +115,7 @@ export default function ContactProfileScreen() {
           </View>
 
           {/* Action Buttons */}
-          <View className="px-6 space-y-4">
+          <View className="px-6 gap-y-3 space-y-4">
             <TouchableOpacity className="bg-gray-100 rounded-2xl p-4">
               <Text className="text-teal-600 font-semibold text-lg text-center">
                 Delete this Identifiant

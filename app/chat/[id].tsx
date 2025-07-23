@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, TextInput, ScrollView, Image, ImageBackground } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import BackIcon from '~/assets/svgs/header/back';
+import CustomHeader from '~/components/CustomHeader';
 import VideoCallIcon from '~/assets/svgs/chat/video-call';
 import VoiceCallIcon from '~/assets/svgs/chat/voice-call';
 import SendIcon from '~/assets/svgs/chat/send';
@@ -20,6 +20,50 @@ export default function ChatScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
   const [message, setMessage] = useState('');
+
+  // Get contact data based on ID
+  const getContactData = (contactId: string) => {
+    switch (contactId) {
+      case '456-qsns-civ':
+        return {
+          name: '456-QSNS-CIV',
+          shortName: '456-QSNS-C...',
+          avatar: 'A',
+          avatarBg: 'bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500'
+        };
+      case 'narcisse-pro':
+        return {
+          name: 'Narcisse professionnels',
+          shortName: 'Narcisse...',
+          avatar: 'OEUFS',
+          avatarBg: 'bg-orange-400',
+          isSpecialAvatar: true
+        };
+      case 'akissi':
+        return {
+          name: 'Akissi ❤️',
+          shortName: 'Akissi ❤️',
+          avatar: 'A',
+          avatarBg: 'bg-pink-500'
+        };
+      case 'kamate-drissa':
+        return {
+          name: 'Kamaté drissa',
+          shortName: 'Kamaté...',
+          avatar: 'K',
+          avatarBg: 'bg-green-500'
+        };
+      default:
+        return {
+          name: 'Contact',
+          shortName: 'Contact',
+          avatar: 'C',
+          avatarBg: 'bg-gray-500'
+        };
+    }
+  };
+
+  const contact = getContactData(id as string);
 
   // Mock messages
   const messages: Message[] = [
@@ -64,44 +108,24 @@ export default function ChatScreen() {
 
   return (
     <>
-      <Stack.Screen 
-        options={{ 
-          headerShown: true,
-          headerStyle: { backgroundColor: 'white' },
-          headerShadowVisible: false,
-          headerLeft: () => (
-            <TouchableOpacity 
-              onPress={() => router.back()} 
-              className="p-2 mr-2"
-            >
-              <BackIcon width={24} height={24} />
+      <CustomHeader 
+        showAvatar={true}
+        title={contact.shortName}
+        subtitle="Online"
+        avatarBg={contact.avatarBg}
+        avatarText={contact.avatar}
+        isSpecialAvatar={contact.isSpecialAvatar}
+        onAvatarPress={() => router.push(`/contact-profile/${id}`)}
+        rightContent={
+          <View className="flex-row items-center">
+            <TouchableOpacity className="p-2 mr-2">
+              <VideoCallIcon width={24} height={24} />
             </TouchableOpacity>
-          ),
-          headerTitle: () => (
-            <TouchableOpacity 
-              className="flex-row items-center"
-              onPress={() => router.push(`/contact-profile/${id}`)}
-            >
-              <View className="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 items-center justify-center mr-3">
-                <Text className="text-white font-bold text-sm">456</Text>
-              </View>
-              <View>
-                <Text className="text-gray-900 font-semibold text-lg">456-QSNS-C...</Text>
-                <Text className="text-teal-500 text-sm">Online</Text>
-              </View>
+            <TouchableOpacity className="p-2">
+              <VoiceCallIcon width={24} height={24} />
             </TouchableOpacity>
-          ),
-          headerRight: () => (
-            <View className="flex-row items-center">
-              <TouchableOpacity className="p-2 mr-2">
-                <VideoCallIcon width={24} height={24} />
-              </TouchableOpacity>
-              <TouchableOpacity className="p-2">
-                <VoiceCallIcon width={24} height={24} />
-              </TouchableOpacity>
-            </View>
-          ),
-        }} 
+          </View>
+        }
       />
       <SafeAreaView className="flex-1">
         <ImageBackground 

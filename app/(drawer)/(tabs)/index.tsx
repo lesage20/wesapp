@@ -1,20 +1,17 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Stack, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { useAuthStore } from '~/store/store';
 import { Ionicons } from '@expo/vector-icons';
-import { DrawerActions } from '@react-navigation/native';
-import { useNavigation } from '@react-navigation/native';
 import CallsMaskInput, { FormatType } from '~/components/calls/calls-mask-input';
 import CallsKeyboard from '~/components/calls/calls-keyboard';
-import MenuIcon from '~/assets/svgs/header/menu';
+import CustomHeader from '~/components/CustomHeader';
 
 export default function CallsScreen() {
   const [wesappCode, setWesappCode] = useState('');
   const [codeFormat, setCodeFormat] = useState<FormatType | ''>('');
   const { user } = useAuthStore();
-  const navigation = useNavigation();
 
   const handleCodeChange = (masked: string, format: FormatType | '') => {
     setWesappCode(masked);
@@ -45,30 +42,20 @@ export default function CallsScreen() {
 
   return (
     <>
-      <Stack.Screen 
-        options={{ 
-          title: 'Calls',
-          headerShown: true,
-          headerTitleAlign: 'center',
-          headerLeft: () => (
-            <TouchableOpacity 
-              onPress={() => navigation.dispatch(DrawerActions.openDrawer())} 
-              className="p-2"
-            >
-              <MenuIcon width={24} height={24} />
+      <CustomHeader 
+        title="Calls"
+        showMenuButton={true}
+        showBackButton={false}
+        rightContent={
+          <View className="relative mr-4">
+            <TouchableOpacity className="p-2">
+              <Ionicons name="notifications" size={24} color="#4A5568" />
             </TouchableOpacity>
-          ),
-          headerRight: () => (
-            <View className="relative mr-4">
-              <TouchableOpacity className="p-2">
-                <Ionicons name="notifications" size={24} color="#4A5568" />
-              </TouchableOpacity>
-              <View className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full items-center justify-center">
-                <Text className="text-white text-xs font-bold">3</Text>
-              </View>
+            <View className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full items-center justify-center">
+              <Text className="text-white text-xs font-bold">3</Text>
             </View>
-          ),
-        }} 
+          </View>
+        }
       />
       <SafeAreaView className="flex-1 bg-gray-50">
         <KeyboardAvoidingView 
