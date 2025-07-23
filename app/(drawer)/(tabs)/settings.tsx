@@ -7,6 +7,8 @@ import { useAuthStore } from '~/store/store';
 import { AccountIcon, NotificationIcon, SecurityIcon, QrCodeIcon } from '~/assets/svgs/settings';
 import InviteIcon from '~/assets/svgs/settings/add-account';
 import CustomHeader from '~/components/CustomHeader';
+import Avatar from '~/components/Avatar';
+import { getTailwindColor } from '~/utils/colors';
 
 interface SettingsItem {
   id: string;
@@ -65,20 +67,15 @@ export default function SettingsScreen() {
               <View className="flex-row items-center flex-1">
                 {/* User Avatar */}
                 <TouchableOpacity 
-                  className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 items-center justify-center mr-4"
+                  className="mr-4"
                   onPress={() => router.push('/profile')}
                 >
-                  {user?.profileImage ? (
-                    <Image 
-                      source={{ uri: user.profileImage }} 
-                      className="w-16 h-16 rounded-2xl"
-                      resizeMode="cover"
-                    />
-                  ) : (
-                    <Text className="text-white font-bold text-xl">
-                      {(user?.username && user.username.length > 0) ? user.username.charAt(0).toUpperCase() : 'S'}
-                    </Text>
-                  )}
+                  <Avatar
+                    imageUrl={user?.profileImage}
+                    text={(user?.username && user.username.length > 0) ? user.username : 'Sneezy'}
+                    size={64}
+                    backgroundColor="blue-500"
+                  />
                 </TouchableOpacity>
                 
                 {/* User Info */}
@@ -119,7 +116,7 @@ export default function SettingsScreen() {
                 <Ionicons 
                   name="chevron-forward" 
                   size={20} 
-                  color="#14B8A6" 
+                  color={getTailwindColor('teal-500')} 
                 />
               </TouchableOpacity>
             ))}
@@ -131,7 +128,7 @@ export default function SettingsScreen() {
               onPress={handleLogout}
               className="bg-red-50 border border-red-200 rounded-2xl px-6 py-5 flex-row items-center justify-center"
             >
-              <Ionicons name="log-out-outline" size={24} color="#EF4444" />
+              <Ionicons name="log-out-outline" size={24} color={getTailwindColor('red-500')} />
               <Text className="text-red-500 font-semibold text-lg ml-3">
                 Déconnexion
               </Text>

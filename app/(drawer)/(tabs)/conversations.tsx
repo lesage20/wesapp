@@ -8,6 +8,7 @@ import { useNavigation } from '@react-navigation/native';
 import QrCodeIcon from '../../../assets/svgs/conversations/header-qr-code';
 import MenuIcon from '~/assets/svgs/header/menu';
 import CameraIcon from '~/assets/svgs/conversations/camera-scan';
+import Avatar from '~/components/Avatar';
 
 export default function ConversationsScreen() {
   const [searchText, setSearchText] = useState('');
@@ -78,6 +79,7 @@ export default function ConversationsScreen() {
               <TextInput
                 className="flex-1 ml-3 text-gray-900"
                 placeholder="Search"
+                placeholderTextColor="#9CA3AF"
                 value={searchText}
                 onChangeText={setSearchText}
               />
@@ -95,8 +97,12 @@ export default function ConversationsScreen() {
               className="flex-row items-center py-4 border-b border-gray-100"
               onPress={() => handleConversationPress('456-qsns-civ')}
             >
-              <View className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 items-center justify-center mr-4">
-                <Text className="text-white font-bold text-lg">A</Text>
+              <View className="mr-4">
+                <Avatar
+                  text="A"
+                  size={48}
+                  backgroundColor="blue-500"
+                />
               </View>
               <View className="flex-1">
                 <View className="flex-row items-center justify-between mb-1">
@@ -138,8 +144,12 @@ export default function ConversationsScreen() {
               className="flex-row items-center py-4 border-b border-gray-100"
               onPress={() => handleConversationPress('akissi')}
             >
-              <View className="w-12 h-12 rounded-2xl bg-pink-500 items-center justify-center mr-4">
-                <Text className="text-white font-bold text-lg">A</Text>
+              <View className="mr-4">
+                <Avatar
+                  text="A"
+                  size={48}
+                  backgroundColor="pink-500"
+                />
               </View>
               <View className="flex-1">
                 <View className="flex-row items-center justify-between mb-1">
@@ -155,8 +165,12 @@ export default function ConversationsScreen() {
               className="flex-row items-center py-4 border-b border-gray-100"
               onPress={() => handleConversationPress('kamate-drissa')}
             >
-              <View className="w-12 h-12 rounded-2xl bg-green-500 items-center justify-center mr-4">
-                <Text className="text-white font-bold text-lg">K</Text>
+              <View className="mr-4">
+                <Avatar
+                  text="K"
+                  size={48}
+                  backgroundColor="emerald-500"
+                />
               </View>
               <View className="flex-1">
                 <View className="flex-row items-center justify-between mb-1">
@@ -172,8 +186,12 @@ export default function ConversationsScreen() {
               className="flex-row items-center py-4 border-b border-gray-100"
               onPress={() => handleConversationPress('sarah')}
             >
-              <View className="w-12 h-12 rounded-2xl bg-purple-500 items-center justify-center mr-4">
-                <Text className="text-white font-bold text-lg">S</Text>
+              <View className="mr-4">
+                <Avatar
+                  text="S"
+                  size={48}
+                  backgroundColor="violet-500"
+                />
               </View>
               <View className="flex-1">
                 <View className="flex-row items-center justify-between mb-1">
@@ -188,8 +206,12 @@ export default function ConversationsScreen() {
               className="flex-row items-center py-4 border-b border-gray-100"
               onPress={() => handleConversationPress('tech-team')}
             >
-              <View className="w-12 h-12 rounded-2xl bg-indigo-500 items-center justify-center mr-4">
-                <Text className="text-white font-bold text-lg">T</Text>
+              <View className="mr-4">
+                <Avatar
+                  text="T"
+                  size={48}
+                  backgroundColor="indigo-500"
+                />
               </View>
               <View className="flex-1">
                 <View className="flex-row items-center justify-between mb-1">

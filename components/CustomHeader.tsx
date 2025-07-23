@@ -5,6 +5,8 @@ import { DrawerActions } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
 import BackIcon from '~/assets/svgs/header/back';
 import MenuIcon from '~/assets/svgs/header/menu';
+import Avatar from '~/components/Avatar';
+import { getTailwindColor, type TailwindColorName } from '~/utils/colors';
 
 interface CustomHeaderProps {
   // Basic props
@@ -17,7 +19,7 @@ interface CustomHeaderProps {
   showAvatar?: boolean;
   avatarImage?: string;
   avatarText?: string;
-  avatarBg?: string;
+  avatarBg?: TailwindColorName | string;
   isSpecialAvatar?: boolean;
   onAvatarPress?: () => void;
   
@@ -30,7 +32,7 @@ interface CustomHeaderProps {
   onRightPress?: () => void;
   
   // Style props
-  backgroundColor?: string;
+  backgroundColor?: TailwindColorName | string;
   titleAlign?: 'left' | 'center';
   shadowVisible?: boolean;
   
@@ -46,20 +48,27 @@ export default function CustomHeader({
   showAvatar = false,
   avatarImage,
   avatarText = 'A',
-  avatarBg = 'bg-gray-500',
+  avatarBg = 'gray-500',
   isSpecialAvatar = false,
   onAvatarPress,
   subtitle,
   rightContent,
   rightText,
   onRightPress,
-  backgroundColor = '#fbf9fa',
+  backgroundColor = 'gray-50',
   titleAlign = 'center',
   shadowVisible = false,
   customTitle,
 }: CustomHeaderProps) {
   const router = useRouter();
   const navigation = useNavigation();
+
+  const getResolvedColor = (color: TailwindColorName | string): string => {
+    // If it's already a hex color, return as is
+    if (color.startsWith('#')) return color;
+    // Otherwise, resolve from Tailwind colors
+    return getTailwindColor(color as TailwindColorName);
+  };
 
   const handleBackPress = () => {
     if (onBackPress) {
@@ -107,24 +116,19 @@ export default function CustomHeader({
     if (showAvatar) {
       return (
         <TouchableOpacity 
-          className="flex-row items-center"
+          className="flex-row items-center justify-between"
           onPress={onAvatarPress}
           disabled={!onAvatarPress}
         >
-          <View className={`w-10 h-10 rounded-2xl ${avatarBg} items-center justify-center mr-3`}>
-            {avatarImage ? (
-              <Image 
-                source={{ uri: avatarImage }} 
-                className="w-10 h-10 rounded-2xl"
-                resizeMode="cover"
+          <View className="mr-3">
+            
+              <Avatar
+                imageUrl={avatarImage}
+                text={avatarText}
+                size={40}
+                backgroundColor={avatarBg}
               />
-            ) : isSpecialAvatar ? (
-              <View className="w-8 h-8 rounded-xl bg-yellow-400 items-center justify-center">
-                <Text className="text-black font-bold text-xs">OEUFS</Text>
-              </View>
-            ) : (
-              <Text className="text-white font-bold text-sm">{avatarText}</Text>
-            )}
+            
           </View>
           <View>
             <Text className="text-gray-900 font-semibold text-lg">{title}</Text>
@@ -168,7 +172,7 @@ export default function CustomHeader({
     
       options={{ 
         headerShown: true,
-        headerStyle: { backgroundColor, borderBottomWidth: 1 , borderBottomColor: '#e2e8f0' },
+        headerStyle: { backgroundColor: getResolvedColor(backgroundColor), borderBottomWidth: 1 , borderBottomColor: getTailwindColor('gray-200') },
         headerShadowVisible: shadowVisible,
         headerLeft: renderLeftContent,
         headerTitle: titleAlign === 'center' ? title : '',

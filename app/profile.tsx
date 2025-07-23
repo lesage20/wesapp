@@ -5,6 +5,9 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuthStore } from '~/store/store';
 import CustomHeader from '~/components/CustomHeader';
+import Avatar from '~/components/Avatar';
+import CameraIcon from '~/assets/svgs/camera';
+import { getTailwindColor } from '~/utils/colors';
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -17,31 +20,23 @@ export default function ProfileScreen() {
         showBackButton={true}
       />
       <SafeAreaView className="flex-1 bg-gray-50">
-        <ScrollView className="flex-1 px-6 py-8">
+        <ScrollView className="flex-1 px-6 ">
           {/* Profile Avatar */}
           <View className="items-center mb-8">
             <View className="relative">
-              {/* Main avatar with gradient */}
-              <View className="w-32 h-32 rounded-3xl bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 items-center justify-center">
-                <View className="w-28 h-28 rounded-2xl bg-gradient-to-br from-blue-400 via-purple-400 to-pink-400 items-center justify-center">
-                  <View className="w-20 h-20 bg-white rounded-xl items-center justify-center">
-                    <View className="w-16 h-16 bg-gradient-to-br from-orange-400 to-pink-400 rounded-lg items-center justify-center">
-                      <View className="w-12 h-8 bg-gradient-to-r from-blue-500 to-teal-500 rounded transform rotate-12"></View>
-                    </View>
-                  </View>
-                </View>
-              </View>
+              {/* Main avatar with complex design */}
+              <Avatar size={100} text={user?.username?.charAt(0)}  />
               {/* Camera icon */}
               <View className="absolute bottom-0 right-0 w-8 h-8 bg-teal-600 rounded-lg items-center justify-center">
-                <Ionicons name="image-outline" size={16} color="white" />
+                <CameraIcon width={16} height={16} color="white" />
               </View>
             </View>
           </View>
 
-          {/* Profile Information */}
-          <View className="space-y-6">
+          {/* Profile Information Card */}
+          <View className="bg-white rounded-2xl border border-gray-200 mb-6">
             {/* Name Field */}
-            <View className="bg-white rounded-2xl p-4 border border-gray-200">
+            <View className="p-4">
               <View className="flex-row items-center justify-between">
                 <View className="flex-1">
                   <Text className="text-gray-600 text-sm mb-1">Name</Text>
@@ -50,60 +45,69 @@ export default function ProfileScreen() {
                   </Text>
                 </View>
                 <TouchableOpacity className="p-2">
-                  <Ionicons name="create-outline" size={20} color="#14B8A6" />
+                  <Ionicons name="pencil-outline" size={20} color={getTailwindColor('teal-500')} />
                 </TouchableOpacity>
               </View>
             </View>
 
+            {/* Separator */}
+            <View className="h-px bg-gray-200 mx-4" />
+
             {/* Identifier Field */}
-            <View className="bg-white rounded-2xl p-4 border border-gray-200">
+            <View className="p-4">
               <Text className="text-gray-600 text-sm mb-1">Identifiant</Text>
               <Text className="text-gray-900 font-semibold text-lg">456-QSNS-CIV</Text>
             </View>
 
+            {/* Separator */}
+            <View className="h-px bg-gray-200 mx-4" />
+
             {/* Phone Number Field */}
-            <View className="bg-white rounded-2xl p-4 border border-gray-200">
+            <View className="p-4">
               <Text className="text-gray-600 text-sm mb-1">Phone Number</Text>
               <Text className="text-gray-900 font-semibold text-lg">+2250715583531</Text>
             </View>
 
+            {/* Separator */}
+            <View className="h-px bg-gray-200 mx-4" />
+
             {/* Label Field */}
-            <View className="bg-white rounded-2xl p-4 border border-gray-200">
+            <View className="p-4">
               <View className="flex-row items-center justify-between">
                 <View className="flex-1">
                   <Text className="text-gray-600 text-sm mb-1">Label</Text>
                   <Text className="text-gray-900 font-semibold text-lg">Développeur</Text>
                 </View>
                 <TouchableOpacity className="p-2">
-                  <Ionicons name="chevron-forward" size={20} color="#14B8A6" />
+                  <Ionicons name="chevron-forward" size={20} color={getTailwindColor('teal-500')} />
                 </TouchableOpacity>
               </View>
             </View>
+          </View>
 
-            {/* Info Field */}
-            <View className="bg-white rounded-2xl p-4 border border-gray-200">
-              <View className="flex-row items-center justify-between">
-                <View className="flex-1">
-                  <Text className="text-gray-600 text-sm mb-1">Info</Text>
-                  <Text className="text-gray-900 font-semibold text-lg">Le temps c est de l argent..</Text>
-                </View>
-                <TouchableOpacity className="p-2">
-                  <Ionicons name="create-outline" size={20} color="#14B8A6" />
-                </TouchableOpacity>
+          {/* Info Field - Separate Card */}
+          <View className="bg-white rounded-2xl p-4 border border-gray-200 mb-8">
+            <View className="flex-row items-center justify-between">
+              <View className="flex-1">
+                <Text className="text-gray-600 text-sm mb-1">Info</Text>
+                <Text className="text-gray-900 font-semibold text-lg">Le temps c est de l argent..</Text>
               </View>
-            </View>
-
-            {/* Delete Account Button */}
-            <View className="mt-8">
-              <TouchableOpacity 
-                className="bg-white border border-gray-300 rounded-full py-4 px-8"
-                onPress={() => router.push('/delete-account')}
-              >
-                <Text className="text-gray-700 font-semibold text-lg text-center">
-                  Delete account
-                </Text>
+              <TouchableOpacity className="p-2">
+                <Ionicons name="pencil-outline" size={20} color={getTailwindColor('teal-500')} />
               </TouchableOpacity>
             </View>
+          </View>
+
+          {/* Delete Account Button */}
+          <View className="items-center">
+            <TouchableOpacity 
+              className="bg-white border border-gray-300 rounded-full py-4 px-8"
+              onPress={() => router.push('/delete-account')}
+            >
+              <Text className="text-gray-700 font-semibold text-lg text-center">
+                Delete account
+              </Text>
+            </TouchableOpacity>
           </View>
         </ScrollView>
       </SafeAreaView>
