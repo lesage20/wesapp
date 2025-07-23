@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Switch } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Stack, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import BackIcon from '~/assets/svgs/header/back';
+import CustomHeader from '~/components/CustomHeader';
 
 export default function PrivacyAndSecurityScreen() {
   const router = useRouter();
@@ -11,26 +11,14 @@ export default function PrivacyAndSecurityScreen() {
 
   return (
     <>
-      <Stack.Screen 
-        options={{ 
-          headerShown: true,
-          headerStyle: { backgroundColor: 'white' },
-          headerShadowVisible: false,
-          headerLeft: () => (
-            <TouchableOpacity 
-              onPress={() => router.back()} 
-              className="p-2"
-            >
-              <BackIcon width={24} height={24} />
-            </TouchableOpacity>
-          ),
-          headerTitle: () => (
-            <View className="items-center">
-              <Text className="text-gray-900 font-semibold text-lg">Privacy and</Text>
-              <Text className="text-gray-900 font-semibold text-lg">Security</Text>
-            </View>
-          ),
-        }} 
+      <CustomHeader 
+        customTitle={
+          <View className="items-center">
+            <Text className="text-gray-900 font-semibold text-lg">Privacy and</Text>
+            <Text className="text-gray-900 font-semibold text-lg">Security</Text>
+          </View>
+        }
+        showBackButton={true}
       />
       <SafeAreaView className="flex-1 bg-gray-50">
         <ScrollView className="flex-1 px-6 py-8">

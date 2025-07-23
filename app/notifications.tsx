@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Switch } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Stack, useRouter } from 'expo-router';
-import BackIcon from '~/assets/svgs/header/back';
+import { useRouter } from 'expo-router';
+import CustomHeader from '~/components/CustomHeader';
 
 export default function NotificationsScreen() {
   const router = useRouter();
@@ -11,22 +11,9 @@ export default function NotificationsScreen() {
 
   return (
     <>
-      <Stack.Screen 
-        options={{ 
-          headerShown: true,
-          headerStyle: { backgroundColor: 'white' },
-          headerShadowVisible: false,
-          headerLeft: () => (
-            <TouchableOpacity 
-              onPress={() => router.back()} 
-              className="p-2"
-            >
-              <BackIcon width={24} height={24} />
-            </TouchableOpacity>
-          ),
-          headerTitle: 'Notification',
-          headerTitleAlign: 'center',
-        }} 
+      <CustomHeader 
+        title="Notification"
+        showBackButton={true}
       />
       <SafeAreaView className="flex-1 bg-gray-50">
         <ScrollView className="flex-1 px-6 py-8">

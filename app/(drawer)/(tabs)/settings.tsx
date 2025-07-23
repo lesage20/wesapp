@@ -82,12 +82,15 @@ export default function SettingsScreen() {
                 </TouchableOpacity>
                 
                 {/* User Info */}
-                <View className="flex-1">
+                <TouchableOpacity 
+                  className="flex-1"
+                  onPress={() => router.push('/profile')}
+                >
                   <Text className="text-xl font-bold text-gray-900">
                     {(user?.username && user.username.length > 0) ? user.username : 'Sneezy'}
                   </Text>
                   <Text className="text-gray-600 mt-1">Développeur</Text>
-                </View>
+                </TouchableOpacity>
               </View>
 
               {/* QR Code Icon */}
