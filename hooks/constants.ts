@@ -7,8 +7,9 @@
 
 // Configuration API
 export const API_CONFIG = {
-  // URL de base de l'API (à modifier selon l'environnement)
-  BASE_URL: 'https://api.wesapp.com',
+  // URL de base de l'API (à configurer selon l'environnement)
+  // Pour le développement, remplacez par votre URL d'API locale
+  BASE_URL: 'https://wesapp.waretrack.online/', // ⚠️ À remplacer par votre URL d'API
   
   // Timeout des requêtes en millisecondes
   TIMEOUT: 30000,

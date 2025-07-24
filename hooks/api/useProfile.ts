@@ -23,7 +23,7 @@ import {
 
 interface UseProfileOptions {
   autoLoad?: boolean;
-  loadSettings?: boolean;
+  loadUserSettings?: boolean;
 }
 
 interface UpdateProfilePayload {
@@ -46,7 +46,7 @@ interface CreatePremiumProfilePayload {
 }
 
 export const useProfile = (options: UseProfileOptions = {}): UseProfileReturn => {
-  const { autoLoad = false, loadSettings = false } = options;
+  const { autoLoad = false, loadUserSettings = false } = options;
   const { user, login } = useAuthStore();
   
   // États locaux
@@ -398,21 +398,21 @@ export const useProfile = (options: UseProfileOptions = {}): UseProfileReturn =>
   const refresh = useCallback(async (): Promise<void> => {
     await Promise.all([
       loadProfile(),
-      loadSettings && settings ? loadSettings() : Promise.resolve(),
+      loadUserSettings && settings ? loadSettings() : Promise.resolve(),
       loadWeSappCodes(),
       checkPremiumStatus(),
     ]);
-  }, [loadProfile, loadSettings, loadWeSappCodes, checkPremiumStatus, settings]);
+  }, [loadProfile, loadUserSettings, loadWeSappCodes, checkPremiumStatus, settings, loadSettings]);
   
   // Auto-load au montage si demandé
   useEffect(() => {
     if (autoLoad) {
       loadProfile();
-      if (loadSettings) {
+      if (loadUserSettings) {
         loadSettings();
       }
     }
-  }, [autoLoad, loadSettings, loadProfile]);
+  }, [autoLoad, loadUserSettings, loadProfile, loadSettings]);
   
   // Synchroniser le profil avec le store global
   useEffect(() => {

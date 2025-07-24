@@ -9,6 +9,7 @@ import { StatusBar } from 'expo-status-bar';
 import * as NavigationBar from 'expo-navigation-bar';
 import * as SystemUI from 'expo-system-ui';
 import * as SplashScreen from 'expo-splash-screen';
+import Toast from 'react-native-toast-message';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -64,6 +65,7 @@ export default function RootLayout() {
           <Stack.Screen name="modal" options={{ title: 'Modal', presentation: 'modal' }} />
         </Stack>
       </SafeAreaView>
+      <Toast />
     </GestureHandlerRootView>
   );
 }

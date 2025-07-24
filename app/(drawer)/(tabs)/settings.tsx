@@ -48,7 +48,10 @@ export default function SettingsScreen() {
   ];
 
   const handleLogout = () => {
+
     logout();
+    router.push('/login');
+    
   };
 
   return (

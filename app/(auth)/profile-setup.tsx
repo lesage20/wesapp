@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, TextInput, Image, Alert, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, TextInput, Image, Alert, KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuthStore } from '~/store/store';
+import { useAuth } from '~/hooks';
 
 export default function ProfileSetupScreen() {
   const [username, setUsername] = useState('');
@@ -11,6 +12,9 @@ export default function ProfileSetupScreen() {
   const router = useRouter();
   const { phoneNumber } = useLocalSearchParams();
   const { login } = useAuthStore();
+  
+  // Hook d'authentification
+  const { createProfile, isLoading, error } = useAuth();
 
   const pickImage = async () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -32,20 +36,24 @@ export default function ProfileSetupScreen() {
     }
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (username.trim()) {
-      // Save user data to auth store
-      const user = {
-        id: Math.random().toString(36).substr(2, 9), // Generate temporary ID
-        phoneNumber: (phoneNumber as string) || '',
-        username: username.trim(),
-        profileImage: profileImage || undefined,
-      };
-      
-      login(user);
-      
-      // Navigate to main app
-      router.replace('/(drawer)/(tabs)');
+      try {
+        const profileData = {
+          username: username.trim(),
+          profile_photo: profileImage || undefined,
+          bio: '', // Bio par défaut vide
+          label: 'Utilisateur', // Label par défaut
+        };
+        
+        await createProfile(profileData);
+        
+        // Navigation vers l'app principale en cas de succès
+        router.replace('/(drawer)/(tabs)');
+      } catch (err) {
+        // L'erreur est déjà gérée par le hook (toast)
+        console.error('Erreur lors de la création du profil:', err);
+      }
     } else {
       Alert.alert('Username required', 'Please enter a username to continue.');
     }
@@ -106,16 +114,32 @@ export default function ProfileSetupScreen() {
         </View>
       </View>
 
+      {/* Error Message */}
+      {error && (
+        <View className="bg-red-50 border border-red-200 rounded-lg p-3 mb-6">
+          <Text className="text-red-600 text-center text-sm">{error}</Text>
+        </View>
+      )}
+
       {/* Next Button */}
       <TouchableOpacity
-        className={`py-4 rounded-lg ${username.trim() ? 'bg-teal-700' : 'bg-gray-300'}`}
+        className={`py-4 rounded-lg ${username.trim() && !isLoading ? 'bg-teal-700' : 'bg-gray-300'}`}
         onPress={handleNext}
-        disabled={!username.trim()}
+        disabled={!username.trim() || isLoading}
       >
-        <Text className={`text-center font-semibold text-lg ${username.trim() ? 'text-white' : 'text-gray-500'}`}>
-          Next
+        {isLoading ? (
+          <View className="flex-row items-center justify-center">
+            <ActivityIndicator size="small" color="white" />
+            <Text className="text-white text-center font-semibold text-lg ml-2">
+              Creating...
+            </Text>
+          </View>
+        ) : (
+          <Text className={`text-center font-semibold text-lg ${username.trim() ? 'text-white' : 'text-gray-500'}`}>
+            Next
           </Text>
-          </TouchableOpacity>
+        )}
+      </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
     </View>

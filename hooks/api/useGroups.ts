@@ -420,7 +420,7 @@ export const useGroups = (options: UseGroupsOptions = {}): UseGroupsReturn => {
     return getGroupsByAdmin(adminId).length;
   }, [getGroupsByAdmin]);
   
-  const getTotalMembersCount = useCallback(): number => {
+  const getTotalMembersCount = useCallback((): number => {
     return groups.reduce((total, group) => total + group.members.length, 0);
   }, [groups]);
   

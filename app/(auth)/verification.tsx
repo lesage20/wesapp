@@ -1,12 +1,16 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, TouchableOpacity, TextInput, Image, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, TextInput, Image, KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useAuth } from '~/hooks';
 
 export default function VerificationScreen() {
   const { phoneNumber } = useLocalSearchParams();
   const [code, setCode] = useState(['', '', '', '', '', '']);
   const inputRefs = useRef<TextInput[]>([]);
   const router = useRouter();
+  
+  // Hook d'authentification
+  const { verifyOTP, isLoading, error } = useAuth();
 
   const handleCodeChange = (value: string, index: number) => {
     const newCode = [...code];
@@ -26,14 +30,25 @@ export default function VerificationScreen() {
     }
   };
 
-  const handleVerifyCode = () => {
+  const handleVerifyCode = async () => {
     const verificationCode = code.join('');
-    if (verificationCode.length === 6) {
-      // Navigate to profile setup with phone number
-      router.push({
-        pathname: '/(auth)/profile-setup',
-        params: { phoneNumber }
-      });
+    if (verificationCode.length === 6 && phoneNumber) {
+      try {
+        await verifyOTP(phoneNumber as string, verificationCode);
+        // Navigation vers profile-setup en cas de succès
+        router.push({
+          pathname: '/(auth)/profile-setup',
+          params: { phoneNumber }
+        });
+      } catch (err) {
+        // L'erreur est déjà gérée par le hook (toast)
+        console.error('Erreur lors de la vérification OTP:', err);
+        // Réinitialiser le code en cas d'erreur
+        setCode(['', '', '', '', '', '']);
+        if (inputRefs.current[0]) {
+          inputRefs.current[0].focus();
+        }
+      }
     }
   };
 
@@ -93,15 +108,31 @@ export default function VerificationScreen() {
           ))}
         </View>
 
+        {/* Error Message */}
+        {error && (
+          <View className="bg-red-50 border border-red-200 rounded-lg p-3 mb-6">
+            <Text className="text-red-600 text-center text-sm">{error}</Text>
+          </View>
+        )}
+
           {/* Verify Button */}
           <TouchableOpacity
-            className={`py-4 rounded-lg ${isCodeComplete ? 'bg-teal-600' : 'bg-gray-300'}`}
+            className={`py-4 rounded-lg ${(isCodeComplete && !isLoading) ? 'bg-teal-600' : 'bg-gray-300'}`}
             onPress={handleVerifyCode}
-            disabled={!isCodeComplete}
+            disabled={!isCodeComplete || isLoading}
           >
-            <Text className={`text-center font-semibold text-lg ${isCodeComplete ? 'text-white' : 'text-gray-500'}`}>
-              Vérifier le code
-            </Text>
+            {isLoading ? (
+              <View className="flex-row items-center justify-center">
+                <ActivityIndicator size="small" color="white" />
+                <Text className="text-white text-center font-semibold text-lg ml-2">
+                  Verification...
+                </Text>
+              </View>
+            ) : (
+              <Text className={`text-center font-semibold text-lg ${isCodeComplete ? 'text-white' : 'text-gray-500'}`}>
+                Vérifier le code
+              </Text>
+            )}
           </TouchableOpacity>
           </View>
         </ScrollView>

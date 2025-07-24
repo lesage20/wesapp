@@ -8,6 +8,7 @@
 import { useState, useCallback, useRef } from 'react';
 import { Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Toast from 'react-native-toast-message';
 import { 
   API_CONFIG, 
   DEFAULT_HEADERS, 
@@ -29,16 +30,17 @@ interface RequestConfig {
   timeout?: number;
 }
 
-// Utilitaire pour afficher les toasts (à remplacer par votre système de toast préféré)
+// Utilitaire pour afficher les toasts
 const showToast = (message: string, type: 'success' | 'error' | 'warning' | 'info' = 'info') => {
-  // Temporary implementation with Alert - remplacer par react-native-toast-message ou similaire
-  if (type === 'error') {
-    Alert.alert('Erreur', message);
-  } else if (type === 'success') {
-    Alert.alert('Succès', message);
-  } else {
-    Alert.alert('Information', message);
-  }
+  Toast.show({
+    type: type === 'warning' ? 'info' : type,
+    text1: type === 'error' ? 'Erreur' : type === 'success' ? 'Succès' : 'Information',
+    text2: message,
+    position: 'top',
+    visibilityTime: type === 'error' ? 4000 : 3000,
+    autoHide: true,
+    topOffset: 60,
+  });
 };
 
 // Utilitaire pour construire l'URL complète
@@ -47,7 +49,9 @@ const buildUrl = (endpoint: string): string => {
     ? API_CONFIG.BASE_URL.slice(0, -1) 
     : API_CONFIG.BASE_URL;
   const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
-  return `${baseUrl}${cleanEndpoint}`;
+  const url =  `${baseUrl}${cleanEndpoint}`;
+  console.log('url', url);
+  return url;
 };
 
 // Utilitaire pour récupérer le token d'authentification
@@ -76,24 +80,56 @@ const getHeaders = async (customHeaders: Record<string, string> = {}, requiresAu
 
 // Utilitaire pour gérer les erreurs HTTP
 const handleHttpError = (status: number, data: any): string => {
+  // Essayer d'extraire le message d'erreur du backend
+  let backendMessage = null;
+  
+  if (data) {
+    // Gérer différents formats de réponse d'erreur du backend
+    if (typeof data === 'string') {
+      backendMessage = data;
+    } else if (data.message) {
+      backendMessage = data.message;
+    } else if (data.error) {
+      backendMessage = data.error;
+    } else if (data.detail) {
+      backendMessage = data.detail;
+    } else if (data.non_field_errors && Array.isArray(data.non_field_errors)) {
+      backendMessage = data.non_field_errors[0];
+    } else if (typeof data === 'object') {
+      // Gérer les erreurs de validation par champ
+      const errors = [];
+      for (const [field, messages] of Object.entries(data)) {
+        if (Array.isArray(messages)) {
+          errors.push(`${field}: ${messages[0]}`);
+        } else if (typeof messages === 'string') {
+          errors.push(`${field}: ${messages}`);
+        }
+      }
+      if (errors.length > 0) {
+        backendMessage = errors.join(', ');
+      }
+    }
+  }
+  
+  // Si on a un message du backend, l'utiliser, sinon utiliser le message par défaut
   switch (status) {
     case 400:
-      return data?.message || ERROR_MESSAGES.VALIDATION_ERROR;
+      return backendMessage || ERROR_MESSAGES.VALIDATION_ERROR;
     case 401:
-      return ERROR_MESSAGES.UNAUTHORIZED;
+      return backendMessage || ERROR_MESSAGES.UNAUTHORIZED;
     case 403:
-      return ERROR_MESSAGES.FORBIDDEN;
+      return backendMessage || ERROR_MESSAGES.FORBIDDEN;
     case 404:
-      return ERROR_MESSAGES.NOT_FOUND;
+      return backendMessage || ERROR_MESSAGES.NOT_FOUND;
     case 408:
-      return ERROR_MESSAGES.TIMEOUT_ERROR;
+      return backendMessage || ERROR_MESSAGES.TIMEOUT_ERROR;
     case 500:
     case 502:
     case 503:
     case 504:
-      return ERROR_MESSAGES.SERVER_ERROR;
+      return backendMessage || ERROR_MESSAGES.SERVER_ERROR;
     default:
-      return data?.message || ERROR_MESSAGES.UNKNOWN_ERROR;
+      return backendMessage || ERROR_MESSAGES.UNKNOWN_ERROR;
   }
 };
 
@@ -106,11 +142,17 @@ const makeRequest = async <T = any>(config: RequestConfig): Promise<ApiResponse<
     const fullUrl = buildUrl(url);
     
     // Configuration de la requête
+    const abortController = new AbortController();
     const requestConfig: RequestInit = {
       method,
       headers,
-      signal: AbortSignal.timeout(timeout),
+      signal: abortController.signal,
     };
+    
+    // Simuler un timeout manuel pour React Native
+    const timeoutId = setTimeout(() => {
+      abortController.abort();
+    }, timeout);
     
     // Ajouter le body pour les méthodes qui le supportent
     if (['POST', 'PUT', 'PATCH'].includes(method) && data) {
@@ -125,6 +167,9 @@ const makeRequest = async <T = any>(config: RequestConfig): Promise<ApiResponse<
     
     const response = await fetch(fullUrl, requestConfig);
     
+    // Annuler le timeout puisque la requête a réussi
+    clearTimeout(timeoutId);
+    
     // Traitement de la réponse
     let responseData: any = null;
     const contentType = response.headers.get('content-type');
@@ -136,7 +181,12 @@ const makeRequest = async <T = any>(config: RequestConfig): Promise<ApiResponse<
     }
     
     if (!response.ok) {
+      console.log('Erreur API - Status:', response.status);
+      console.log('Erreur API - Response data:', responseData);
+      
       const errorMessage = handleHttpError(response.status, responseData);
+      console.log('Erreur API - Message final:', errorMessage);
+      
       return {
         success: false,
         error: {
@@ -153,6 +203,7 @@ const makeRequest = async <T = any>(config: RequestConfig): Promise<ApiResponse<
     };
     
   } catch (error: any) {
+    clearTimeout(timeoutId);
     console.error('Erreur API:', error);
     
     let errorMessage = ERROR_MESSAGES.UNKNOWN_ERROR;
