@@ -3,8 +3,11 @@ import '../global.css';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Stack } from 'expo-router';
 import { useEffect } from 'react';
-import { View, Platform, useColorScheme } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useColorScheme, Platform } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
+import * as NavigationBar from 'expo-navigation-bar';
+import * as SystemUI from 'expo-system-ui';
 import * as SplashScreen from 'expo-splash-screen';
 
 SplashScreen.preventAutoHideAsync();
@@ -15,8 +18,8 @@ export const unstable_settings = {
 };
 
 export default function RootLayout() {
-  const insets = useSafeAreaInsets();
   const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
 
   useEffect(() => {
     const hideSplash = async () => {
@@ -27,32 +30,40 @@ export default function RootLayout() {
     hideSplash();
   }, []);
 
+  useEffect(() => {
+    const configureSystemUI = async () => {
+      try {
+        // Configure status bar
+        await SystemUI.setBackgroundColorAsync(isDark ? '#000000' : '#ffffff');
+        
+        // Configure Android navigation bar
+        if (Platform.OS === 'android') {
+          await NavigationBar.setBackgroundColorAsync(isDark ? '#000000' : '#ffffff');
+          await NavigationBar.setButtonStyleAsync(isDark ? 'light' : 'dark');
+        }
+      } catch (error) {
+        console.warn('Failed to configure system UI:', error);
+      }
+    };
+
+    configureSystemUI();
+  }, [isDark]);
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <Stack>
-        <Stack.Screen name="index" options={{ headerShown: false }} />
-        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-        <Stack.Screen name="(drawer)" options={{ headerShown: false }} />
-        <Stack.Screen name="(modal)" options={{ headerShown: false, presentation: 'modal' }} />
-        <Stack.Screen name="my-connections" options={{ headerShown: false }} />
-        <Stack.Screen name="change-account" options={{ headerShown: false }} />
-        <Stack.Screen name="profile" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ title: 'Modal', presentation: 'modal' }} />
-      </Stack>
-      
-      {/* Android Navigation Bar Background - Only on Android */}
-      {Platform.OS === 'android' && insets.bottom > 0 && (
-        <View 
-          style={{
-            position: 'absolute',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            height: insets.bottom,
-            backgroundColor: colorScheme === 'dark' ? '#000000' : '#FFFFFF',
-          }}
-        />
-      )}
+      <StatusBar style="auto" />
+      <SafeAreaView style={{ flex: 1 }} edges={['left', 'right', 'bottom']}>
+        <Stack>
+          <Stack.Screen name="index" options={{ headerShown: false }} />
+          <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+          <Stack.Screen name="(drawer)" options={{ headerShown: false }} />
+          <Stack.Screen name="(modal)" options={{ headerShown: false, presentation: 'modal' }} />
+          <Stack.Screen name="my-connections" options={{ headerShown: false }} />
+          <Stack.Screen name="change-account" options={{ headerShown: false }} />
+          <Stack.Screen name="profile" options={{ headerShown: false }} />
+          <Stack.Screen name="modal" options={{ title: 'Modal', presentation: 'modal' }} />
+        </Stack>
+      </SafeAreaView>
     </GestureHandlerRootView>
   );
 }

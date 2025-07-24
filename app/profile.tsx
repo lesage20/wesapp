@@ -1,6 +1,5 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuthStore } from '~/store/store';
@@ -19,7 +18,7 @@ export default function ProfileScreen() {
         title="Profile"
         showBackButton={true}
       />
-      <SafeAreaView className="flex-1 bg-gray-50">
+      <View className="flex-1 bg-gray-50">
         <ScrollView className="flex-1 px-6 ">
           {/* Profile Avatar */}
           <View className="items-center mb-8">
@@ -110,7 +109,7 @@ export default function ProfileScreen() {
             </TouchableOpacity>
           </View>
         </ScrollView>
-      </SafeAreaView>
+      </View>
     </>
   );
 }

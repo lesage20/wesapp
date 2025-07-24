@@ -1,13 +1,17 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, TouchableOpacity, TextInput, ScrollView, Image, ImageBackground, Alert, Clipboard, Vibration } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { View, Text, TouchableOpacity, TextInput, ScrollView, Image, ImageBackground, Alert, Clipboard, Vibration, KeyboardAvoidingView, Platform } from 'react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';  
 import { Ionicons } from '@expo/vector-icons';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import CustomHeader from '~/components/CustomHeader';
-import MessageBubble, { Message, MessageReaction, MessageLocation } from '~/components/MessageBubble';
+import MessageBubble, { Message, MessageReaction, MessageLocation, MessageContact, MessageDocument } from '~/components/MessageBubble';
 import ReactionPicker from '~/components/ReactionPicker';
 import ReplyPreview from '~/components/ReplyPreview';
 import MessageActions from '~/components/MessageActions';
+import MediaAttachmentMenu from '~/components/MediaAttachmentMenu';
+import WhatsAppAudioRecorder from '~/components/WhatsAppAudioRecorder';
+import ImageViewerModal from '~/components/ImageViewerModal';
+import VideoPlayer from '~/components/VideoPlayer';
 import VideoCallIcon from '~/assets/svgs/chat/video-call';
 import VoiceCallIcon from '~/assets/svgs/chat/voice-call';
 import SendIcon from '~/assets/svgs/chat/send';
@@ -25,6 +29,12 @@ export default function ChatScreen() {
   const [selectedMessageId, setSelectedMessageId] = useState<string | null>(null);
   const [showMessageActions, setShowMessageActions] = useState(false);
   const [messageActionsPosition, setMessageActionsPosition] = useState({ x: 0, y: 0 });
+  const [showMediaMenu, setShowMediaMenu] = useState(false);
+  const [showAudioRecorder, setShowAudioRecorder] = useState(false);
+  const [showImageViewer, setShowImageViewer] = useState(false);
+  const [currentImageUrl, setCurrentImageUrl] = useState('');
+  const [showVideoPlayer, setShowVideoPlayer] = useState(false);
+  const [currentVideoUrl, setCurrentVideoUrl] = useState('');
   const scrollViewRef = useRef<ScrollView>(null);
 
   // Get contact data based on ID
@@ -108,6 +118,15 @@ export default function ChatScreen() {
         timestamp: '14:37'
       },
       {
+        id: '4b',
+        type: 'audio',
+        content: '',
+        audioUrl: 'https://example.com/audio2.mp3',
+        audioDuration: 23,
+        isOwn: false,
+        timestamp: '14:38'
+      },
+      {
         id: '5',
         type: 'text',
         content: 'Super ! Tu fais quoi ce soir ?',
@@ -130,6 +149,23 @@ export default function ChatScreen() {
         isOwn: false,
         timestamp: '14:45',
         replyTo: '6'
+      },
+      {
+        id: '8',
+        type: 'audio',
+        content: '',
+        audioUrl: 'https://example.com/long-audio.mp3',
+        audioDuration: 127, // 2:07
+        isOwn: true,
+        timestamp: '14:47'
+      },
+      {
+        id: '9',
+        type: 'text',
+        content: 'Exactement ! C\'était génial 👍',
+        isOwn: false,
+        timestamp: '14:50',
+        replyTo: '8' // Réponse à notre message audio
       }
     ];
     setMessages(mockMessages);
@@ -243,6 +279,122 @@ export default function ChatScreen() {
     return messages.find(m => m.id === replyToId);
   };
 
+  // Media handlers
+
+  const handleImageSelected = (uri: string, type: 'camera' | 'gallery') => {
+    const newMessage: Message = {
+      id: Date.now().toString(),
+      type: 'image',
+      content: type === 'camera' ? 'Photo from camera' : 'Photo from gallery',
+      imageUrl: uri,
+      isOwn: true,
+      timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+      replyTo: replyToMessage?.id
+    };
+    
+    setMessages(prev => [...prev, newMessage]);
+    setReplyToMessage(null);
+    scrollToBottom();
+  };
+
+  const handleVideoSelected = (uri: string, thumbnail?: string, duration?: number) => {
+    const newMessage: Message = {
+      id: Date.now().toString(),
+      type: 'video',
+      content: 'Video',
+      videoUrl: uri,
+      videoDuration: duration,
+      videoThumbnail: thumbnail,
+      isOwn: true,
+      timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+      replyTo: replyToMessage?.id
+    };
+    
+    setMessages(prev => [...prev, newMessage]);
+    setReplyToMessage(null);
+    scrollToBottom();
+  };
+
+  const handleDocumentSelected = (document: MessageDocument) => {
+    const newMessage: Message = {
+      id: Date.now().toString(),
+      type: 'document',
+      content: document.name,
+      document,
+      isOwn: true,
+      timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+      replyTo: replyToMessage?.id
+    };
+    
+    setMessages(prev => [...prev, newMessage]);
+    setReplyToMessage(null);
+    scrollToBottom();
+  };
+
+  const handleContactSelected = (contact: MessageContact) => {
+    const newMessage: Message = {
+      id: Date.now().toString(),
+      type: 'contact',
+      content: contact.name,
+      contact,
+      isOwn: true,
+      timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+      replyTo: replyToMessage?.id
+    };
+    
+    setMessages(prev => [...prev, newMessage]);
+    setReplyToMessage(null);
+    scrollToBottom();
+  };
+
+  const handleLocationSelected = (location: MessageLocation) => {
+    const newMessage: Message = {
+      id: Date.now().toString(),
+      type: 'location',
+      content: '',
+      location,
+      isOwn: true,
+      timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+      replyTo: replyToMessage?.id
+    };
+    
+    setMessages(prev => [...prev, newMessage]);
+    setReplyToMessage(null);
+    scrollToBottom();
+  };
+
+  const handleAudioRecordingComplete = (uri: string, duration: number) => {
+    const newMessage: Message = {
+      id: Date.now().toString(),
+      type: 'audio',
+      content: '',
+      audioUrl: uri,
+      audioDuration: duration,
+      isOwn: true,
+      timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+      replyTo: replyToMessage?.id
+    };
+    
+    setMessages(prev => [...prev, newMessage]);
+    setReplyToMessage(null);
+    setShowAudioRecorder(false);
+    scrollToBottom();
+  };
+
+  const handleMicPress = () => {
+    if (message.trim()) {
+      handleSend();
+    } else {
+      setShowAudioRecorder(true);
+    }
+  };
+
+  const scrollToBottom = () => {
+    setTimeout(() => {
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+    }, 100);
+  };
+
   if (!messages || messages.length === 0) {
     return (
       <>
@@ -265,7 +417,7 @@ export default function ChatScreen() {
             </View>
           }
         />
-        <SafeAreaView className="flex-1">
+        <View className="flex-1">
           <ImageBackground 
             source={require('~/assets/images/chat-bg.png')} 
             className="flex-1 items-center justify-center"
@@ -273,7 +425,7 @@ export default function ChatScreen() {
           >
             <Text className="text-white/70">Loading messages...</Text>
           </ImageBackground>
-        </SafeAreaView>
+        </View>
       </>
     );
   }
@@ -299,80 +451,102 @@ export default function ChatScreen() {
           </View>
         }
       />
-      <SafeAreaView className="flex-1">
-        <ImageBackground 
-          source={require('~/assets/images/chat-bg.png')} 
-          className="flex-1"
-          resizeMode="cover"
-        >
-          {/* Messages Container */}
-          <ScrollView 
-            ref={scrollViewRef}
-            className="flex-1 px-4 py-4"
-            showsVerticalScrollIndicator={false}
+      <KeyboardAvoidingView 
+        className="flex-1" 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+      >
+        <View className="flex-1">
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <ImageBackground 
+            source={require('~/assets/images/chat-bg.png')} 
+            className="flex-1"
+            resizeMode="cover"
           >
+            {/* Messages Container */}
+            <ScrollView 
+              ref={scrollViewRef}
+              className="flex-1"
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 16, paddingBottom: 20 }}
+              scrollEnabled={true}
+              nestedScrollEnabled={true}
+              keyboardShouldPersistTaps="handled"
+            >
             {messages.map((msg) => (
               <MessageBubble
                 key={msg.id}
                 message={msg}
                 replyToMessage={msg.replyTo ? findReplyToMessage(msg.replyTo) : undefined}
                 onSwipeReply={handleSwipeReply}
-                onLongPress={(messageId) => handleLongPress(messageId, { x: 200, y: 400 })}
+                onLongPress={handleLongPress}
                 onReaction={handleReaction}
                 onImagePress={(imageUrl) => {
-                  Alert.alert('Image', 'Image viewer coming soon!');
+                  setCurrentImageUrl(imageUrl);
+                  setShowImageViewer(true);
                 }}
-                onLocationPress={(location) => {
-                  Alert.alert('Location', `Opening ${location.name}...`);
+                onVideoPress={(videoUrl) => {
+                  setCurrentVideoUrl(videoUrl);
+                  setShowVideoPlayer(true);
+                }}
+                // onLocationPress={(location) => {
+                //   Alert.alert('Location', `Opening ${location.name}...`);
+                // }}
+                // onContactPress={(contact) => {
+                //   Alert.alert('Contact', `Contact: ${contact.name} - ${contact.phoneNumber}`);
+                // }}
+                onDocumentPress={(document) => {
+                  Alert.alert('Document', `Opening ${document.name}...`);
                 }}
               />
             ))}
-          </ScrollView>
+            </ScrollView>
 
-          {/* Reply Preview */}
-          <ReplyPreview 
-            replyToMessage={replyToMessage}
-            onClose={() => setReplyToMessage(null)}
-            visible={!!replyToMessage}
-          />
+            {/* Reply Preview */}
+            <ReplyPreview 
+              replyToMessage={replyToMessage}
+              onClose={() => setReplyToMessage(null)}
+              visible={!!replyToMessage}
+            />
 
-          {/* Input Section */}
-          <View className="bg-white px-4 py-3 flex-row items-center">
-            <TouchableOpacity className="w-12 h-12 bg-gray-200 rounded-full items-center justify-center mr-3">
-              <Ionicons name="add" size={24} color="#6B7280" />
-            </TouchableOpacity>
-            
-            <View className="flex-1 flex-row items-center bg-gray-100 rounded-full px-4 py-2">
-              <TextInput
-                className="flex-1 text-gray-900"
-                placeholder={replyToMessage ? 'Reply...' : 'Type a message...'}
-                value={message}
-                onChangeText={setMessage}
-                multiline
-              />
-            </View>
+            {/* Input Section */}
+            {!showAudioRecorder && (
+              <View className="bg-white px-4 py-3 flex-row items-center">
+                <TouchableOpacity 
+                  onPress={() => setShowMediaMenu(true)}
+                  className="w-12 h-12 bg-gray-200 rounded-full items-center justify-center mr-3"
+                >
+                  <Ionicons name="add" size={24} color="#6B7280" />
+                </TouchableOpacity>
+                
+                <View className="flex-1 flex-row items-center bg-gray-100 rounded-full px-4 py-1">
+                  <TextInput
+                    className="flex-1 text-gray-900"
+                    placeholder={replyToMessage ? 'Reply...' : 'Type a message...'}
+                    value={message}
+                    onChangeText={setMessage}
+                    multiline
+                  />
+                </View>
 
-            <TouchableOpacity className="w-12 h-12 bg-teal-100 rounded-full items-center justify-center ml-3">
-              <Ionicons name="location" size={20} color="#14B8A6" />
-            </TouchableOpacity>
+                <TouchableOpacity 
+                  onPress={handleMicPress}
+                  className={`w-12 h-12 rounded-full items-center justify-center ml-2 ${
+                    message.trim() ? 'bg-teal-600' : 'bg-gray-200'
+                  }`}
+                >
+                  {message.trim() ? (
+                    <SendIcon width={20} height={20} />
+                  ) : (
+                    <MicIcon width={20} height={20} />
+                  )}
+                </TouchableOpacity>
+              </View>
+            )}
+          </ImageBackground>
 
-            <TouchableOpacity 
-              onPress={handleSend}
-              className={`w-12 h-12 rounded-full items-center justify-center ml-2 ${
-                message.trim() ? 'bg-teal-600' : 'bg-gray-200'
-              }`}
-            >
-              {message.trim() ? (
-                <SendIcon width={20} height={20} />
-              ) : (
-                <MicIcon width={20} height={20} />
-              )}
-            </TouchableOpacity>
-          </View>
-        </ImageBackground>
-
-        {/* Overlays */}
-        <ReactionPicker
+          {/* Overlays */}
+          <ReactionPicker
           visible={showReactionPicker}
           position={reactionPickerPosition}
           onReaction={(emoji) => {
@@ -405,7 +579,42 @@ export default function ChatScreen() {
           }}
           isOwnMessage={messages.find(m => m.id === selectedMessageId)?.isOwn || false}
         />
-      </SafeAreaView>
+
+        {/* Media Attachment Menu */}
+        <MediaAttachmentMenu
+          visible={showMediaMenu}
+          onClose={() => setShowMediaMenu(false)}
+          onImageSelected={handleImageSelected}
+          onVideoSelected={handleVideoSelected}
+          onDocumentSelected={handleDocumentSelected}
+          onContactSelected={handleContactSelected}
+          onLocationSelected={handleLocationSelected}
+        />
+
+        {/* WhatsApp Audio Recorder */}
+        <WhatsAppAudioRecorder
+          visible={showAudioRecorder}
+          onRecordingComplete={handleAudioRecordingComplete}
+          onCancel={() => setShowAudioRecorder(false)}
+        />
+
+        </GestureHandlerRootView>
+        </View>
+
+        {/* Image Viewer Modal */}
+        <ImageViewerModal
+          visible={showImageViewer}
+          imageUrl={currentImageUrl}
+          onClose={() => setShowImageViewer(false)}
+        />
+
+        {/* Video Player Modal */}
+        <VideoPlayer
+          visible={showVideoPlayer}
+          videoUrl={currentVideoUrl}
+          onClose={() => setShowVideoPlayer(false)}
+        />
+      </KeyboardAvoidingView>
     </>
   );
 }

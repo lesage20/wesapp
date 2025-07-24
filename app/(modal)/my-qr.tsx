@@ -1,6 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Share, Alert, Platform, useColorScheme } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { View, Text, TouchableOpacity, Share, Alert, useColorScheme } from 'react-native';
 import { useRouter } from 'expo-router';
 import QRCode from 'react-native-qrcode-svg';
 import { useAuthStore } from '~/store/store';
@@ -14,8 +13,6 @@ export default function MyQRScreen() {
   const colorScheme = useColorScheme();
   const { user } = useAuthStore();
   
-  // Android navigation bar height (typical values: 48dp = ~24-48px depending on density)
-  const androidNavHeight = Platform.OS === 'android' ? 48 : 0;
 
   // Generate QR data for the user
   const qrData = JSON.stringify({
@@ -65,7 +62,7 @@ export default function MyQRScreen() {
         title="QR Code"
         showDismissButton={true}
       />
-      <SafeAreaView className="flex-1 bg-gray-50 pt-12">
+      <View className="flex-1 bg-gray-50 pt-12">
         <View className="flex-column gap-5 items-center justify-between px-6">
           {/* QR Card */}
           <View className="bg-white rounded-3xl px-8 pt-5 pb-0 shadow-xl w-full max-w-sm border border-gray-200">
@@ -116,7 +113,7 @@ export default function MyQRScreen() {
         <View 
           className="absolute left-0 right-0 flex-row justify-center"
           style={{ 
-            bottom: Platform.OS === 'android' ? (androidNavHeight + 32) : 32 
+            bottom: 32 
           }}
         >
           <View className="flex-row justify-center gap-4 space-x-4 bg-gray-200 rounded-full px-2 py-2">
@@ -137,21 +134,7 @@ export default function MyQRScreen() {
             </TouchableOpacity>
           </View>
         </View>
-      </SafeAreaView>
-      
-      {/* Android Navigation Bar Background - Only on Android */}
-      {Platform.OS === 'android' && (
-        <View 
-          style={{
-            position: 'absolute',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            height: androidNavHeight,
-            backgroundColor: colorScheme === 'dark' ? '#000000' : '#FFFFFF',
-          }}
-        />
-      )}
+      </View>
     </>
   );
 }

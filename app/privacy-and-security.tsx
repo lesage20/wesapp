@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Switch } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import CustomHeader from '~/components/CustomHeader';
@@ -20,7 +19,7 @@ export default function PrivacyAndSecurityScreen() {
         }
         showBackButton={true}
       />
-      <SafeAreaView className="flex-1 bg-gray-50">
+      <View className="flex-1 bg-gray-50">
         <ScrollView className="flex-1 px-6 py-8">
           {/* Settings Items */}
           <View className="space-y-4 gap-y-2">
@@ -55,7 +54,7 @@ export default function PrivacyAndSecurityScreen() {
             </Text>
           </View>
         </ScrollView>
-      </SafeAreaView>
+      </View>
     </>
   );
 }

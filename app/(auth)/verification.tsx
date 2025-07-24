@@ -1,6 +1,5 @@
 import React, { useState, useRef } from 'react';
 import { View, Text, TouchableOpacity, TextInput, Image, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import verifyOTP from '~/api/services/verification';
 import { useAuthStore } from '~/store/store';
@@ -94,9 +93,9 @@ export default function VerificationScreen() {
   const isCodeComplete = code.every(digit => digit !== '');
 
   return (
-    <SafeAreaView className="flex-1 bg-black">
-      <KeyboardAvoidingView
-        className="flex-1"
+    <View className="flex-1 bg-black">
+      <KeyboardAvoidingView 
+        className="flex-1" 
         behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
       >
@@ -167,6 +166,6 @@ export default function VerificationScreen() {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 }

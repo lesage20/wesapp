@@ -21,7 +21,7 @@ export default function ReplyPreview({
   onClose, 
   visible 
 }: ReplyPreviewProps) {
-  const slideAnim = useRef(new Animated.Value(-100)).current;
+  const slideAnim = useRef(new Animated.Value(100)).current; // Change: Start from bottom (100)
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -42,7 +42,7 @@ export default function ReplyPreview({
     } else {
       Animated.parallel([
         Animated.timing(slideAnim, {
-          toValue: -100,
+          toValue: 100, // Change: Hide to bottom (100)
           duration: 200,
           useNativeDriver: true,
         }),

@@ -1,16 +1,5 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  TextInput,
-  Image,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  ActivityIndicator,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { View, Text, TouchableOpacity, TextInput, Image, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import CountryPicker from 'react-native-country-picker-modal';
 import { useRouter } from 'expo-router';
 import { requestOtp, storePhoneNumber } from '~/api/services/authService';
@@ -315,9 +304,9 @@ export default function LoginScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-black">
-      <KeyboardAvoidingView
-        className="flex-1"
+    <View className="flex-1 bg-black">
+      <KeyboardAvoidingView 
+        className="flex-1" 
         behavior={'padding'}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
       >
@@ -414,6 +403,6 @@ export default function LoginScreen() {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 }

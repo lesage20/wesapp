@@ -1,6 +1,5 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Image } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '~/store/store';
@@ -59,10 +58,10 @@ export default function SettingsScreen() {
         showMenuButton={true}
         showBackButton={false}
       />
-      <SafeAreaView className="flex-1 bg-gray-50">
+      <View className="flex-1 bg-gray-50">
         <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
           {/* User Profile Section */}
-          <View className=" mx-4  rounded-2xl px-6 pb-4 pt-2shadow-sm">
+          <View className=" mx-4  rounded-2xl px-6 py-6  shadow-sm">
             <View className="flex-row items-center justify-between">
               <View className="flex-row items-center flex-1">
                 {/* User Avatar */}
@@ -148,7 +147,7 @@ export default function SettingsScreen() {
             </TouchableOpacity>
           </View>
         </ScrollView>
-      </SafeAreaView>
+      </View>
     </>
   );
 }
