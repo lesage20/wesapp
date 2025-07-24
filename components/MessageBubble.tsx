@@ -15,6 +15,7 @@ import {
   State
 } from 'react-native-gesture-handler';
 import { Ionicons } from '@expo/vector-icons';
+import AudioPlayer from './AudioPlayer';
 
 export interface MessageReaction {
   emoji: string;
@@ -140,19 +141,11 @@ export default function MessageBubble({
 
       case 'audio':
         return (
-          <View className="flex-row items-center">
-            <TouchableOpacity className="w-12 h-12 bg-teal-600 rounded-full items-center justify-center mr-3">
-              <Ionicons name="play" size={20} color="white" />
-            </TouchableOpacity>
-            <View className="flex-1">
-              <View className="h-1 bg-gray-300 rounded-full mb-1">
-                <View className="h-1 bg-teal-600 rounded-full w-1/3" />
-              </View>
-              <Text className={`text-xs ${message.isOwn ? 'text-gray-600' : 'text-white/70'}`}>
-                {message.audioDuration ? `${Math.floor(message.audioDuration / 60)}:${(message.audioDuration % 60).toString().padStart(2, '0')}` : '0:30'}
-              </Text>
-            </View>
-          </View>
+          <AudioPlayer
+            audioUrl={message.audioUrl || ''}
+            duration={message.audioDuration || 30}
+            isOwn={message.isOwn}
+          />
         );
 
       case 'location':

@@ -108,6 +108,15 @@ export default function ChatScreen() {
         timestamp: '14:37'
       },
       {
+        id: '4b',
+        type: 'audio',
+        content: '',
+        audioUrl: 'https://example.com/audio2.mp3',
+        audioDuration: 23,
+        isOwn: false,
+        timestamp: '14:38'
+      },
+      {
         id: '5',
         type: 'text',
         content: 'Super ! Tu fais quoi ce soir ?',
@@ -130,6 +139,15 @@ export default function ChatScreen() {
         isOwn: false,
         timestamp: '14:45',
         replyTo: '6'
+      },
+      {
+        id: '8',
+        type: 'audio',
+        content: '',
+        audioUrl: 'https://example.com/long-audio.mp3',
+        audioDuration: 127, // 2:07
+        isOwn: true,
+        timestamp: '14:47'
       }
     ];
     setMessages(mockMessages);
@@ -308,8 +326,9 @@ export default function ChatScreen() {
           {/* Messages Container */}
           <ScrollView 
             ref={scrollViewRef}
-            className="flex-1 px-4 py-4"
+            className="flex-1"
             showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 16, paddingBottom: 20 }}
           >
             {messages.map((msg) => (
               <MessageBubble

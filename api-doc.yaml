@@ -1,0 +1,2616 @@
+openapi: 3.0.3
+info:
+  title: Wesapp API
+  version: 1.0.0
+  description: Wesapp API
+paths:
+  /api/api/turn-credentials/:
+    get:
+      operationId: api_turn_credentials_retrieve
+      tags:
+      - api
+      security:
+      - knoxApiToken: []
+      responses:
+        '200':
+          description: No response body
+  /api/auth/request-otp/:
+    post:
+      operationId: auth_request_otp_create
+      tags:
+      - auth
+      security:
+      - knoxApiToken: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/auth/verify-otp/:
+    post:
+      operationId: auth_verify_otp_create
+      tags:
+      - auth
+      security:
+      - knoxApiToken: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/blocked/:
+    get:
+      operationId: blocked_list
+      parameters:
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      tags:
+      - blocked
+      security:
+      - knoxApiToken: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedWesappUserBlockedList'
+          description: ''
+    post:
+      operationId: blocked_create
+      tags:
+      - blocked
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WesappUserBlocked'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/WesappUserBlocked'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/WesappUserBlocked'
+        required: true
+      security:
+      - knoxApiToken: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WesappUserBlocked'
+          description: ''
+  /api/blocked/{id}/:
+    get:
+      operationId: blocked_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this wesapp user blocked.
+        required: true
+      tags:
+      - blocked
+      security:
+      - knoxApiToken: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WesappUserBlocked'
+          description: ''
+    put:
+      operationId: blocked_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this wesapp user blocked.
+        required: true
+      tags:
+      - blocked
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WesappUserBlocked'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/WesappUserBlocked'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/WesappUserBlocked'
+        required: true
+      security:
+      - knoxApiToken: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WesappUserBlocked'
+          description: ''
+    patch:
+      operationId: blocked_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this wesapp user blocked.
+        required: true
+      tags:
+      - blocked
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedWesappUserBlocked'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedWesappUserBlocked'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedWesappUserBlocked'
+      security:
+      - knoxApiToken: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WesappUserBlocked'
+          description: ''
+    delete:
+      operationId: blocked_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this wesapp user blocked.
+        required: true
+      tags:
+      - blocked
+      security:
+      - knoxApiToken: []
+      responses:
+        '204':
+          description: No response body
+  /api/blocked/blocked-by/{code_id}/:
+    get:
+      operationId: blocked_blocked_by_retrieve
+      parameters:
+      - in: path
+        name: code_id
+        schema:
+          type: string
+        required: true
+      tags:
+      - blocked
+      security:
+      - knoxApiToken: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WesappUserBlocked'
+          description: ''
+  /api/blocked/blocked-users/{code_id}/:
+    get:
+      operationId: blocked_blocked_users_retrieve
+      parameters:
+      - in: path
+        name: code_id
+        schema:
+          type: string
+        required: true
+      tags:
+      - blocked
+      security:
+      - knoxApiToken: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WesappUserBlocked'
+          description: ''
+  /api/blocked/is-blocked/:
+    get:
+      operationId: blocked_is_blocked_retrieve
+      tags:
+      - blocked
+      security:
+      - knoxApiToken: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WesappUserBlocked'
+          description: ''
+  /api/blocked/unblock/:
+    delete:
+      operationId: blocked_unblock_destroy
+      tags:
+      - blocked
+      security:
+      - knoxApiToken: []
+      responses:
+        '204':
+          description: No response body
+  /api/calls/token/:
+    post:
+      operationId: calls_token_create
+      description: |-
+        {
+        "channel": "call_123_456",
+        "recipient_id": 456,
+        "call_type": "video"
+        }
+      tags:
+      - calls
+      security:
+      - knoxApiToken: []
+      responses:
+        '200':
+          description: No response body
+  /api/connections/:
+    get:
+      operationId: connections_list
+      parameters:
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      tags:
+      - connections
+      security:
+      - knoxApiToken: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedUserConnectionList'
+          description: ''
+    post:
+      operationId: connections_create
+      tags:
+      - connections
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserConnection'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserConnection'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserConnection'
+        required: true
+      security:
+      - knoxApiToken: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserConnection'
+          description: ''
+  /api/connections/{id}/:
+    get:
+      operationId: connections_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this user connection.
+        required: true
+      tags:
+      - connections
+      security:
+      - knoxApiToken: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserConnection'
+          description: ''
+    put:
+      operationId: connections_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this user connection.
+        required: true
+      tags:
+      - connections
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserConnection'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserConnection'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserConnection'
+        required: true
+      security:
+      - knoxApiToken: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserConnection'
+          description: ''
+    patch:
+      operationId: connections_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this user connection.
+        required: true
+      tags:
+      - connections
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUserConnection'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUserConnection'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUserConnection'
+      security:
+      - knoxApiToken: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserConnection'
+          description: ''
+    delete:
+      operationId: connections_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this user connection.
+        required: true
+      tags:
+      - connections
+      security:
+      - knoxApiToken: []
+      responses:
+        '204':
+          description: No response body
+  /api/connections/get-by-code/:
+    get:
+      operationId: connections_get_by_code_retrieve
+      description: |-
+        Récupère la liste des connexions associées à un code WeSapp spécifique.
+        Paramètre attendu : ?code=<code_we_sapp>
+        Exemple : /api/user-connections/get-by-code/?code=968-FW-087-CIV
+      tags:
+      - connections
+      security:
+      - knoxApiToken: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserConnection'
+          description: ''
+  /api/connections/update-by-code/:
+    patch:
+      operationId: connections_update_by_code_partial_update
+      description: |-
+        Met à jour toutes les connexions associées à un code WeSapp spécifique.
+        Paramètre attendu : ?code=<code_we_sapp>
+        Corps de la requête : données à mettre à jour (par exemple, connection_name, blocked, etc.)
+        Exemple : PATCH /api/user-connections/update-by-code/?code=968-FW-087-CIV
+      tags:
+      - connections
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUserConnection'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUserConnection'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUserConnection'
+      security:
+      - knoxApiToken: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserConnection'
+          description: ''
+  /api/conversations/:
+    get:
+      operationId: conversations_list
+      parameters:
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      tags:
+      - conversations
+      security:
+      - knoxApiToken: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedConversationList'
+          description: ''
+    post:
+      operationId: conversations_create
+      tags:
+      - conversations
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Conversation'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Conversation'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Conversation'
+        required: true
+      security:
+      - knoxApiToken: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Conversation'
+          description: ''
+  /api/conversations/{id}/:
+    get:
+      operationId: conversations_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this conversation.
+        required: true
+      tags:
+      - conversations
+      security:
+      - knoxApiToken: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Conversation'
+          description: ''
+    put:
+      operationId: conversations_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this conversation.
+        required: true
+      tags:
+      - conversations
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Conversation'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Conversation'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Conversation'
+        required: true
+      security:
+      - knoxApiToken: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Conversation'
+          description: ''
+    patch:
+      operationId: conversations_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this conversation.
+        required: true
+      tags:
+      - conversations
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedConversation'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedConversation'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedConversation'
+      security:
+      - knoxApiToken: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Conversation'
+          description: ''
+    delete:
+      operationId: conversations_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this conversation.
+        required: true
+      tags:
+      - conversations
+      security:
+      - knoxApiToken: []
+      responses:
+        '204':
+          description: No response body
+  /api/conversations/check-existing/:
+    get:
+      operationId: conversations_check_existing_retrieve
+      tags:
+      - conversations
+      security:
+      - knoxApiToken: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Conversation'
+          description: ''
+  /api/conversations/get-one-conversation/:
+    get:
+      operationId: conversations_get_one_conversation_retrieve
+      tags:
+      - conversations
+      security:
+      - knoxApiToken: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Conversation'
+          description: ''
+  /api/conversations/get-other-conversations-user/:
+    get:
+      operationId: conversations_get_other_conversations_user_retrieve
+      tags:
+      - conversations
+      security:
+      - knoxApiToken: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Conversation'
+          description: ''
+  /api/groups/:
+    get:
+      operationId: groups_list
+      parameters:
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      tags:
+      - groups
+      security:
+      - knoxApiToken: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedGroupList'
+          description: ''
+    post:
+      operationId: groups_create
+      tags:
+      - groups
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Group'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Group'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Group'
+        required: true
+      security:
+      - knoxApiToken: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Group'
+          description: ''
+  /api/groups/{id}/:
+    get:
+      operationId: groups_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this group wesapp.
+        required: true
+      tags:
+      - groups
+      security:
+      - knoxApiToken: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Group'
+          description: ''
+    put:
+      operationId: groups_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this group wesapp.
+        required: true
+      tags:
+      - groups
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Group'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Group'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Group'
+        required: true
+      security:
+      - knoxApiToken: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Group'
+          description: ''
+    patch:
+      operationId: groups_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this group wesapp.
+        required: true
+      tags:
+      - groups
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedGroup'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedGroup'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedGroup'
+      security:
+      - knoxApiToken: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Group'
+          description: ''
+    delete:
+      operationId: groups_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this group wesapp.
+        required: true
+      tags:
+      - groups
+      security:
+      - knoxApiToken: []
+      responses:
+        '204':
+          description: No response body
+  /api/groups/{id}/add-members/:
+    patch:
+      operationId: groups_add_members_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this group wesapp.
+        required: true
+      tags:
+      - groups
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedGroup'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedGroup'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedGroup'
+      security:
+      - knoxApiToken: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Group'
+          description: ''
+  /api/groups/{id}/leave-group/:
+    post:
+      operationId: groups_leave_group_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this group wesapp.
+        required: true
+      tags:
+      - groups
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Group'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Group'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Group'
+        required: true
+      security:
+      - knoxApiToken: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Group'
+          description: ''
+  /api/groups/{id}/remove-member/:
+    patch:
+      operationId: groups_remove_member_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this group wesapp.
+        required: true
+      tags:
+      - groups
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedGroup'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedGroup'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedGroup'
+      security:
+      - knoxApiToken: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Group'
+          description: ''
+  /api/groups/get-group-members/:
+    get:
+      operationId: groups_get_group_members_retrieve
+      tags:
+      - groups
+      security:
+      - knoxApiToken: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Group'
+          description: ''
+  /api/messages/:
+    get:
+      operationId: messages_list
+      parameters:
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      tags:
+      - messages
+      security:
+      - knoxApiToken: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedMessageList'
+          description: ''
+    post:
+      operationId: messages_create
+      tags:
+      - messages
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Message'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Message'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Message'
+        required: true
+      security:
+      - knoxApiToken: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+          description: ''
+  /api/messages/{id}/:
+    get:
+      operationId: messages_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this message.
+        required: true
+      tags:
+      - messages
+      security:
+      - knoxApiToken: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+          description: ''
+    put:
+      operationId: messages_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this message.
+        required: true
+      tags:
+      - messages
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Message'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Message'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Message'
+        required: true
+      security:
+      - knoxApiToken: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+          description: ''
+    patch:
+      operationId: messages_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this message.
+        required: true
+      tags:
+      - messages
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedMessage'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedMessage'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedMessage'
+      security:
+      - knoxApiToken: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+          description: ''
+    delete:
+      operationId: messages_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this message.
+        required: true
+      tags:
+      - messages
+      security:
+      - knoxApiToken: []
+      responses:
+        '204':
+          description: No response body
+  /api/start-call/:
+    post:
+      operationId: start_call_create
+      description: |-
+        {
+        "recipient_id": 456,
+        "call_type": "video",
+        "we_sapp_code": "123456"
+        }
+      tags:
+      - start-call
+      security:
+      - knoxApiToken: []
+      responses:
+        '200':
+          description: No response body
+  /api/token/refresh/:
+    post:
+      operationId: token_refresh_create
+      description: |-
+        Takes a refresh type JSON web token and returns an access type JSON web
+        token if the refresh token is valid.
+      tags:
+      - token
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenRefresh'
+          description: ''
+  /api/users/create-profile/:
+    post:
+      operationId: users_create_profile_create
+      tags:
+      - users
+      security:
+      - knoxApiToken: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/users/save-token/:
+    post:
+      operationId: users_save_token_create
+      tags:
+      - users
+      security:
+      - knoxApiToken: []
+      responses:
+        '200':
+          description: No response body
+  /api/users/settings/:
+    get:
+      operationId: users_settings_list
+      parameters:
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      tags:
+      - users
+      security:
+      - knoxApiToken: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedUserSettingsList'
+          description: ''
+    post:
+      operationId: users_settings_create
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserSettings'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserSettings'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserSettings'
+      security:
+      - knoxApiToken: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserSettings'
+          description: ''
+  /api/users/settings/{id}/:
+    get:
+      operationId: users_settings_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this user settings.
+        required: true
+      tags:
+      - users
+      security:
+      - knoxApiToken: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserSettings'
+          description: ''
+    put:
+      operationId: users_settings_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this user settings.
+        required: true
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserSettings'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserSettings'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserSettings'
+      security:
+      - knoxApiToken: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserSettings'
+          description: ''
+    patch:
+      operationId: users_settings_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this user settings.
+        required: true
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUserSettings'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUserSettings'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUserSettings'
+      security:
+      - knoxApiToken: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserSettings'
+          description: ''
+    delete:
+      operationId: users_settings_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this user settings.
+        required: true
+      tags:
+      - users
+      security:
+      - knoxApiToken: []
+      responses:
+        '204':
+          description: No response body
+  /api/users/users/:
+    get:
+      operationId: users_users_list
+      parameters:
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      tags:
+      - users
+      security:
+      - knoxApiToken: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedUserList'
+          description: ''
+    post:
+      operationId: users_users_create
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/User'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/User'
+      security:
+      - knoxApiToken: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+  /api/users/users/{id}/:
+    get:
+      operationId: users_users_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this user.
+        required: true
+      tags:
+      - users
+      security:
+      - knoxApiToken: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+    put:
+      operationId: users_users_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this user.
+        required: true
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/User'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/User'
+      security:
+      - knoxApiToken: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+    patch:
+      operationId: users_users_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this user.
+        required: true
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUser'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUser'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUser'
+      security:
+      - knoxApiToken: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+    delete:
+      operationId: users_users_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this user.
+        required: true
+      tags:
+      - users
+      security:
+      - knoxApiToken: []
+      responses:
+        '204':
+          description: No response body
+  /api/users/we-sapp-codes/:
+    get:
+      operationId: users_we_sapp_codes_list
+      parameters:
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      tags:
+      - users
+      security:
+      - knoxApiToken: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedWeSappCodeList'
+          description: ''
+    post:
+      operationId: users_we_sapp_codes_create
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WeSappCode'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/WeSappCode'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/WeSappCode'
+        required: true
+      security:
+      - knoxApiToken: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WeSappCode'
+          description: ''
+  /api/users/we-sapp-codes/{id}/:
+    get:
+      operationId: users_we_sapp_codes_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this we sapp code.
+        required: true
+      tags:
+      - users
+      security:
+      - knoxApiToken: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WeSappCode'
+          description: ''
+    put:
+      operationId: users_we_sapp_codes_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this we sapp code.
+        required: true
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WeSappCode'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/WeSappCode'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/WeSappCode'
+        required: true
+      security:
+      - knoxApiToken: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WeSappCode'
+          description: ''
+    patch:
+      operationId: users_we_sapp_codes_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this we sapp code.
+        required: true
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedWeSappCode'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedWeSappCode'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedWeSappCode'
+      security:
+      - knoxApiToken: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WeSappCode'
+          description: ''
+    delete:
+      operationId: users_we_sapp_codes_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this we sapp code.
+        required: true
+      tags:
+      - users
+      security:
+      - knoxApiToken: []
+      responses:
+        '204':
+          description: No response body
+  /api/users/we-sapp-codes/check-premium/:
+    get:
+      operationId: users_we_sapp_codes_check_premium_retrieve
+      tags:
+      - users
+      security:
+      - knoxApiToken: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WeSappCode'
+          description: ''
+  /api/users/we-sapp-codes/create-premium-profile/:
+    post:
+      operationId: users_we_sapp_codes_create_premium_profile_create
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WeSappCode'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/WeSappCode'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/WeSappCode'
+        required: true
+      security:
+      - knoxApiToken: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WeSappCode'
+          description: ''
+  /api/users/we-sapp-codes/get-by-code/:
+    get:
+      operationId: users_we_sapp_codes_get_by_code_retrieve
+      tags:
+      - users
+      security:
+      - knoxApiToken: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WeSappCode'
+          description: ''
+  /api/users/we-sapp-codes/get-premium/:
+    get:
+      operationId: users_we_sapp_codes_get_premium_retrieve
+      tags:
+      - users
+      security:
+      - knoxApiToken: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WeSappCode'
+          description: ''
+  /api/users/we-sapp-codes/search-by-phone/:
+    get:
+      operationId: users_we_sapp_codes_search_by_phone_retrieve
+      tags:
+      - users
+      security:
+      - knoxApiToken: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WeSappCode'
+          description: ''
+  /api/users/we-sapp-codes/update-notification/:
+    get:
+      operationId: users_we_sapp_codes_update_notification_retrieve
+      tags:
+      - users
+      security:
+      - knoxApiToken: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WeSappCode'
+          description: ''
+components:
+  schemas:
+    Conversation:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        participant_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          writeOnly: true
+        participants:
+          type: array
+          items:
+            $ref: '#/components/schemas/WeSappCode'
+          readOnly: true
+        is_group:
+          type: boolean
+        messages:
+          type: array
+          items:
+            $ref: '#/components/schemas/Message'
+          readOnly: true
+        group:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - group
+      - id
+      - messages
+      - participant_ids
+      - participants
+      - updated_at
+    Group:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          maxLength: 100
+        description:
+          type: string
+        members:
+          type: array
+          items:
+            $ref: '#/components/schemas/WeSappCode'
+          readOnly: true
+        admin:
+          allOf:
+          - $ref: '#/components/schemas/WeSappCode'
+          readOnly: true
+        profile_photo:
+          type: string
+          maxLength: 255
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - admin
+      - created_at
+      - id
+      - members
+      - name
+      - updated_at
+    Message:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        conversation:
+          type: string
+          format: uuid
+        sender:
+          allOf:
+          - $ref: '#/components/schemas/WeSappCode'
+          readOnly: true
+        content:
+          type: string
+        message_type:
+          $ref: '#/components/schemas/MessageTypeEnum'
+        reply:
+          type: string
+          readOnly: true
+        timestamp:
+          type: string
+          format: date-time
+          readOnly: true
+        is_read:
+          type: boolean
+        read_by: {}
+        is_edited:
+          type: boolean
+        mentions: {}
+        edited_at:
+          type: string
+          format: date-time
+          nullable: true
+        expires_at:
+          type: string
+          format: date-time
+          nullable: true
+        location_id:
+          type: string
+          format: uuid
+          nullable: true
+        media_url:
+          type: string
+          format: uri
+          nullable: true
+          maxLength: 500
+        reactions: {}
+        hidden_for: {}
+      required:
+      - content
+      - conversation
+      - id
+      - reply
+      - sender
+      - timestamp
+    MessageTypeEnum:
+      enum:
+      - text
+      - image
+      - audio
+      - pdf
+      type: string
+      description: |-
+        * `text` - Text
+        * `image` - Image
+        * `audio` - Audio
+        * `pdf` - PDF
+    PaginatedConversationList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Conversation'
+    PaginatedGroupList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Group'
+    PaginatedMessageList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Message'
+    PaginatedUserConnectionList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserConnection'
+    PaginatedUserList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+    PaginatedUserSettingsList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserSettings'
+    PaginatedWeSappCodeList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/WeSappCode'
+    PaginatedWesappUserBlockedList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/WesappUserBlocked'
+    PatchedConversation:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        participant_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          writeOnly: true
+        participants:
+          type: array
+          items:
+            $ref: '#/components/schemas/WeSappCode'
+          readOnly: true
+        is_group:
+          type: boolean
+        messages:
+          type: array
+          items:
+            $ref: '#/components/schemas/Message'
+          readOnly: true
+        group:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+    PatchedGroup:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          maxLength: 100
+        description:
+          type: string
+        members:
+          type: array
+          items:
+            $ref: '#/components/schemas/WeSappCode'
+          readOnly: true
+        admin:
+          allOf:
+          - $ref: '#/components/schemas/WeSappCode'
+          readOnly: true
+        profile_photo:
+          type: string
+          maxLength: 255
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+    PatchedMessage:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        conversation:
+          type: string
+          format: uuid
+        sender:
+          allOf:
+          - $ref: '#/components/schemas/WeSappCode'
+          readOnly: true
+        content:
+          type: string
+        message_type:
+          $ref: '#/components/schemas/MessageTypeEnum'
+        reply:
+          type: string
+          readOnly: true
+        timestamp:
+          type: string
+          format: date-time
+          readOnly: true
+        is_read:
+          type: boolean
+        read_by: {}
+        is_edited:
+          type: boolean
+        mentions: {}
+        edited_at:
+          type: string
+          format: date-time
+          nullable: true
+        expires_at:
+          type: string
+          format: date-time
+          nullable: true
+        location_id:
+          type: string
+          format: uuid
+          nullable: true
+        media_url:
+          type: string
+          format: uri
+          nullable: true
+          maxLength: 500
+        reactions: {}
+        hidden_for: {}
+    PatchedUser:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        user_id:
+          type: string
+          readOnly: true
+        phone_number:
+          type: string
+          readOnly: true
+        status:
+          type: string
+          maxLength: 255
+        last_seen:
+          type: string
+          format: date-time
+          nullable: true
+        is_online:
+          type: boolean
+        device_tokens: {}
+        language:
+          type: string
+          maxLength: 10
+        country_code:
+          type: string
+          maxLength: 5
+        verified_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        is_signup_confirm:
+          type: boolean
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+    PatchedUserConnection:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        connection_id:
+          type: string
+          readOnly: true
+        user:
+          type: string
+          readOnly: true
+        we_sapp_code:
+          type: string
+        owner_we_sapp_code:
+          type: string
+        connection_name:
+          type: string
+          maxLength: 100
+        blocked:
+          type: boolean
+        muted_until:
+          type: string
+          format: date-time
+          nullable: true
+        nickname:
+          type: string
+          maxLength: 100
+        tags: {}
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        we_sapp_code_details:
+          allOf:
+          - $ref: '#/components/schemas/WeSappCode'
+          readOnly: true
+        owner_we_sapp_code_details:
+          allOf:
+          - $ref: '#/components/schemas/WeSappCode'
+          readOnly: true
+    PatchedUserSettings:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        user:
+          type: string
+          format: uuid
+          readOnly: true
+        theme:
+          type: string
+          maxLength: 50
+        notifications: {}
+        privacy: {}
+        language:
+          type: string
+          maxLength: 10
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+    PatchedWeSappCode:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        user:
+          allOf:
+          - $ref: '#/components/schemas/User'
+          readOnly: true
+        code:
+          type: string
+          readOnly: true
+        is_active:
+          type: boolean
+          readOnly: true
+        is_default:
+          type: boolean
+          readOnly: true
+        bio:
+          type: string
+        label:
+          type: string
+          maxLength: 100
+        profile_photo:
+          type: string
+        username:
+          type: string
+          maxLength: 100
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        is_premium:
+          type: boolean
+          readOnly: true
+          nullable: true
+        unread_messages:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+          nullable: true
+    PatchedWesappUserBlocked:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        we_sapp_code:
+          allOf:
+          - $ref: '#/components/schemas/WeSappCode'
+          readOnly: true
+        blocked_we_sapp_code:
+          allOf:
+          - $ref: '#/components/schemas/WeSappCode'
+          readOnly: true
+        we_sapp_code_id:
+          type: string
+          format: uuid
+          writeOnly: true
+        blocked_we_sapp_code_id:
+          type: string
+          format: uuid
+          writeOnly: true
+    TokenRefresh:
+      type: object
+      properties:
+        access:
+          type: string
+          readOnly: true
+        refresh:
+          type: string
+          writeOnly: true
+      required:
+      - access
+      - refresh
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        user_id:
+          type: string
+          readOnly: true
+        phone_number:
+          type: string
+          readOnly: true
+        status:
+          type: string
+          maxLength: 255
+        last_seen:
+          type: string
+          format: date-time
+          nullable: true
+        is_online:
+          type: boolean
+        device_tokens: {}
+        language:
+          type: string
+          maxLength: 10
+        country_code:
+          type: string
+          maxLength: 5
+        verified_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        is_signup_confirm:
+          type: boolean
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - is_signup_confirm
+      - phone_number
+      - updated_at
+      - user_id
+      - verified_at
+    UserConnection:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        connection_id:
+          type: string
+          readOnly: true
+        user:
+          type: string
+          readOnly: true
+        we_sapp_code:
+          type: string
+        owner_we_sapp_code:
+          type: string
+        connection_name:
+          type: string
+          maxLength: 100
+        blocked:
+          type: boolean
+        muted_until:
+          type: string
+          format: date-time
+          nullable: true
+        nickname:
+          type: string
+          maxLength: 100
+        tags: {}
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        we_sapp_code_details:
+          allOf:
+          - $ref: '#/components/schemas/WeSappCode'
+          readOnly: true
+        owner_we_sapp_code_details:
+          allOf:
+          - $ref: '#/components/schemas/WeSappCode'
+          readOnly: true
+      required:
+      - connection_id
+      - connection_name
+      - created_at
+      - id
+      - owner_we_sapp_code
+      - owner_we_sapp_code_details
+      - updated_at
+      - user
+      - we_sapp_code
+      - we_sapp_code_details
+    UserSettings:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        user:
+          type: string
+          format: uuid
+          readOnly: true
+        theme:
+          type: string
+          maxLength: 50
+        notifications: {}
+        privacy: {}
+        language:
+          type: string
+          maxLength: 10
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - updated_at
+      - user
+    WeSappCode:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        user:
+          allOf:
+          - $ref: '#/components/schemas/User'
+          readOnly: true
+        code:
+          type: string
+          readOnly: true
+        is_active:
+          type: boolean
+          readOnly: true
+        is_default:
+          type: boolean
+          readOnly: true
+        bio:
+          type: string
+        label:
+          type: string
+          maxLength: 100
+        profile_photo:
+          type: string
+        username:
+          type: string
+          maxLength: 100
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        is_premium:
+          type: boolean
+          readOnly: true
+          nullable: true
+        unread_messages:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+          nullable: true
+      required:
+      - code
+      - created_at
+      - id
+      - is_active
+      - is_default
+      - is_premium
+      - updated_at
+      - user
+      - username
+    WesappUserBlocked:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        we_sapp_code:
+          allOf:
+          - $ref: '#/components/schemas/WeSappCode'
+          readOnly: true
+        blocked_we_sapp_code:
+          allOf:
+          - $ref: '#/components/schemas/WeSappCode'
+          readOnly: true
+        we_sapp_code_id:
+          type: string
+          format: uuid
+          writeOnly: true
+        blocked_we_sapp_code_id:
+          type: string
+          format: uuid
+          writeOnly: true
+      required:
+      - blocked_we_sapp_code
+      - blocked_we_sapp_code_id
+      - id
+      - we_sapp_code
+      - we_sapp_code_id
+  securitySchemes:
+    knoxApiToken:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: Token-based authentication with required prefix "Token"
