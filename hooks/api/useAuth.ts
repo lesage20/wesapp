@@ -25,6 +25,25 @@ import {
   User
 } from '../types';
 
+// Fonction pour formater le numéro de téléphone (inspirée de l'API existante)
+const formatPhoneNumber = (phone: string): string => {
+  // Supprimer tous les espaces et caractères non numériques sauf le +
+  let formatted = phone.replace(/[^0-9+]/g, '');
+  
+  // Si le numéro ne commence pas par +, ajouter le code pays pour la Côte d'Ivoire
+  if (!formatted.startsWith('+')) {
+    // Si le numéro commence par 0, conserver le 0 après le code pays
+    if (formatted.startsWith('0')) {
+      formatted = '+225' + formatted; // Garder le 0 initial
+    } else {
+      // Si le numéro ne commence pas par 0, ajouter un 0 après le code pays
+      formatted = '+2250' + formatted;
+    }
+  }
+  
+  return formatted;
+};
+
 export const useAuth = (): UseAuthReturn => {
   const { user, login, logout: storeLogout } = useAuthStore();
   const [isLoading, setIsLoading] = useState(false);
@@ -45,13 +64,37 @@ export const useAuth = (): UseAuthReturn => {
     setIsLoading(false);
   }, []);
   
-  // Fonction utilitaire pour sauvegarder les tokens
-  const saveTokens = useCallback(async (tokens: TokenResponse) => {
+  // Fonction utilitaire pour sauvegarder les tokens (harmonisée avec l'API existante)
+  const saveTokens = useCallback(async (response: any) => {
     try {
-      await AsyncStorage.multiSet([
-        [AUTH_CONFIG.TOKEN_STORAGE_KEY, tokens.access],
-        [AUTH_CONFIG.REFRESH_TOKEN_STORAGE_KEY, tokens.refresh],
-      ]);
+      // Sauvegarder le token d'authentification principal
+      if (response.token) {
+        await AsyncStorage.setItem(AUTH_CONFIG.TOKEN_STORAGE_KEY, response.token);
+        console.log('Token d\'authentification sauvegardé');
+      }
+      
+      // Sauvegarder les données utilisateur si disponibles
+      if (response.user_data) {
+        await AsyncStorage.setItem(AUTH_CONFIG.USER_STORAGE_KEY, JSON.stringify(response.user_data));
+      }
+      
+      // Sauvegarder l'ID utilisateur en attente si disponible
+      if (response.pending_user_id) {
+        await AsyncStorage.setItem(AUTH_CONFIG.PENDING_USER_ID_KEY, response.pending_user_id);
+      }
+      
+      // Sauvegarder le statut utilisateur existant
+      if (response.existing_user !== undefined) {
+        await AsyncStorage.setItem(AUTH_CONFIG.EXISTING_USER_KEY, response.existing_user.toString());
+      }
+      
+      // Support pour les tokens JWT standards
+      if (response.access) {
+        await AsyncStorage.setItem(AUTH_CONFIG.TOKEN_STORAGE_KEY, response.access);
+      }
+      if (response.refresh) {
+        await AsyncStorage.setItem(AUTH_CONFIG.REFRESH_TOKEN_STORAGE_KEY, response.refresh);
+      }
     } catch (error) {
       console.error('Erreur lors de la sauvegarde des tokens:', error);
       throw new Error('Impossible de sauvegarder les tokens d\'authentification');
@@ -68,13 +111,17 @@ export const useAuth = (): UseAuthReturn => {
     }
   }, []);
   
-  // Fonction utilitaire pour nettoyer le stockage
+  // Fonction utilitaire pour nettoyer le stockage (harmonisée avec l'API existante)
   const clearStorage = useCallback(async () => {
     try {
       await AsyncStorage.multiRemove([
         AUTH_CONFIG.TOKEN_STORAGE_KEY,
         AUTH_CONFIG.REFRESH_TOKEN_STORAGE_KEY,
         AUTH_CONFIG.USER_STORAGE_KEY,
+        AUTH_CONFIG.EXISTING_USER_KEY,
+        AUTH_CONFIG.PENDING_USER_ID_KEY,
+        AUTH_CONFIG.LAST_PHONE_NUMBER_KEY,
+        'token' // Support pour l'ancienne clé
       ]);
     } catch (error) {
       console.warn('Erreur lors du nettoyage du stockage:', error);
@@ -82,18 +129,11 @@ export const useAuth = (): UseAuthReturn => {
   }, []);
   
   /**
-   * Demander l'envoi d'un code OTP
+   * Demander l'envoi d'un code OTP (harmonisée avec l'API existante)
    */
-  const requestOTP = useCallback(async (phoneNumber: string): Promise<void> => {
+  const requestOTP = useCallback(async (phoneNumber: string, countryCode: string = '+225'): Promise<void> => {
     if (!phoneNumber.trim()) {
       handleError('Le numéro de téléphone est requis');
-      return;
-    }
-    
-    // Valider le format du numéro de téléphone
-    const phoneRegex = /^\+[1-9]\d{1,14}$/;
-    if (!phoneRegex.test(phoneNumber)) {
-      handleError('Format de numéro de téléphone invalide. Utilisez le format international (+225...)');
       return;
     }
     
@@ -101,23 +141,34 @@ export const useAuth = (): UseAuthReturn => {
     setError(null);
     
     try {
+      // Formater le numéro de téléphone selon l'API existante
+      const formattedPhone = formatPhoneNumber(phoneNumber);
+      console.log('Requesting OTP for phone:', formattedPhone);
+      
+      // Sauvegarder le dernier numéro de téléphone utilisé
+      await AsyncStorage.setItem(AUTH_CONFIG.LAST_PHONE_NUMBER_KEY, phoneNumber);
+      await AsyncStorage.setItem(AUTH_CONFIG.SECURE_PHONE_NUMBER_KEY, phoneNumber);
+      
       const payload: RequestOTPPayload = {
-        phone_number: phoneNumber,
+        phone_number: formattedPhone,
+        country_code: countryCode,
       };
       
       const result = await otpApi.post(API_ENDPOINTS.AUTH.REQUEST_OTP, payload);
       
       if (result) {
+        console.log('OTP request successful');
         setIsLoading(false);
         // Le toast de succès est géré automatiquement par useApi
       }
     } catch (error: any) {
+      console.error('Error requesting OTP:', error);
       handleError(error.message || ERROR_MESSAGES.UNKNOWN_ERROR);
     }
   }, [otpApi, handleError]);
   
   /**
-   * Vérifier le code OTP et obtenir les tokens
+   * Vérifier le code OTP et obtenir les tokens (harmonisée avec l'API existante)
    */
   const verifyOTP = useCallback(async (phoneNumber: string, otpCode: string): Promise<void> => {
     if (!phoneNumber.trim() || !otpCode.trim()) {
@@ -134,15 +185,20 @@ export const useAuth = (): UseAuthReturn => {
     setError(null);
     
     try {
+      // Formater le numéro de téléphone de la même manière que pour la demande
+      const formattedPhone = formatPhoneNumber(phoneNumber);
+      console.log('Verifying OTP for phone:', formattedPhone, 'with code:', otpCode);
+      
       const payload: VerifyOTPPayload = {
-        phone_number: phoneNumber,
-        otp_code: otpCode,
+        phone_number: formattedPhone,
+        otp: otpCode,
       };
       
-      const tokens = await verifyApi.post(API_ENDPOINTS.AUTH.VERIFY_OTP, payload);
+      const response = await verifyApi.post(API_ENDPOINTS.AUTH.VERIFY_OTP, payload);
       
-      if (tokens) {
-        await saveTokens(tokens);
+      if (response) {
+        console.log('OTP verification response:', response);
+        await saveTokens(response);
         setIsLoading(false);
         // Navigation vers profile-setup sera gérée par le composant appelant
       }
@@ -152,7 +208,7 @@ export const useAuth = (): UseAuthReturn => {
   }, [verifyApi, saveTokens, handleError]);
   
   /**
-   * Créer le profil utilisateur
+   * Créer le profil utilisateur (harmonisée avec l'API existante)
    */
   const createProfile = useCallback(async (profileData: CreateProfilePayload): Promise<void> => {
     if (!profileData.username?.trim()) {
@@ -169,7 +225,46 @@ export const useAuth = (): UseAuthReturn => {
     setError(null);
     
     try {
-      const userProfile = await profileApi.post(API_ENDPOINTS.USERS.CREATE_PROFILE, profileData);
+      // Récupérer l'ID utilisateur en attente du stockage local
+      const pendingUserId = await AsyncStorage.getItem(AUTH_CONFIG.PENDING_USER_ID_KEY);
+      if (!pendingUserId) {
+        throw new Error('No pending user ID found. Please verify OTP first.');
+      }
+      
+      // Créer l'objet de données utilisateur selon l'API existante
+      const userData: Record<string, any> = {
+        pending_user_id: pendingUserId,
+        username: profileData.username,
+        password: 'password', // Mot de passe par défaut
+      };
+      
+      // Ajouter la photo de profil si elle existe
+      if (profileData.profile_photo) {
+        if (profileData.profile_photo.startsWith('data:image')) {
+          // Image en base64 avec en-tête data URL
+          userData['profile_photo'] = profileData.profile_photo;
+        } else if (profileData.profile_photo.length <= 2) {
+          // Probablement un emoji
+          console.log('Emoji détecté:', profileData.profile_photo);
+          userData['profile_photo'] = 'default_avatar';
+          userData['avatar_emoji'] = profileData.profile_photo;
+        } else {
+          // Autre format texte
+          userData['profile_photo'] = profileData.profile_photo;
+        }
+      }
+      
+      // Ajouter les autres champs
+      if (profileData.bio !== undefined) {
+        userData['bio'] = profileData.bio;
+      }
+      if (profileData.label !== undefined) {
+        userData['label'] = profileData.label;
+      }
+      
+      console.log('Creating user with data:', userData);
+      
+      const userProfile = await profileApi.post(API_ENDPOINTS.USERS.CREATE_PROFILE, userData);
       
       if (userProfile) {
         await saveUserData(userProfile);

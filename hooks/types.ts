@@ -43,11 +43,12 @@ export interface PaginatedResponse<T> {
 
 export interface RequestOTPPayload {
   phone_number: string;
+  country_code: string;
 }
 
 export interface VerifyOTPPayload {
   phone_number: string;
-  otp_code: string;
+  otp: string;
 }
 
 export interface TokenResponse {

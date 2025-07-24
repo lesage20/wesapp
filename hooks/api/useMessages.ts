@@ -52,6 +52,14 @@ export const useMessages = (options: UseMessagesOptions = {}): UseMessagesReturn
   const deleteMessageApi = useApi({ showToast: true });
   const createConversationApi = useApi<Conversation>({ showToast: true });
   const checkExistingApi = useApi<Conversation>({ showToast: false });
+  // Nouveaux hooks API pour l'harmonisation avec l'API existante
+  const getConversationWithMessagesApi = useApi<any>({ showToast: false });
+  const getConversationByIdApi = useApi<any>({ showToast: false });
+  const getMessagesByConversationIdApi = useApi<any>({ showToast: false });
+  const setReplyToMessageApi = useApi<Message[]>({ showToast: false });
+  const setReactionApi = useApi<Message[]>({ showToast: true });
+  const createGroupConversationApi = useApi<any>({ showToast: true });
+  const fetchConversationByIdApi = useApi<any>({ showToast: false });
   
   // État global de loading
   const isLoading = conversationsApi.isLoading || 
@@ -59,7 +67,14 @@ export const useMessages = (options: UseMessagesOptions = {}): UseMessagesReturn
                    sendMessageApi.isLoading || 
                    updateMessageApi.isLoading || 
                    deleteMessageApi.isLoading ||
-                   createConversationApi.isLoading;
+                   createConversationApi.isLoading ||
+                   getConversationWithMessagesApi.isLoading ||
+                   getConversationByIdApi.isLoading ||
+                   getMessagesByConversationIdApi.isLoading ||
+                   setReplyToMessageApi.isLoading ||
+                   setReactionApi.isLoading ||
+                   createGroupConversationApi.isLoading ||
+                   fetchConversationByIdApi.isLoading;
   
   // État global d'erreur
   const error = conversationsApi.error || 
@@ -67,7 +82,14 @@ export const useMessages = (options: UseMessagesOptions = {}): UseMessagesReturn
                sendMessageApi.error || 
                updateMessageApi.error || 
                deleteMessageApi.error ||
-               createConversationApi.error;
+               createConversationApi.error ||
+               getConversationWithMessagesApi.error ||
+               getConversationByIdApi.error ||
+               getMessagesByConversationIdApi.error ||
+               setReplyToMessageApi.error ||
+               setReactionApi.error ||
+               createGroupConversationApi.error ||
+               fetchConversationByIdApi.error;
   
   /**
    * Charger les conversations avec pagination
@@ -363,6 +385,172 @@ export const useMessages = (options: UseMessagesOptions = {}): UseMessagesReturn
     await Promise.all(promises);
   }, [updateMessage]);
   
+  /**
+   * Vérifier si une conversation existe déjà entre des participants (inspiré de l'API existante)
+   */
+  const checkExistingConversationImproved = useCallback(async (participantIds: string[]): Promise<Conversation | null> => {
+    try {
+      if (!participantIds || participantIds.length === 0) {
+        throw new Error('Les identifiants des participants sont requis');
+      }
+      
+      // Trier les IDs pour s'assurer de toujours avoir le même ordre
+      const sortedIds = [...participantIds].sort();
+      
+      const url = `${API_ENDPOINTS.CONVERSATIONS.CHECK_EXISTING}?participant_id=${sortedIds[0]}&participant_id_2=${sortedIds[1]}`;
+      console.log('Vérification de l\'existence d\'une conversation entre', sortedIds);
+      
+      const response = await checkExistingApi.get(url);
+      
+      if (response && response.id) {
+        console.log('Conversation existante trouvée:', response);
+        return response;
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('Erreur lors de la vérification de l\'existence d\'une conversation:', error);
+      return null;
+    }
+  }, [checkExistingApi]);
+  
+  /**
+   * Créer ou récupérer une conversation (inspiré de l'API existante)
+   */
+  const getOrCreateConversation = useCallback(async (participantIds: string[]): Promise<Conversation> => {
+    try {
+      if (!participantIds || participantIds.length === 0) {
+        throw new Error('Les identifiants des participants sont requis');
+      }
+      
+      // D'abord vérifier si une conversation existe déjà
+      const existingConversation = await checkExistingConversationImproved(participantIds);
+      
+      if (existingConversation) {
+        return existingConversation;
+      }
+      
+      // Si aucune conversation existante, en créer une nouvelle
+      console.log('Création d\'une nouvelle conversation avec les participants:', participantIds);
+      
+      const response = await createConversationApi.post(API_ENDPOINTS.CONVERSATIONS.BASE, {
+        'participant_ids': participantIds
+      });
+      
+      console.log('Nouvelle conversation créée:', response);
+      return response;
+    } catch (error) {
+      console.error('Erreur lors de la création/récupération de conversation:', error);
+      throw error;
+    }
+  }, [checkExistingConversationImproved, createConversationApi]);
+  
+  /**
+   * Récupérer les conversations pour un code WeSapp (inspiré de l'API existante)
+   */
+  const getConversationByIdImproved = useCallback(async (codeWeSapp: string): Promise<any> => {
+    try {
+      const response = await getConversationByIdApi.get(`${API_ENDPOINTS.CONVERSATIONS.GET_CONVERSATION_BY_ID}?code=${codeWeSapp}`);
+      return response;
+    } catch (error) {
+      console.error('Erreur lors de la récupération des conversations:', error);
+      return null;
+    }
+  }, [getConversationByIdApi]);
+  
+  /**
+   * Récupérer une conversation spécifique par son ID, avec ses messages (inspiré de l'API existante)
+   */
+  const getConversationWithMessages = useCallback(async (conversationId: string): Promise<any> => {
+    try {
+      const response = await getConversationWithMessagesApi.get(`${API_ENDPOINTS.CONVERSATIONS.GET_CONVERSATION_WITH_MESSAGES}?conversation_id=${conversationId}`);
+      return response?.conversation;
+    } catch (error) {
+      console.error('Erreur lors de la récupération de la conversation spécifique:', error);
+      return null;
+    }
+  }, [getConversationWithMessagesApi]);
+  
+  /**
+   * Récupérer les messages d'une conversation avec pagination (inspiré de l'API existante)
+   */
+  const getMessagesByConversationId = useCallback(async (
+    conversationId: string,
+    page: number = 1,
+    pageSize: number = 20
+  ): Promise<any> => {
+    try {
+      const url = `${API_ENDPOINTS.MESSAGES.GET_MESSAGES_BY_CONVERSATION_ID}?conversation_id=${conversationId}&page=${page}&page_size=${pageSize}`;
+      const response = await getMessagesByConversationIdApi.get(url);
+      return response;
+    } catch (error) {
+      console.error('Erreur lors de la récupération des messages:', error);
+      throw error;
+    }
+  }, [getMessagesByConversationIdApi]);
+  
+  /**
+   * Définir un message comme réponse à un autre (inspiré de l'API existante)
+   */
+  const setReplyToMessage = useCallback(async (messageId: string): Promise<Message[]> => {
+    try {
+      const response = await setReplyToMessageApi.get(`${API_ENDPOINTS.MESSAGES.SET_REPLY_TO_MESSAGE}${messageId}`);
+      return response || [];
+    } catch (error) {
+      console.error('Erreur lors de la définition de la réponse:', error);
+      throw error;
+    }
+  }, [setReplyToMessageApi]);
+  
+  /**
+   * Ajouter une réaction à un message (inspiré de l'API existante)
+   */
+  const setReaction = useCallback(async (messageId: string, reaction: string): Promise<Message[]> => {
+    try {
+      const response = await setReactionApi.get(`${API_ENDPOINTS.MESSAGES.SET_REACTION}${messageId}/${reaction}`);
+      return response || [];
+    } catch (error) {
+      console.error('Erreur lors de l\'ajout de la réaction:', error);
+      throw error;
+    }
+  }, [setReactionApi]);
+  
+  /**
+   * Créer une conversation de groupe (inspiré de l'API existante)
+   */
+  const createGroupConversation = useCallback(async (
+    memberCodeIds: string[], 
+    groupName: string, 
+    currentCodeId: string, 
+    groupPhoto?: string | null
+  ) => {
+    try {
+      const response = await createGroupConversationApi.post(API_ENDPOINTS.GROUPS.CREATE_GROUP, {
+        'members': memberCodeIds,
+        'name': groupName,
+        'profile_photo': groupPhoto,
+        'admin': currentCodeId
+      });
+      return response;
+    } catch (error) {
+      console.error('Erreur lors de la création d\'une conversation de groupe:', error);
+      throw error;
+    }
+  }, [createGroupConversationApi]);
+  
+  /**
+   * Récupérer une conversation par ID (inspiré de l'API existante)
+   */
+  const fetchConversationById = useCallback(async (conversationId: string, currentCode: string) => {
+    try {
+      const response = await fetchConversationByIdApi.get(`${API_ENDPOINTS.CONVERSATIONS.GET_OTHER_USER}?conversation_id=${conversationId}&code_uuid=${currentCode}`);
+      return response;
+    } catch (error) {
+      console.error('Erreur lors de la récupération de la conversation par ID:', error);
+      throw error;
+    }
+  }, [fetchConversationByIdApi]);
+  
   // Auto-load au montage si demandé
   useEffect(() => {
     if (autoLoad) {
@@ -405,6 +593,17 @@ export const useMessages = (options: UseMessagesOptions = {}): UseMessagesReturn
     removeReaction,
     markAsRead,
     refresh,
+    
+    // Nouvelles fonctions harmonisées avec l'API existante
+    checkExistingConversationImproved,
+    getOrCreateConversation,
+    getConversationByIdImproved,
+    getConversationWithMessages,
+    getMessagesByConversationId,
+    setReplyToMessage,
+    setReaction,
+    createGroupConversation,
+    fetchConversationById,
     
     // État de la conversation courante
     currentConversationId,

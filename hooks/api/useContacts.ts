@@ -54,6 +54,10 @@ export const useContacts = (options: UseContactsOptions = {}): UseContactsReturn
   const blockUserApi = useApi<WesappUserBlocked>({ showToast: true });
   const unblockUserApi = useApi({ showToast: true });
   const isBlockedApi = useApi<WesappUserBlocked>({ showToast: false });
+  // Nouveaux hooks API pour l'harmonisation avec l'API existante
+  const checkCodeApi = useApi<WeSappCode>({ showToast: false });
+  const fetchWeSappUsersApi = useApi<WeSappCode[]>({ showToast: false });
+  const getBlockedContactsApi = useApi<WesappUserBlocked[]>({ showToast: false });
   
   // État global de loading
   const isLoading = connectionsApi.isLoading || 
@@ -65,7 +69,10 @@ export const useContacts = (options: UseContactsOptions = {}): UseContactsReturn
                    updateByCodeApi.isLoading ||
                    blockedApi.isLoading ||
                    blockUserApi.isLoading ||
-                   unblockUserApi.isLoading;
+                   unblockUserApi.isLoading ||
+                   checkCodeApi.isLoading ||
+                   fetchWeSappUsersApi.isLoading ||
+                   getBlockedContactsApi.isLoading;
   
   // État global d'erreur
   const error = connectionsApi.error || 
@@ -77,7 +84,10 @@ export const useContacts = (options: UseContactsOptions = {}): UseContactsReturn
                updateByCodeApi.error ||
                blockedApi.error ||
                blockUserApi.error ||
-               unblockUserApi.error;
+               unblockUserApi.error ||
+               checkCodeApi.error ||
+               fetchWeSappUsersApi.error ||
+               getBlockedContactsApi.error;
   
   /**
    * Charger les connexions avec pagination
@@ -336,6 +346,151 @@ export const useContacts = (options: UseContactsOptions = {}): UseContactsReturn
   }, [isBlockedApi]);
   
   /**
+   * Vérifier un code WeSapp (inspiré de l'API existante)
+   */
+  const checkCode = useCallback(async (code: string): Promise<WeSappCode | null> => {
+    if (!code?.trim()) {
+      throw new Error('Code WeSapp requis');
+    }
+    
+    try {
+      const url = `${API_ENDPOINTS.USERS.GET_BY_CODE}?code=${code}`;
+      const result = await checkCodeApi.get(url);
+      return result;
+    } catch (error) {
+      console.error('Erreur lors de la vérification du code WeSapp:', error);
+      return null;
+    }
+  }, [checkCodeApi]);
+  
+  /**
+   * Récupérer tous les utilisateurs WeSapp (inspiré de l'API existante)
+   */
+  const fetchWeSappUsers = useCallback(async (): Promise<WeSappCode[]> => {
+    try {
+      const result = await fetchWeSappUsersApi.get(API_ENDPOINTS.USERS.WE_SAPP_CODES);
+      return result?.results || [];
+    } catch (error) {
+      console.error('Erreur lors de la récupération des utilisateurs WeSapp:', error);
+      throw error;
+    }
+  }, [fetchWeSappUsersApi]);
+  
+  /**
+   * Récupérer les contacts bloqués par code (inspiré de l'API existante)
+   */
+  const getBlockedContacts = useCallback(async (code: string): Promise<WesappUserBlocked[]> => {
+    if (!code?.trim()) {
+      throw new Error('Code WeSapp requis');
+    }
+    
+    try {
+      const url = `${API_ENDPOINTS.BLOCKED.GET_BLOCKED_CONTACTS}${code}/`;
+      const result = await getBlockedContactsApi.get(url);
+      return result || [];
+    } catch (error) {
+      console.error('Erreur lors de la récupération des contacts bloqués:', error);
+      throw error;
+    }
+  }, [getBlockedContactsApi]);
+  
+  /**
+   * Bloquer un utilisateur (amélioré selon l'API existante)
+   */
+  const blockUserImproved = useCallback(async (weSappCodeId: string, blockedWeSappCodeId: string): Promise<void> => {
+    if (!weSappCodeId || !blockedWeSappCodeId) {
+      throw new Error('Les deux IDs sont requis pour bloquer un utilisateur.');
+    }
+    
+    try {
+      const payload = {
+        we_sapp_code_id: weSappCodeId,
+        blocked_we_sapp_code_id: blockedWeSappCodeId,
+      };
+      
+      const result = await blockUserApi.post(API_ENDPOINTS.BLOCKED.BLOCK_USER, payload);
+      
+      if (result) {
+        // Ajouter à la liste des utilisateurs bloqués
+        setBlockedUsers(prev => [...prev, result]);
+        
+        // Marquer la connexion comme bloquée
+        setConnections(prev => prev.map(conn => 
+          conn.we_sapp_code_details.id === blockedWeSappCodeId 
+            ? { ...conn, blocked: true } 
+            : conn
+        ));
+      }
+    } catch (error: any) {
+      console.error('Erreur lors du blocage :', error?.response?.data || error.message);
+      throw error;
+    }
+  }, [blockUserApi]);
+  
+  /**
+   * Débloquer un utilisateur (amélioré selon l'API existante)
+   */
+  const unblockUserImproved = useCallback(async (weSappCodeId: string, blockedWeSappCodeId: string): Promise<void> => {
+    if (!weSappCodeId || !blockedWeSappCodeId) {
+      throw new Error('Les deux IDs sont requis pour débloquer un utilisateur.');
+    }
+    
+    try {
+      const params = {
+        we_sapp_code: weSappCodeId,
+        blocked_code: blockedWeSappCodeId,
+      };
+      
+      const queryParams = new URLSearchParams(params);
+      const url = `${API_ENDPOINTS.BLOCKED.UNBLOCK}?${queryParams}`;
+      
+      const result = await unblockUserApi.delete(url);
+      
+      if (result !== null) {
+        // Supprimer de la liste des utilisateurs bloqués
+        setBlockedUsers(prev => prev.filter(blocked => 
+          blocked.blocked_we_sapp_code.id !== blockedWeSappCodeId
+        ));
+        
+        // Démarquer la connexion comme débloquée
+        setConnections(prev => prev.map(conn => 
+          conn.we_sapp_code_details.id === blockedWeSappCodeId 
+            ? { ...conn, blocked: false } 
+            : conn
+        ));
+      }
+    } catch (error: any) {
+      console.error('Erreur lors du déblocage :', error?.response?.data || error.message);
+      throw error;
+    }
+  }, [unblockUserApi]);
+  
+  /**
+   * Supprimer une connexion (inspiré de l'API existante)
+   */
+  const deleteConnectionImproved = useCallback(async (connectionId: string): Promise<void> => {
+    if (!connectionId?.trim()) {
+      throw new Error('L\'ID de la connexion est requis pour supprimer une connexion.');
+    }
+    
+    try {
+      const url = `${API_ENDPOINTS.CONNECTIONS.DELETE_CONNECTION}${connectionId}/`;
+      const result = await deleteConnectionApi.delete(url);
+      
+      if (result !== null) {
+        // Supprimer de la liste des connexions
+        setConnections(prev => prev.filter(conn => conn.id !== connectionId));
+        return;
+      }
+      
+      throw new Error('Échec de la suppression de la connexion');
+    } catch (error: any) {
+      console.error('Erreur lors de la suppression de la connexion :', error?.response?.data || error.message);
+      throw error;
+    }
+  }, [deleteConnectionApi]);
+  
+  /**
    * Fonctions utilitaires
    */
   const addToFavorites = useCallback(async (connectionId: string): Promise<void> => {
@@ -441,6 +596,14 @@ export const useContacts = (options: UseContactsOptions = {}): UseContactsReturn
     blockUser,
     unblockUser,
     checkIfBlocked,
+    
+    // Nouvelles fonctions harmonisées avec l'API existante
+    checkCode,
+    fetchWeSappUsers,
+    getBlockedContacts,
+    blockUserImproved,
+    unblockUserImproved,
+    deleteConnectionImproved,
     
     // Actions utilitaires
     addToFavorites,

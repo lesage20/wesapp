@@ -15,8 +15,10 @@ import {
   AUTH_CONFIG, 
   ERROR_MESSAGES, 
   RETRY_CONFIG,
-  TOAST_CONFIG 
+  TOAST_CONFIG,
+  NO_AUTH_ENDPOINTS 
 } from './constants';
+import { router } from 'expo-router';
 import { UseApiState, UseApiOptions, ApiResponse, ApiError } from './types';
 
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
@@ -26,7 +28,6 @@ interface RequestConfig {
   url: string;
   data?: any;
   headers?: Record<string, string>;
-  requiresAuth?: boolean;
   timeout?: number;
 }
 
@@ -64,11 +65,17 @@ const getAuthToken = async (): Promise<string | null> => {
   }
 };
 
-// Utilitaire pour les headers avec authentification
-const getHeaders = async (customHeaders: Record<string, string> = {}, requiresAuth = true): Promise<Record<string, string>> => {
+// Utilitaire pour vérifier si un endpoint nécessite l'authentification (logique d'interceptor)
+const requiresAuthentication = (url: string): boolean => {
+  return !NO_AUTH_ENDPOINTS.some(endpoint => url.includes(endpoint));
+};
+
+// Utilitaire pour les headers avec authentification automatique (logique d'interceptor)
+const getHeaders = async (customHeaders: Record<string, string> = {}, url: string): Promise<Record<string, string>> => {
   const headers = { ...DEFAULT_HEADERS, ...customHeaders };
   
-  if (requiresAuth) {
+  // Ajouter automatiquement le token si l'endpoint le nécessite
+  if (requiresAuthentication(url)) {
     const token = await getAuthToken();
     if (token) {
       headers.Authorization = `${AUTH_CONFIG.TOKEN_PREFIX} ${token}`;
@@ -78,8 +85,34 @@ const getHeaders = async (customHeaders: Record<string, string> = {}, requiresAu
   return headers;
 };
 
-// Utilitaire pour gérer les erreurs HTTP
-const handleHttpError = (status: number, data: any): string => {
+// Utilitaire pour nettoyer les données d'authentification et rediriger (logique d'interceptor)
+const handleUnauthorized = async (): Promise<void> => {
+  try {
+    // Nettoyer toutes les données d'authentification
+    await AsyncStorage.multiRemove([
+      AUTH_CONFIG.TOKEN_STORAGE_KEY,
+      AUTH_CONFIG.REFRESH_TOKEN_STORAGE_KEY,
+      AUTH_CONFIG.USER_STORAGE_KEY,
+      AUTH_CONFIG.EXISTING_USER_KEY,
+      AUTH_CONFIG.PENDING_USER_ID_KEY,
+      AUTH_CONFIG.LAST_PHONE_NUMBER_KEY,
+      'token'
+    ]);
+    
+    console.log('Session expirée - utilisateur déconnecté');
+    
+    // Rediriger vers l'écran de connexion après un court délai
+    setTimeout(() => {
+      router.replace('/(auth)/login');
+    }, 100);
+    
+  } catch (error) {
+    console.error('Erreur lors de la déconnexion automatique:', error);
+  }
+};
+
+// Utilitaire pour gérer les erreurs HTTP (avec logique d'interceptor)
+const handleHttpError = async (status: number, data: any): Promise<string> => {
   // Essayer d'extraire le message d'erreur du backend
   let backendMessage = null;
   
@@ -111,12 +144,17 @@ const handleHttpError = (status: number, data: any): string => {
     }
   }
   
+  // Gestion spéciale pour l'erreur 401 (logique d'interceptor response)
+  if (status === 401) {
+    console.log('Session expirée ou invalide (401 Unauthorized). Déconnexion automatique...');
+    await handleUnauthorized();
+    return backendMessage || ERROR_MESSAGES.UNAUTHORIZED;
+  }
+  
   // Si on a un message du backend, l'utiliser, sinon utiliser le message par défaut
   switch (status) {
     case 400:
       return backendMessage || ERROR_MESSAGES.VALIDATION_ERROR;
-    case 401:
-      return backendMessage || ERROR_MESSAGES.UNAUTHORIZED;
     case 403:
       return backendMessage || ERROR_MESSAGES.FORBIDDEN;
     case 404:
@@ -135,11 +173,11 @@ const handleHttpError = (status: number, data: any): string => {
 
 // Fonction principale pour effectuer les requêtes HTTP
 const makeRequest = async <T = any>(config: RequestConfig): Promise<ApiResponse<T>> => {
-  const { method, url, data, headers: customHeaders = {}, requiresAuth = true, timeout = API_CONFIG.TIMEOUT } = config;
+  const { method, url, data, headers: customHeaders = {}, timeout = API_CONFIG.TIMEOUT } = config;
   
   try {
-    const headers = await getHeaders(customHeaders, requiresAuth);
     const fullUrl = buildUrl(url);
+    const headers = await getHeaders(customHeaders, fullUrl);
     
     // Configuration de la requête
     const abortController = new AbortController();
@@ -184,7 +222,7 @@ const makeRequest = async <T = any>(config: RequestConfig): Promise<ApiResponse<
       console.log('Erreur API - Status:', response.status);
       console.log('Erreur API - Response data:', responseData);
       
-      const errorMessage = handleHttpError(response.status, responseData);
+      const errorMessage = await handleHttpError(response.status, responseData);
       console.log('Erreur API - Message final:', errorMessage);
       
       return {

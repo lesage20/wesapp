@@ -9,7 +9,7 @@
 export const API_CONFIG = {
   // URL de base de l'API (à configurer selon l'environnement)
   // Pour le développement, remplacez par votre URL d'API locale
-  BASE_URL: 'https://wesapp.waretrack.online/', // ⚠️ À remplacer par votre URL d'API
+  BASE_URL: 'https://wesapp.waretrack.online/api/', // ⚠️ À remplacer par votre URL d'API
   
   // Timeout des requêtes en millisecondes
   TIMEOUT: 30000,
@@ -29,89 +29,130 @@ export const AUTH_CONFIG = {
   // Préfixe du token d'authentification
   TOKEN_PREFIX: 'Token',
   
-  // Clé pour stocker le token dans le stockage local
-  TOKEN_STORAGE_KEY: '@wesapp_auth_token',
+  // Clé pour stocker le token dans le stockage local (harmonisée avec l'API existante)
+  TOKEN_STORAGE_KEY: 'authToken',
   
   // Clé pour stocker le refresh token
-  REFRESH_TOKEN_STORAGE_KEY: '@wesapp_refresh_token',
+  REFRESH_TOKEN_STORAGE_KEY: 'refreshToken',
   
   // Clé pour stocker les données utilisateur
-  USER_STORAGE_KEY: '@wesapp_user_data',
+  USER_STORAGE_KEY: 'userData',
+  
+  // Clé pour stocker l'utilisateur existant
+  EXISTING_USER_KEY: 'existingUser',
+  
+  // Clé pour stocker l'ID utilisateur en attente
+  PENDING_USER_ID_KEY: 'pendingUserId',
+  
+  // Clé pour stocker le dernier numéro de téléphone
+  LAST_PHONE_NUMBER_KEY: 'lastPhoneNumber',
+  
+  // Clé pour stocker le numéro de téléphone sécurisé
+  SECURE_PHONE_NUMBER_KEY: 'securePhoneNumber',
 } as const;
 
 // Endpoints de l'API
 export const API_ENDPOINTS = {
   // Authentification
   AUTH: {
-    REQUEST_OTP: '/api/auth/request-otp/',
-    VERIFY_OTP: '/api/auth/verify-otp/',
-    REFRESH_TOKEN: '/api/token/refresh/',
+    REQUEST_OTP: 'auth/request-otp/',
+    VERIFY_OTP: 'auth/verify-otp/',
+    REFRESH_TOKEN: 'token/refresh/',
   },
   
   // Utilisateurs
   USERS: {
-    CREATE_PROFILE: '/api/users/create-profile/',
-    SAVE_TOKEN: '/api/users/save-token/',
-    USERS: '/api/users/users/',
-    SETTINGS: '/api/users/settings/',
-    WE_SAPP_CODES: '/api/users/we-sapp-codes/',
-    CHECK_PREMIUM: '/api/users/we-sapp-codes/check-premium/',
-    CREATE_PREMIUM: '/api/users/we-sapp-codes/create-premium-profile/',
-    GET_BY_CODE: '/api/users/we-sapp-codes/get-by-code/',
-    GET_PREMIUM: '/api/users/we-sapp-codes/get-premium/',
-    SEARCH_BY_PHONE: '/api/users/we-sapp-codes/search-by-phone/',
-    UPDATE_NOTIFICATION: '/api/users/we-sapp-codes/update-notification/',
+    CREATE_PROFILE: 'users/create-profile/',
+    SAVE_TOKEN: 'users/save-token/',
+    USERS: 'users/users/',
+    SETTINGS: 'users/settings/',
+    WE_SAPP_CODES: 'users/we-sapp-codes/',
+    CHECK_PREMIUM: 'users/we-sapp-codes/check-premium/',
+    CREATE_PREMIUM: 'users/we-sapp-codes/create-premium-profile/',
+    GET_BY_CODE: 'users/we-sapp-codes/get-by-code/',
+    GET_PREMIUM: 'users/we-sapp-codes/get-premium/',
+    SEARCH_BY_PHONE: 'users/we-sapp-codes/search-by-phone/',
+    UPDATE_NOTIFICATION: 'users/we-sapp-codes/update-notification/',
+    // Nouveaux endpoints de l'API existante
+    UPDATE_CODE: 'users/we-sapp-codes/',
+    CHECK_PREMIUM_CODE: 'users/we-sapp-codes/check-premium/',
   },
   
   // Conversations
   CONVERSATIONS: {
-    BASE: '/api/conversations/',
-    CHECK_EXISTING: '/api/conversations/check-existing/',
-    GET_ONE: '/api/conversations/get-one-conversation/',
-    GET_OTHER_USER: '/api/conversations/get-other-conversations-user/',
+    BASE: 'conversations/',
+    CHECK_EXISTING: 'conversations/check-existing/',
+    GET_ONE: 'conversations/get-one-conversation/',
+    GET_OTHER_USER: 'conversations/get-other-conversations-user/',
+    // Nouveaux endpoints de l'API existante
+    GET_CONVERSATION_WITH_MESSAGES: 'conversations/get-one-conversation/',
+    GET_CONVERSATION_BY_ID: 'conversations/',
   },
   
   // Messages
   MESSAGES: {
-    BASE: '/api/messages/',
+    BASE: 'messages/',
+    // Nouveaux endpoints de l'API existante
+    GET_MESSAGES_BY_CONVERSATION_ID: 'messages/',
+    SET_REPLY_TO_MESSAGE: 'messages/set-reply-to-message/',
+    SET_REACTION: 'messages/set-reaction/',
   },
   
   // Connexions
   CONNECTIONS: {
-    BASE: '/api/connections/',
-    GET_BY_CODE: '/api/connections/get-by-code/',
-    UPDATE_BY_CODE: '/api/connections/update-by-code/',
+    BASE: 'connections/',
+    GET_BY_CODE: 'connections/get-by-code/',
+    UPDATE_BY_CODE: 'connections/update-by-code/',
+    // Nouveaux endpoints de l'API existante
+    CREATE_CONNECTION: 'connections/',
+    DELETE_CONNECTION: 'connections/',
   },
   
   // Groupes
   GROUPS: {
-    BASE: '/api/groups/',
-    ADD_MEMBERS: (id: string) => `/api/groups/${id}/add-members/`,
-    LEAVE_GROUP: (id: string) => `/api/groups/${id}/leave-group/`,
-    REMOVE_MEMBER: (id: string) => `/api/groups/${id}/remove-member/`,
-    GET_MEMBERS: '/api/groups/get-group-members/',
+    BASE: 'groups/',
+    ADD_MEMBERS: (id: string) => `groups/${id}/add-members/`,
+    LEAVE_GROUP: (id: string) => `groups/${id}/leave-group/`,
+    REMOVE_MEMBER: (id: string) => `groups/${id}/remove-member/`,
+    GET_MEMBERS: 'groups/get-group-members/',
+    // Nouveaux endpoints de l'API existante
+    CREATE_GROUP: 'groups/',
+    UPDATE_GROUP: 'groups/',
+    DELETE_GROUP: 'groups/',
+    GET_GROUPS: 'groups/get-group-members/',
   },
   
   // Utilisateurs bloqués
   BLOCKED: {
-    BASE: '/api/blocked/',
-    BLOCKED_BY: (codeId: string) => `/api/blocked/blocked-by/${codeId}/`,
-    BLOCKED_USERS: (codeId: string) => `/api/blocked/blocked-users/${codeId}/`,
-    IS_BLOCKED: '/api/blocked/is-blocked/',
-    UNBLOCK: '/api/blocked/unblock/',
+    BASE: 'blocked/',
+    BLOCKED_BY: (codeId: string) => `blocked/blocked-by/${codeId}/`,
+    BLOCKED_USERS: (codeId: string) => `blocked/blocked-users/${codeId}/`,
+    IS_BLOCKED: 'blocked/is-blocked/',
+    UNBLOCK: 'blocked/unblock/',
+    // Nouveaux endpoints de l'API existante
+    BLOCK_USER: 'blocked/',
+    GET_BLOCKED_CONTACTS: 'blocked/blocked-users/',
   },
   
   // Appels
   CALLS: {
-    START_CALL: '/api/start-call/',
-    TOKEN: '/api/calls/token/',
+    START_CALL: 'start-call/',
+    TOKEN: 'calls/token/',
   },
   
   // API divers
   API: {
-    TURN_CREDENTIALS: '/api/api/turn-credentials/',
+    TURN_CREDENTIALS: 'api/turn-credentials/',
   },
 } as const;
+
+// Endpoints qui ne nécessitent pas d'authentification
+export const NO_AUTH_ENDPOINTS = [
+  'auth/request-otp/',
+  'auth/verify-otp/',
+  'users/create-profile/',
+  'auth/login/'
+] as const;
 
 // Configuration de pagination
 export const PAGINATION_CONFIG = {

@@ -1,6 +1,6 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { API_BASE_URL } from '../constants/ApiConstant';
+import { API_BASE_URL } from './ApiConstant';
 import { router } from 'expo-router';
 import { clearAuthToken } from './services/authService';
 
