@@ -140,7 +140,7 @@ export default function AudioPlayer({ audioUrl, duration, isOwn }: AudioPlayerPr
 
       {/* Time Display */}
       <View className="ml-2">
-        <Text className={`text-xs ${isOwn ? 'text-gray-600' : 'text-white/70'}`}>
+        <Text className={`text-xs ${isOwn ? 'text-white/90' : 'text-white/70'}`}>
           {isPlaying ? formatTime(currentTime) : formatTime(duration)}
         </Text>
       </View>

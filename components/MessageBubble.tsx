@@ -1,14 +1,14 @@
 import React, { useState, useRef } from 'react';
-import { 
-  View, 
-  Text, 
-  TouchableOpacity, 
-  Image, 
-  Animated, 
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Image,
+  Animated,
   Vibration,
   Dimensions
 } from 'react-native';
-import { 
+import {
   PanGestureHandler,
   LongPressGestureHandler,
   TapGestureHandler,
@@ -73,13 +73,13 @@ export default function MessageBubble({
 
   const handlePanGesture = (event: any) => {
     const { translationX } = event.nativeEvent;
-    
+
     // Messages reçus : swipe droite (translationX > 0)
     // Messages envoyés : swipe gauche (translationX < 0)
-    const isValidSwipe = message.isOwn 
+    const isValidSwipe = message.isOwn
       ? (translationX < 0 && Math.abs(translationX) <= SWIPE_THRESHOLD)
       : (translationX > 0 && translationX <= SWIPE_THRESHOLD);
-    
+
     if (isValidSwipe) {
       translateX.setValue(translationX);
       setHasStartedSwipe(true);
@@ -88,18 +88,18 @@ export default function MessageBubble({
 
   const handlePanEnd = (event: any) => {
     const { translationX } = event.nativeEvent;
-    
+
     // Vérifier si le seuil est atteint selon le type de message
-    const shouldTriggerReply = message.isOwn 
+    const shouldTriggerReply = message.isOwn
       ? (Math.abs(translationX) >= SWIPE_THRESHOLD && translationX < 0)
       : (translationX >= SWIPE_THRESHOLD);
-    
+
     if (shouldTriggerReply) {
       // Trigger reply
       Vibration.vibrate(50);
       onSwipeReply(message.id);
     }
-    
+
     // Reset animation
     setHasStartedSwipe(false);
     Animated.spring(translateX, {
@@ -124,12 +124,12 @@ export default function MessageBubble({
         useNativeDriver: true,
       }),
     ]).start();
-    
+
     // Récupérer la position réelle du message
     messageRef.current?.measure((x, y, width, height, pageX, pageY) => {
-      onLongPress(message.id, { 
-        x: pageX + width / 2, 
-        y: pageY + height / 2 
+      onLongPress(message.id, {
+        x: pageX + width / 2,
+        y: pageY + height / 2
       });
     });
   };
@@ -143,17 +143,17 @@ export default function MessageBubble({
     switch (message.type) {
       case 'image':
         return (
-          <TouchableOpacity 
+          <TouchableOpacity
             onPress={() => onImagePress?.(message.imageUrl!)}
             className="rounded-2xl overflow-hidden"
           >
-            <Image 
-              source={{ uri: message.imageUrl }} 
+            <Image
+              source={{ uri: message.imageUrl }}
               className="w-60 h-40"
               resizeMode="cover"
             />
             {message.content && (
-              <Text className={`mt-2 text-base ${message.isOwn ? 'text-gray-900' : 'text-white'}`}>
+              <Text className={`mt-2 text-base ${message.isOwn ? 'text-white' : 'text-white'}`}>
                 {message.content}
               </Text>
             )}
@@ -171,11 +171,11 @@ export default function MessageBubble({
 
       case 'location':
         return (
-          <TouchableOpacity 
+          <TouchableOpacity
             onPress={() => onLocationPress?.(message.location!)}
             className="rounded-2xl overflow-hidden"
           >
-            <View className="w-60 h-32 bg-gray-200 items-center justify-center">
+            <View className="w-60 h-32 bg-gray-200/80 items-center justify-center">
               <Ionicons name="location" size={32} color="#14B8A6" />
               <Text className="text-teal-600 font-semibold mt-2">
                 {message.location?.name || 'Location'}
@@ -186,7 +186,7 @@ export default function MessageBubble({
 
       default:
         return (
-          <Text className={`text-base ${message.isOwn ? 'text-gray-900' : 'text-white'}`}>
+          <Text className={`text-base ${message.isOwn ? 'text-white' : 'text-white'}`}>
             {message.content}
           </Text>
         );
@@ -210,24 +210,21 @@ export default function MessageBubble({
         case 'image': return 'Photo';
         case 'audio': return 'Audio';
         case 'location': return 'Location';
-        default: return replyToMessage.content.length > 30 
-          ? replyToMessage.content.substring(0, 30) + '...' 
+        default: return replyToMessage.content.length > 30
+          ? replyToMessage.content.substring(0, 30) + '...'
           : replyToMessage.content;
       }
     };
 
     return (
-      <View className={`mb-2 p-2 rounded-lg border-l-4 ${
-        message.isOwn ? 'bg-gray-100 border-teal-600' : 'bg-white/10 border-white/50'
-      }`}>
-        <Text className={`text-xs font-semibold mb-1 ${
-          message.isOwn ? 'text-teal-600' : 'text-white/80'
+      <View className={`mb-2 p-2 rounded-lg border-l-4 ${message.isOwn ? 'bg-white/60 border-teal-600' : 'bg-white/10 border-white/50'
         }`}>
+        <Text className={`text-xs font-semibold mb-1 ${message.isOwn ? 'text-teal-700' : 'text-white/80'
+          }`}>
           {replyToMessage.isOwn ? 'You' : 'Contact'}
         </Text>
-        <Text className={`text-sm ${
-          message.isOwn ? 'text-gray-700' : 'text-white/70'
-        }`}>
+        <Text className={`text-sm ${message.isOwn ? 'text-gray-700' : 'text-white/70'
+          }`}>
           {getReplyIcon()} {getReplyText()}
         </Text>
       </View>
@@ -284,18 +281,17 @@ export default function MessageBubble({
             numberOfTaps={2}
           >
             <Animated.View style={{ transform: [{ scale: scaleValue }] }}>
-              <View 
+              <View
                 ref={messageRef}
                 className={`mb-3 ${message.isOwn ? 'items-end' : 'items-start'}`}
               >
                 {/* Reply Icon for Swipe */}
-                <Animated.View 
-                  className={`absolute top-1/2 w-8 h-8 bg-gray-400 rounded-full items-center justify-center ${
-                    message.isOwn ? 'left-4' : 'right-4'
-                  }`}
+                <Animated.View
+                  className={`absolute top-1/2 w-8 h-8 bg-gray-400 rounded-full items-center justify-center ${message.isOwn ? 'left-4' : 'right-4'
+                    }`}
                   style={{
                     opacity: translateX.interpolate({
-                      inputRange: message.isOwn 
+                      inputRange: message.isOwn
                         ? [-SWIPE_THRESHOLD, 0]
                         : [0, SWIPE_THRESHOLD],
                       outputRange: [1, 0],
@@ -303,7 +299,7 @@ export default function MessageBubble({
                     }),
                     transform: [{
                       translateX: translateX.interpolate({
-                        inputRange: message.isOwn 
+                        inputRange: message.isOwn
                           ? [-SWIPE_THRESHOLD, 0]
                           : [0, SWIPE_THRESHOLD],
                         outputRange: message.isOwn ? [0, -30] : [30, 0],
@@ -315,19 +311,21 @@ export default function MessageBubble({
                   <Ionicons name="arrow-undo" size={16} color="white" />
                 </Animated.View>
 
-                <View className={`max-w-[80%] px-4 py-3 rounded-2xl ${
-                  message.isOwn 
-                    ? 'bg-white/90 rounded-br-md' 
+                <View className={`max-w-[80%] px-4 py-3 rounded-2xl ${message.isOwn
+                    ? 'bg-teal-700/90 rounded-br-md'
                     : 'bg-gray-800/80 rounded-bl-md'
-                }`}>
+                  }`}>
                   {renderReplyPreview()}
                   {renderMessageContent()}
+                  <View className='flex-row items-end justify-end'>
+                    <Text className="text-white/90 text-xs mt-1 px-2">
+                      {message.timestamp}
+                    </Text>
+                  </View>
                 </View>
-                
-                <Text className="text-white/70 text-xs mt-1 px-2">
-                  {message.timestamp}
-                </Text>
-                
+
+
+
                 {renderReactions()}
               </View>
             </Animated.View>
