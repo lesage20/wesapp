@@ -61,7 +61,7 @@ export default function SettingsScreen() {
       <View className="flex-1 bg-gray-50">
         <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
           {/* User Profile Section */}
-          <View className=" mx-4  rounded-2xl px-6 pb-4 pt-2shadow-sm">
+          <View className=" mx-4  rounded-2xl px-6 py-6  shadow-sm">
             <View className="flex-row items-center justify-between">
               <View className="flex-row items-center flex-1">
                 {/* User Avatar */}
