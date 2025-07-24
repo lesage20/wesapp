@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, TextInput, ScrollView, Image, ImageBackgr
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import CustomHeader from '~/components/CustomHeader';
 import MessageBubble, { Message, MessageReaction, MessageLocation } from '~/components/MessageBubble';
 import ReactionPicker from '~/components/ReactionPicker';
@@ -318,25 +319,29 @@ export default function ChatScreen() {
         }
       />
       <SafeAreaView className="flex-1">
-        <ImageBackground 
-          source={require('~/assets/images/chat-bg.png')} 
-          className="flex-1"
-          resizeMode="cover"
-        >
-          {/* Messages Container */}
-          <ScrollView 
-            ref={scrollViewRef}
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <ImageBackground 
+            source={require('~/assets/images/chat-bg.png')} 
             className="flex-1"
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 16, paddingBottom: 20 }}
+            resizeMode="cover"
           >
+            {/* Messages Container */}
+            <ScrollView 
+              ref={scrollViewRef}
+              className="flex-1"
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 16, paddingBottom: 20 }}
+              scrollEnabled={true}
+              nestedScrollEnabled={true}
+              keyboardShouldPersistTaps="handled"
+            >
             {messages.map((msg) => (
               <MessageBubble
                 key={msg.id}
                 message={msg}
                 replyToMessage={msg.replyTo ? findReplyToMessage(msg.replyTo) : undefined}
                 onSwipeReply={handleSwipeReply}
-                onLongPress={(messageId) => handleLongPress(messageId, { x: 200, y: 400 })}
+                onLongPress={handleLongPress}
                 onReaction={handleReaction}
                 onImagePress={(imageUrl) => {
                   Alert.alert('Image', 'Image viewer coming soon!');
@@ -346,22 +351,22 @@ export default function ChatScreen() {
                 }}
               />
             ))}
-          </ScrollView>
+            </ScrollView>
 
-          {/* Reply Preview */}
-          <ReplyPreview 
-            replyToMessage={replyToMessage}
-            onClose={() => setReplyToMessage(null)}
-            visible={!!replyToMessage}
-          />
+            {/* Reply Preview */}
+            <ReplyPreview 
+              replyToMessage={replyToMessage}
+              onClose={() => setReplyToMessage(null)}
+              visible={!!replyToMessage}
+            />
 
-          {/* Input Section */}
-          <View className="bg-white px-4 py-3 flex-row items-center">
+            {/* Input Section */}
+            <View className="bg-white px-4 py-3 flex-row items-center">
             <TouchableOpacity className="w-12 h-12 bg-gray-200 rounded-full items-center justify-center mr-3">
               <Ionicons name="add" size={24} color="#6B7280" />
             </TouchableOpacity>
             
-            <View className="flex-1 flex-row items-center bg-gray-100 rounded-full px-4 py-2">
+            <View className="flex-1 flex-row items-center bg-gray-100 rounded-full px-4 py-1">
               <TextInput
                 className="flex-1 text-gray-900"
                 placeholder={replyToMessage ? 'Reply...' : 'Type a message...'}
@@ -387,11 +392,11 @@ export default function ChatScreen() {
                 <MicIcon width={20} height={20} />
               )}
             </TouchableOpacity>
-          </View>
-        </ImageBackground>
+            </View>
+          </ImageBackground>
 
-        {/* Overlays */}
-        <ReactionPicker
+          {/* Overlays */}
+          <ReactionPicker
           visible={showReactionPicker}
           position={reactionPickerPosition}
           onReaction={(emoji) => {
@@ -424,6 +429,7 @@ export default function ChatScreen() {
           }}
           isOwnMessage={messages.find(m => m.id === selectedMessageId)?.isOwn || false}
         />
+        </GestureHandlerRootView>
       </SafeAreaView>
     </>
   );

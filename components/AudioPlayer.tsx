@@ -8,11 +8,10 @@ interface AudioPlayerProps {
   isOwn: boolean;
 }
 
-// Waveform data - heights for each bar (0-100)
+// Waveform data - heights for each bar (0-100) - 32 barres max
 const WAVEFORM_DATA = [
   20, 45, 30, 60, 25, 80, 35, 50, 40, 70, 25, 55, 45, 65, 30, 75, 
-  40, 50, 35, 60, 45, 85, 30, 55, 40, 70, 25, 60, 50, 45, 35, 80,
-  40, 65, 30, 50, 45, 70, 25, 55, 60, 40, 35, 75, 50, 45, 30, 65
+  40, 50, 35, 60, 45, 85, 30, 55, 40, 70, 25, 60, 50, 45, 35, 80
 ];
 
 export default function AudioPlayer({ audioUrl, duration, isOwn }: AudioPlayerProps) {
@@ -92,7 +91,7 @@ export default function AudioPlayer({ audioUrl, duration, isOwn }: AudioPlayerPr
 
   const renderWaveform = () => {
     return (
-      <View className="flex-row items-center h-8 mx-3 flex-1">
+      <View className="flex-row items-center h-8 mx-3 flex-1 overflow-hidden">
         {WAVEFORM_DATA.map((height, index) => {
           const isActive = progress > (index / WAVEFORM_DATA.length);
           const normalizedHeight = Math.max(2, (height / 100) * 24); // 2px min, 24px max
@@ -100,13 +99,15 @@ export default function AudioPlayer({ audioUrl, duration, isOwn }: AudioPlayerPr
           return (
             <Animated.View
               key={index}
-              className={`w-0.5 mx-0.5 rounded-full ${
+              className={`rounded-full ${
                 isActive 
                   ? (isOwn ? 'bg-teal-600' : 'bg-white') 
                   : (isOwn ? 'bg-gray-300' : 'bg-white/40')
               }`}
               style={{
+                width: 2, // Largeur fixe au lieu de classe Tailwind
                 height: normalizedHeight,
+                marginHorizontal: 1, // Marge fixe
                 transform: [{
                   scaleY: isPlaying ? animatedValues[index] : new Animated.Value(1)
                 }]

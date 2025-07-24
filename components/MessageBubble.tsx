@@ -54,6 +54,7 @@ interface MessageBubbleProps {
 
 const { width: screenWidth } = Dimensions.get('window');
 const SWIPE_THRESHOLD = 80;
+const SWIPE_START_THRESHOLD = 30; // Seuil pour commencer le swipe
 
 export default function MessageBubble({
   message,
@@ -67,13 +68,15 @@ export default function MessageBubble({
   const translateX = useRef(new Animated.Value(0)).current;
   const scaleValue = useRef(new Animated.Value(1)).current;
   const [showReactions, setShowReactions] = useState(false);
+  const messageRef = useRef<View>(null);
+  const [hasStartedSwipe, setHasStartedSwipe] = useState(false);
 
   const handlePanGesture = (event: any) => {
-    if (message.isOwn) return; // Only allow swipe on received messages
-    
     const { translationX } = event.nativeEvent;
+    
     if (translationX > 0 && translationX <= SWIPE_THRESHOLD) {
       translateX.setValue(translationX);
+      setHasStartedSwipe(true);
     }
   };
 
@@ -87,6 +90,7 @@ export default function MessageBubble({
     }
     
     // Reset animation
+    setHasStartedSwipe(false);
     Animated.spring(translateX, {
       toValue: 0,
       useNativeDriver: true,
@@ -110,7 +114,13 @@ export default function MessageBubble({
       }),
     ]).start();
     
-    onLongPress(message.id, { x: 200, y: 400 });
+    // Récupérer la position réelle du message
+    messageRef.current?.measure((x, y, width, height, pageX, pageY) => {
+      onLongPress(message.id, { 
+        x: pageX + width / 2, 
+        y: pageY + height / 2 
+      });
+    });
   };
 
   const handleDoubleTap = () => {
@@ -240,6 +250,10 @@ export default function MessageBubble({
           handlePanEnd(event);
         }
       }}
+      activeOffsetX={SWIPE_START_THRESHOLD} // Active seulement pour swipe horizontal droite
+      failOffsetY={[-15, 15]} // Fail si mouvement vertical trop important
+      shouldCancelWhenOutside={true}
+      enabled={!message.isOwn} // Désactivé pour les messages propres
     >
       <Animated.View style={{ transform: [{ translateX }] }}>
         <LongPressGestureHandler
@@ -259,7 +273,10 @@ export default function MessageBubble({
             numberOfTaps={2}
           >
             <Animated.View style={{ transform: [{ scale: scaleValue }] }}>
-              <View className={`mb-3 ${message.isOwn ? 'items-end' : 'items-start'}`}>
+              <View 
+                ref={messageRef}
+                className={`mb-3 ${message.isOwn ? 'items-end' : 'items-start'}`}
+              >
                 {/* Reply Icon for Swipe */}
                 {!message.isOwn && (
                   <Animated.View 
