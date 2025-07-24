@@ -1,12 +1,17 @@
 {
   "expo": {
     "name": "wesapp",
-    "slug": "wesapp",
+    "slug": "wesapp-new",
     "version": "1.0.0",
     "scheme": "wesapp",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
     "icon": "./assets/images/icon.png",
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#0f0f0f",
+      "image": "./assets/images/splash-icon.png"
+    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.wesapp.wesapp",
@@ -27,11 +32,11 @@
         "expo-splash-screen",
         {
           "resizeMode": "contain",
-          "backgroundColor": "#4A4A4A",
+          "backgroundColor": "#0f0f0f",
           "image": "./assets/images/splash-icon.png",
           "dark": {
-            "resizeMode": "contain", 
-            "backgroundColor": "#4A4A4A",
+            "resizeMode": "contain",
+            "backgroundColor": "#0f0f0f",
             "image": "./assets/images/splash-icon.png"
           },
           "imageWidth": 150
@@ -49,17 +54,15 @@
       "typedRoutes": true,
       "tsconfigPaths": true
     },
-
-    
     "assetBundlePatterns": [
       "**/*"
     ],
-    
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "063fa890-468c-4505-afae-301ea98b6223"
+        "projectId": "7f03dacb-a8a6-4292-afbe-86c4c63783c9"
       }
-    }
+    },
+    "owner": "sneezy-01"
   }
 }
