@@ -6,7 +6,10 @@ import {
   Image,
   Animated,
   Vibration,
-  Dimensions
+  Dimensions,
+  Linking,
+  Alert,
+  Platform
 } from 'react-native';
 import {
   PanGestureHandler,
@@ -28,14 +31,32 @@ export interface MessageLocation {
   name: string;
 }
 
+export interface MessageContact {
+  name: string;
+  phoneNumber: string;
+  avatar?: string;
+}
+
+export interface MessageDocument {
+  name: string;
+  size: number;
+  mimeType: string;
+  uri: string;
+}
+
 export interface Message {
   id: string;
-  type: 'text' | 'image' | 'audio' | 'location';
+  type: 'text' | 'image' | 'audio' | 'location' | 'video' | 'document' | 'contact';
   content: string;
   imageUrl?: string;
   audioUrl?: string;
   audioDuration?: number;
+  videoUrl?: string;
+  videoDuration?: number;
+  videoThumbnail?: string;
   location?: MessageLocation;
+  contact?: MessageContact;
+  document?: MessageDocument;
   isOwn: boolean;
   timestamp: string;
   replyTo?: string;
@@ -49,7 +70,10 @@ interface MessageBubbleProps {
   onLongPress: (messageId: string, position?: { x: number; y: number }) => void;
   onReaction: (messageId: string, emoji: string) => void;
   onImagePress?: (imageUrl: string) => void;
+  onVideoPress?: (videoUrl: string) => void;
   onLocationPress?: (location: MessageLocation) => void;
+  onContactPress?: (contact: MessageContact) => void;
+  onDocumentPress?: (document: MessageDocument) => void;
 }
 
 const { width: screenWidth } = Dimensions.get('window');
@@ -139,6 +163,46 @@ export default function MessageBubble({
     onReaction(message.id, '❤️');
   };
 
+  const openDocument = async (document: MessageDocument) => {
+    try {
+      const supported = await Linking.canOpenURL(document.uri);
+      if (supported) {
+        await Linking.openURL(document.uri);
+      } else {
+        Alert.alert('Error', 'Unable to open this document type');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to open document');
+    }
+  };
+
+  const openLocationInMaps = (location: MessageLocation) => {
+    const { lat, lng, name } = location;
+    
+    let url: string;
+    if (Platform.OS === 'ios') {
+      // Apple Maps
+      url = `http://maps.apple.com/?q=${encodeURIComponent(name)}&ll=${lat},${lng}`;
+    } else {
+      // Google Maps
+      url = `geo:${lat},${lng}?q=${lat},${lng}(${encodeURIComponent(name)})`;
+    }
+
+    Linking.canOpenURL(url)
+      .then((supported) => {
+        if (supported) {
+          return Linking.openURL(url);
+        } else {
+          // Fallback to web Google Maps
+          const webUrl = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+          return Linking.openURL(webUrl);
+        }
+      })
+      .catch(() => {
+        Alert.alert('Error', 'Unable to open maps application');
+      });
+  };
+
   const renderMessageContent = () => {
     switch (message.type) {
       case 'image':
@@ -172,7 +236,12 @@ export default function MessageBubble({
       case 'location':
         return (
           <TouchableOpacity
-            onPress={() => onLocationPress?.(message.location!)}
+            onPress={() => {
+              if (message.location) {
+                openLocationInMaps(message.location);
+                onLocationPress?.(message.location);
+              }
+            }}
             className="rounded-2xl overflow-hidden"
           >
             <View className="w-60 h-32 bg-gray-200/80 items-center justify-center">
@@ -181,6 +250,97 @@ export default function MessageBubble({
                 {message.location?.name || 'Location'}
               </Text>
             </View>
+          </TouchableOpacity>
+        );
+
+      case 'video':
+        return (
+          <TouchableOpacity
+            onPress={() => onVideoPress?.(message.videoUrl!)}
+            className="rounded-2xl overflow-hidden relative"
+          >
+            <View className="w-60 h-40 bg-gray-800 items-center justify-center">
+              {message.videoThumbnail ? (
+                <Image
+                  source={{ uri: message.videoThumbnail }}
+                  className="w-60 h-40"
+                  resizeMode="cover"
+                />
+              ) : (
+                <View className="w-60 h-40 bg-gray-700 items-center justify-center">
+                  <Ionicons name="play-circle" size={48} color="white" />
+                </View>
+              )}
+              <View className="absolute inset-0 bg-black/20 items-center justify-center">
+                <Ionicons name="play-circle" size={48} color="white" />
+              </View>
+              {message.videoDuration && (
+                <View className="absolute bottom-2 right-2 bg-black/60 px-2 py-1 rounded">
+                  <Text className="text-white text-xs">
+                    {Math.floor(message.videoDuration / 60)}:
+                    {String(Math.floor(message.videoDuration % 60)).padStart(2, '0')}
+                  </Text>
+                </View>
+              )}
+            </View>
+            {message.content && (
+              <Text className={`mt-2 text-base ${message.isOwn ? 'text-white' : 'text-white'}`}>
+                {message.content}
+              </Text>
+            )}
+          </TouchableOpacity>
+        );
+
+      case 'document':
+        return (
+          <TouchableOpacity
+            onPress={() => {
+              if (message.document) {
+                openDocument(message.document);
+                onDocumentPress?.(message.document);
+              }
+            }}
+            className="w-60 p-4 bg-gray-200/80 rounded-2xl flex-row items-center"
+          >
+            <View className="w-12 h-12 bg-blue-500 rounded-lg items-center justify-center mr-3">
+              <Ionicons name="document-text" size={24} color="white" />
+            </View>
+            <View className="flex-1">
+              <Text className="text-gray-800 font-semibold text-sm" numberOfLines={1}>
+                {message.document?.name || 'Document'}
+              </Text>
+              <Text className="text-gray-600 text-xs">
+                {message.document?.size ? `${Math.round(message.document.size / 1024)} KB` : 'Document'}
+              </Text>
+            </View>
+            <Ionicons name="download" size={20} color="#6B7280" />
+          </TouchableOpacity>
+        );
+
+      case 'contact':
+        return (
+          <TouchableOpacity
+            onPress={() => onContactPress?.(message.contact!)}
+            className="w-60 p-4 bg-gray-200/80 rounded-2xl flex-row items-center"
+          >
+            <View className="w-12 h-12 bg-green-500 rounded-full items-center justify-center mr-3">
+              {message.contact?.avatar ? (
+                <Text className="text-white font-semibold text-lg">
+                  {message.contact.avatar}
+                </Text>
+              ) : (
+                <Ionicons name="person" size={24} color="white" />
+              )}
+            </View>
+            <View className="flex-1">
+              <Text className="text-gray-800 font-semibold text-sm" numberOfLines={1}>
+                {message.contact?.name || 'Contact'}
+              </Text>
+              <Text className="text-gray-600 text-xs" numberOfLines={1}>
+                {message.contact?.phoneNumber || 'No phone number'}
+              </Text>
+            </View>
+            <Ionicons name="chatbubble" size={20} color="#6B7280" />
           </TouchableOpacity>
         );
 
@@ -201,6 +361,9 @@ export default function MessageBubble({
         case 'image': return '📷';
         case 'audio': return '🎵';
         case 'location': return '📍';
+        case 'video': return '🎥';
+        case 'document': return '📄';
+        case 'contact': return '👤';
         default: return null;
       }
     };
@@ -210,6 +373,9 @@ export default function MessageBubble({
         case 'image': return 'Photo';
         case 'audio': return 'Audio';
         case 'location': return 'Location';
+        case 'video': return 'Video';
+        case 'document': return replyToMessage.document?.name || 'Document';
+        case 'contact': return replyToMessage.contact?.name || 'Contact';
         default: return replyToMessage.content.length > 30
           ? replyToMessage.content.substring(0, 30) + '...'
           : replyToMessage.content;
