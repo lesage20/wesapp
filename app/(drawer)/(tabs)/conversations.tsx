@@ -41,24 +41,29 @@ export default function ConversationsScreen() {
             </View>
 
             {/* QR Code Scan Section */}
-            <ImageBackground 
-              source={require('~/assets/images/header-qr-card.png')}
-              className="rounded-2xl px-6 py-4 items-center overflow-hidden"
-              resizeMode="cover"
+            <TouchableOpacity
+              onPress={() => router.push('/(modal)/scan-qr')}
+              hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
             >
-              <View className="w-32 h-32 bg-white rounded-2xl items-center justify-center mb-4">
-                {/* QR Code Placeholder */}
-                <View className="w-24 h-24 ">
-                  <View className="flex-1 flex-row items-center justify-center">
-                  <QrCodeIcon width={200} height={90}  className="text-black"/>
+              <ImageBackground 
+                source={require('~/assets/images/header-qr-card.png')}
+                className="rounded-2xl px-6 py-4 items-center overflow-hidden"
+                resizeMode="cover"
+              >
+                <View className="w-32 h-32 bg-white rounded-2xl items-center justify-center mb-4">
+                  {/* QR Code Placeholder */}
+                  <View className="w-24 h-24 ">
+                    <View className="flex-1 flex-row items-center justify-center">
+                    <QrCodeIcon width={200} height={90}  className="text-black"/>
+                    </View>
                   </View>
                 </View>
-              </View>
-              <View className="flex-row items-center">
-                <CameraIcon width={20} height={20} color="white" />
-                <Text className="text-white font-semibold ml-2">Scan</Text>
-              </View>
-            </ImageBackground>
+                <View className="flex-row items-center">
+                  <CameraIcon width={20} height={20} color="white" />
+                  <Text className="text-white font-semibold ml-2">Scan</Text>
+                </View>
+              </ImageBackground>
+            </TouchableOpacity>
           </SafeAreaView>
         </View>
 

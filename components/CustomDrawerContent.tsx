@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Image } from 'react-native';
+import { View, Text, TouchableOpacity, Image, Platform, useColorScheme } from 'react-native';
 import { DrawerContentScrollView, DrawerContentComponentProps } from '@react-navigation/drawer';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuthStore } from '~/store/store';
@@ -18,7 +18,11 @@ interface DrawerMenuItem {
 
 export default function CustomDrawerContent(props: DrawerContentComponentProps) {
   const { user } = useAuthStore();
-  const router = useRouter()
+  const router = useRouter();
+  const colorScheme = useColorScheme();
+  
+  // Android navigation bar height (typical values: 48dp = ~24-48px depending on density)
+  const androidNavHeight = Platform.OS === 'android' ? 48 : 0;
   const menuItems: DrawerMenuItem[] = [
     {
       name: 'conversation',
@@ -32,10 +36,7 @@ export default function CustomDrawerContent(props: DrawerContentComponentProps) 
       label: 'My Connections',
       icon: '(connections)',
       badge: 3,
-      onPress: () => {
-        // Navigate to connections screen
-        console.log('Navigate to connections');
-      },
+      onPress: () => router.push('/my-connections'),
     },
     {
       name: 'active-call',
@@ -64,74 +65,95 @@ export default function CustomDrawerContent(props: DrawerContentComponentProps) 
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white mt-5">
-      <DrawerContentScrollView {...props} contentContainerStyle={{ paddingTop: 0 }}>
-        {/* User Header */}
-        <View className="px-2 pt-8 pb-4 border-b border-gray-100">
-          <View className="flex-row items-center justify-between">
-            <View className="flex-row items-center flex-1 gap-4">
-            <Avatar size={40} text={user?.username?.charAt(0)} backgroundColor="teal-700" />
-              <View className="flex-1">
-                <Text className="text-lg font-semibold text-gray-900">
-                  {user?.username || 'Sneezy'}
-                </Text>
-                <Text className="text-sm text-gray-600">Développeur</Text>
-              </View>
-            </View>
-            <TouchableOpacity>
-              <Ionicons name="chevron-down" size={20} color="#9CA3AF" />
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Menu Items */}
-        <View className=" py-4 flex-column">
-          {menuItems.map((item) => {
-            const IconComponent = icons[item.icon];
-            return (
-              <TouchableOpacity
-                key={item.name}
-                onPress={item.onPress}
-                className="flex-row items-center py-2 px-2 rounded-lg "
-              >
-                <View className="w-12 h-12 rounded-full bg-gray-100 items-center justify-center mr-4">
-                  <IconComponent width={24} height={24} />
-                </View>
+    <View className="flex-1 bg-white mt-5">
+      <SafeAreaView className="flex-1">
+        <DrawerContentScrollView {...props} contentContainerStyle={{ paddingTop: 0, flexGrow: 1 }}>
+          {/* User Header */}
+          <View className="px-2 pt-8 pb-4 border-b border-gray-100">
+            <View className="flex-row items-center justify-between">
+              <View className="flex-row items-center flex-1 gap-4">
+              <Avatar size={40} text={user?.username?.charAt(0)} backgroundColor="teal-700" />
                 <View className="flex-1">
-                  <Text className="text-base text-gray-900 font-medium">
-                    {item.label}
+                  <Text className="text-lg font-semibold text-gray-900">
+                    {user?.username || 'Sneezy'}
                   </Text>
+                  <Text className="text-sm text-gray-600">Développeur</Text>
                 </View>
-                <View className="flex-row items-center">
-                  {item.badge && (
-                    <View className="w-6 h-6 rounded-full bg-teal-700 items-center justify-center mr-2">
-                      <Text className="text-white text-xs font-bold">
-                        {item.badge}
-                      </Text>
-                    </View>
-                  )}
-                  <Ionicons name="chevron-forward" size={16} color="#9CA3AF" />
-                </View>
+              </View>
+              <TouchableOpacity>
+                <Ionicons name="chevron-down" size={20} color="#9CA3AF" />
               </TouchableOpacity>
-            );
-          })}
-        </View>
-      </DrawerContentScrollView>
-
-      {/* Bottom Action */}
-      <View className="px-6 pb-6">
-        <TouchableOpacity
-          onPress={handleBuyCode}
-          className="border-2 border-teal-600 rounded-full py-3 px-6 flex-row items-center justify-center"
-        >
-          <View className="w-6 h-6 bg-teal-600 rounded mr-3 items-center justify-center">
-            <Text className="text-white text-xs font-bold">W</Text>
+            </View>
           </View>
-          <Text className="text-teal-600 font-semibold">
-            Acheter un autre code WeSapp
-          </Text>
-        </TouchableOpacity>
-      </View>
-    </SafeAreaView>
+
+          {/* Menu Items */}
+          <View className=" py-4 flex-column">
+            {menuItems.map((item) => {
+              const IconComponent = icons[item.icon];
+              return (
+                <TouchableOpacity
+                  key={item.name}
+                  onPress={item.onPress}
+                  className="flex-row items-center py-2 px-2 rounded-lg "
+                >
+                  <View className="w-12 h-12 rounded-full bg-gray-100 items-center justify-center mr-4">
+                    <IconComponent width={24} height={24} />
+                  </View>
+                  <View className="flex-1">
+                    <Text className="text-base text-gray-900 font-medium">
+                      {item.label}
+                    </Text>
+                  </View>
+                  <View className="flex-row items-center">
+                    {item.badge && (
+                      <View className="w-6 h-6 rounded-full bg-teal-700 items-center justify-center mr-2">
+                        <Text className="text-white text-xs font-bold">
+                          {item.badge}
+                        </Text>
+                      </View>
+                    )}
+                    <Ionicons name="chevron-forward" size={16} color="#9CA3AF" />
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </DrawerContentScrollView>
+
+        {/* Bottom Action */}
+        <View 
+          className="px-6 "
+          style={{ 
+            paddingBottom: Platform.OS === 'android' ? (androidNavHeight ) : 24 
+          }}
+        >
+          <TouchableOpacity
+            onPress={handleBuyCode}
+            className="border-2 border-teal-600 rounded-full py-3 px-6 flex-row items-center justify-center"
+          >
+            <View className="w-6 h-6 bg-teal-600 rounded mr-3 items-center justify-center">
+              <Text className="text-white text-xs font-bold">W</Text>
+            </View>
+            <Text className="text-teal-600 font-semibold">
+              Acheter un autre code WeSapp
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+
+      {/* Android Navigation Bar Background for Drawer - Only on Android */}
+      {/* {Platform.OS === 'android' && (
+        <View 
+          style={{
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: androidNavHeight,
+            backgroundColor: colorScheme === 'dark' ? '#000000' : '#FFFFFF',
+          }}
+        />
+      )} */}
+    </View>
   );
 }
