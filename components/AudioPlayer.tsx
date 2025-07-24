@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, TouchableOpacity, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useAudioPlayer } from 'expo-audio';
 
 interface AudioPlayerProps {
   audioUrl: string;
@@ -15,15 +16,22 @@ const WAVEFORM_DATA = [
 ];
 
 export default function AudioPlayer({ audioUrl, duration, isOwn }: AudioPlayerProps) {
-  const [isPlaying, setIsPlaying] = useState(false);
+  const player = useAudioPlayer(audioUrl);
   const [currentTime, setCurrentTime] = useState(0);
   const [progress, setProgress] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
   const animatedValues = useRef(
     WAVEFORM_DATA.map(() => new Animated.Value(0.3))
   ).current;
 
+  // Synchroniser isPlaying avec player.playing pour la réactivité
   useEffect(() => {
-    if (isPlaying) {
+    setIsPlaying(player.playing);
+  }, [player.playing]);
+
+  useEffect(() => {
+    console.log('isPlaying', isPlaying);
+    if (isPlaying || player.playing) {
       // Animate waveform bars
       const animations = animatedValues.map((value, index) =>
         Animated.loop(
@@ -44,19 +52,12 @@ export default function AudioPlayer({ audioUrl, duration, isOwn }: AudioPlayerPr
 
       Animated.stagger(50, animations).start();
 
-      // Simulate audio progress
+      // Update progress based on actual audio player
       const interval = setInterval(() => {
-        setCurrentTime(prev => {
-          const newTime = prev + 0.1;
-          if (newTime >= duration) {
-            setIsPlaying(false);
-            setProgress(0);
-            clearInterval(interval);
-            return 0;
-          }
-          setProgress(newTime / duration);
-          return newTime;
-        });
+        if (player.currentTime !== undefined && player.duration !== undefined) {
+          setCurrentTime(player.currentTime);
+          setProgress(player.currentTime / player.duration);
+        }
       }, 100);
 
       return () => {
@@ -73,13 +74,16 @@ export default function AudioPlayer({ audioUrl, duration, isOwn }: AudioPlayerPr
         }).start();
       });
     }
-  }, [isPlaying]);
+  }, [player.playing, player.currentTime, player.duration]);
 
   const handlePlayPause = () => {
+    console.log('handlePlayPause', isPlaying);
     if (isPlaying) {
-      setIsPlaying(false);
+      player.pause();
     } else {
-      setIsPlaying(true);
+      player.play();
+      console.log('after launching play', isPlaying, player.playing);
+
     }
   };
 
