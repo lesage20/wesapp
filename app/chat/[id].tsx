@@ -1,7 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { View, Text, TouchableOpacity, TextInput, ScrollView, Image, ImageBackground, Alert, Clipboard, Vibration } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';  
 import { Ionicons } from '@expo/vector-icons';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import CustomHeader from '~/components/CustomHeader';
@@ -292,7 +291,7 @@ export default function ChatScreen() {
             </View>
           }
         />
-        <SafeAreaView className="flex-1">
+        <View className="flex-1">
           <ImageBackground 
             source={require('~/assets/images/chat-bg.png')} 
             className="flex-1 items-center justify-center"
@@ -300,7 +299,7 @@ export default function ChatScreen() {
           >
             <Text className="text-white/70">Loading messages...</Text>
           </ImageBackground>
-        </SafeAreaView>
+        </View>
       </>
     );
   }
@@ -326,7 +325,7 @@ export default function ChatScreen() {
           </View>
         }
       />
-      <SafeAreaView className="flex-1">
+      <View className="flex-1">
         <GestureHandlerRootView style={{ flex: 1 }}>
           <ImageBackground 
             source={require('~/assets/images/chat-bg.png')} 
@@ -438,7 +437,7 @@ export default function ChatScreen() {
           isOwnMessage={messages.find(m => m.id === selectedMessageId)?.isOwn || false}
         />
         </GestureHandlerRootView>
-      </SafeAreaView>
+      </View>
     </>
   );
 }

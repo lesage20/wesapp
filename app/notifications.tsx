@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Switch } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import CustomHeader from '~/components/CustomHeader';
 
@@ -15,7 +14,7 @@ export default function NotificationsScreen() {
         title="Notification"
         showBackButton={true}
       />
-      <SafeAreaView className="flex-1 bg-gray-50">
+      <View className="flex-1 bg-gray-50">
         <ScrollView className="flex-1 px-6 py-8">
           {/* Notification of Incoming Calls Section */}
           <View className="mb-8">
@@ -69,7 +68,7 @@ export default function NotificationsScreen() {
             </View>
           </View>
         </ScrollView>
-      </SafeAreaView>
+      </View>
     </>
   );
 }

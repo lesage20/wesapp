@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, TextInput, FlatList, Image, Alert, ActivityIndicator } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as Contacts from 'expo-contacts';
 import CustomHeader from '~/components/CustomHeader';
@@ -166,7 +165,7 @@ export default function ContactsScreen() {
           showMenuButton={true}
           showBackButton={false}
         />
-        <SafeAreaView className="flex-1 bg-white">
+        <View className="flex-1 bg-white">
           <View className="flex-1 items-center justify-center px-6">
             <Ionicons name="contacts" size={64} color="#9CA3AF" />
             <Text className="text-lg text-gray-600 mt-4 text-center">
@@ -179,7 +178,7 @@ export default function ContactsScreen() {
               <Text className="text-white font-semibold">Autoriser l'accès</Text>
             </TouchableOpacity>
           </View>
-        </SafeAreaView>
+        </View>
       </>
     );
   }
@@ -191,7 +190,7 @@ export default function ContactsScreen() {
         showMenuButton={true}
         showBackButton={false}
       />
-      <SafeAreaView className="flex-1 bg-white">
+      <View className="flex-1 bg-white">
         {/* Search Bar */}
         <View className="px-4 py-4">
           <View className="flex-row items-center bg-gray-100 rounded-full px-4 py-0 border border-gray-200 border-1">
@@ -254,7 +253,7 @@ export default function ContactsScreen() {
             }
           />
         )}
-      </SafeAreaView>
+      </View>
     </>
   );
 }

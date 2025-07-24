@@ -1,6 +1,5 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import CustomHeader from '~/components/CustomHeader';
@@ -82,7 +81,7 @@ export default function ChangeAccountScreen() {
         showBackButton={true}
         showMenuButton={false}
       />
-      <SafeAreaView className="flex-1 bg-white">
+      <View className="flex-1 bg-white">
         <ScrollView className="flex-1">
           {/* Accounts List */}
           <View className="px-4 py-4">
@@ -157,7 +156,7 @@ export default function ChangeAccountScreen() {
             </TouchableOpacity>
           </View>
         </ScrollView>
-      </SafeAreaView>
+      </View>
     </>
   );
 }

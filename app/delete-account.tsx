@@ -1,6 +1,5 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Alert } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuthStore } from '~/store/store';
@@ -37,7 +36,7 @@ export default function DeleteAccountScreen() {
         title="Delete Account"
         showBackButton={true}
       />
-      <SafeAreaView className="flex-1 bg-white">
+      <View className="flex-1 bg-white">
         <ScrollView className="flex-1 px-6 py-8">
           {/* Warning Icon and Title */}
           <View className="flex-row items-start mb-8">
@@ -87,7 +86,7 @@ export default function DeleteAccountScreen() {
             </TouchableOpacity>
           </View>
         </ScrollView>
-      </SafeAreaView>
+      </View>
     </>
   );
 }

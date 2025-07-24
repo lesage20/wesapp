@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, TextInput } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import CustomHeader from '~/components/CustomHeader';
@@ -102,7 +101,7 @@ export default function MyConnectionsScreen() {
         showBackButton={true}
         showMenuButton={false}
       />
-      <SafeAreaView className="flex-1 bg-white">
+      <View className="flex-1 bg-white">
         <View className="flex-1">
           {/* Search Bar */}
           <View className="px-6 py-4">
@@ -182,7 +181,7 @@ export default function MyConnectionsScreen() {
             )}
           </ScrollView>
         </View>
-      </SafeAreaView>
+      </View>
     </>
   );
 }

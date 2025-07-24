@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, TextInput, ScrollView, ImageBackground } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { DrawerActions } from '@react-navigation/native';
@@ -27,10 +26,10 @@ export default function ConversationsScreen() {
           headerShown: false,
         }} 
       />
-      <View className="flex-1">
+      <View className="flex-1 pt-10">
         {/* Header with QR Code Scan */}
-        <View className="bg-teal-700 px-4 py-2">
-          <SafeAreaView>
+        <View className="bg-teal-700 px-4 pt-5 pb-10">
+          <View>
             <View className="flex-row items-center justify-between mb-3">
               <TouchableOpacity 
                 onPress={() => navigation.dispatch(DrawerActions.openDrawer())} 
@@ -64,13 +63,13 @@ export default function ConversationsScreen() {
                 </View>
               </ImageBackground>
             </TouchableOpacity>
-          </SafeAreaView>
+          </View>
         </View>
 
         {/* White Content Section */}
-        <View className="flex-1 bg-white rounded-t-3xl " style={{  top: -18 }}>
+        <View className="flex-1 bg-white rounded-t-3xl ">
           {/* Header */}
-          <View className="flex-row items-center text-center justify-between px-6 py-4 ">
+          <View className="flex-row items-center text-center justify-between px-6 py-4  rounded-t-3xl bg-white" style={{  top: -18, zIndex: 1000 }}>
             <Text className="text-2xl text-center font-bold text-gray-900 flex-1">Conversations</Text>
             <TouchableOpacity className="w-10 h-10 bg-teal-700 rounded-full items-center justify-center">
               <Ionicons name="add" size={24} color="white" />

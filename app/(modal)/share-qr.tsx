@@ -1,6 +1,5 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Share, Alert } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import QRCode from 'react-native-qrcode-svg';
 import { useAuthStore } from '~/store/store';
@@ -140,7 +139,7 @@ export default function ShareQRScreen() {
         title="QR Code"
         showDismissButton={true}
       />
-      <SafeAreaView className="flex-1 bg-white">
+      <View className="flex-1 bg-white">
         <ScrollView className="flex-1">
           {/* QR Code Section */}
           <View className="items-center py-6 bg-gray-50">
@@ -240,7 +239,7 @@ export default function ShareQRScreen() {
             </View>
           </View>
         </ScrollView>
-      </SafeAreaView>
+      </View>
     </>
   );
 }

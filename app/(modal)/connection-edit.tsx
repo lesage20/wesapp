@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, TextInput } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import CustomHeader from '~/components/CustomHeader';
 import Avatar from '~/components/Avatar';
@@ -36,7 +35,7 @@ export default function ConnectionEditScreen() {
         rightText="Save"
         onRightPress={handleSave}
       />
-      <SafeAreaView className="flex-1 bg-white">
+      <View className="flex-1 bg-white">
         <ScrollView className="flex-1 px-6">
           {/* Profile Section */}
           <View className="items-center py-8">
@@ -109,7 +108,7 @@ export default function ConnectionEditScreen() {
             </TouchableOpacity>
           </View>
         </ScrollView>
-      </SafeAreaView>
+      </View>
     </>
   );
 }

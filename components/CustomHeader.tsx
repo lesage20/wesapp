@@ -198,7 +198,6 @@ export default function CustomHeader({
 
   return (
     <Stack.Screen 
-    
       options={{ 
         headerShown: true,
         headerStyle: { backgroundColor: getResolvedColor(backgroundColor), borderBottomWidth: 1 , borderBottomColor: getTailwindColor('gray-200') },

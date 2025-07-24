@@ -1,6 +1,5 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import CustomHeader from '~/components/CustomHeader';
@@ -64,7 +63,7 @@ export default function ContactProfileScreen() {
         rightText="Edit"
         onRightPress={() => console.log('Edit contact')}
       />
-      <SafeAreaView className="flex-1 bg-white">
+      <View className="flex-1 bg-white">
         <ScrollView className="flex-1">
           {/* Profile Section */}
           <View className="items-center py-8">
@@ -130,7 +129,7 @@ export default function ContactProfileScreen() {
             </TouchableOpacity>
           </View>
         </ScrollView>
-      </SafeAreaView>
+      </View>
     </>
   );
 }
