@@ -24,14 +24,27 @@ export default function AudioPlayer({ audioUrl, duration, isOwn }: AudioPlayerPr
     WAVEFORM_DATA.map(() => new Animated.Value(0.3))
   ).current;
 
-  // Synchroniser isPlaying avec player.playing pour la réactivité
+  // Synchroniser isPlaying avec player.playing et gérer l'état de lecture
   useEffect(() => {
-    setIsPlaying(player.playing);
-  }, [player.playing]);
+    const checkPlayingState = () => {
+      const currentlyPlaying = player.playing;
+      if (currentlyPlaying !== isPlaying) {
+        setIsPlaying(currentlyPlaying);
+      }
+    };
+
+    // Vérifier l'état immédiatement
+    checkPlayingState();
+
+    // Continuer à vérifier l'état périodiquement
+    const interval = setInterval(checkPlayingState, 100);
+
+    return () => clearInterval(interval);
+  }, [player, player.playing, isPlaying]);
 
   useEffect(() => {
-    console.log('isPlaying', isPlaying);
-    if (isPlaying || player.playing) {
+    
+    if (isPlaying) {
       // Animate waveform bars
       const animations = animatedValues.map((value, index) =>
         Animated.loop(
@@ -53,15 +66,20 @@ export default function AudioPlayer({ audioUrl, duration, isOwn }: AudioPlayerPr
       Animated.stagger(50, animations).start();
 
       // Update progress based on actual audio player
-      const interval = setInterval(() => {
+      const progressInterval = setInterval(() => {
         if (player.currentTime !== undefined && player.duration !== undefined) {
           setCurrentTime(player.currentTime);
           setProgress(player.currentTime / player.duration);
+          
+          // Vérifier si l'audio est terminé
+          if (player.currentTime >= player.duration) {
+            setIsPlaying(false);
+          }
         }
       }, 100);
 
       return () => {
-        clearInterval(interval);
+        clearInterval(progressInterval);
         animations.forEach(anim => anim.stop());
       };
     } else {
@@ -74,16 +92,21 @@ export default function AudioPlayer({ audioUrl, duration, isOwn }: AudioPlayerPr
         }).start();
       });
     }
-  }, [player.playing, player.currentTime, player.duration]);
+  }, [isPlaying]);
 
-  const handlePlayPause = () => {
-    console.log('handlePlayPause', isPlaying);
-    if (isPlaying) {
-      player.pause();
-    } else {
-      player.play();
-      console.log('after launching play', isPlaying, player.playing);
-
+  const handlePlayPause = async () => {    
+    try {
+      if (isPlaying) {
+        await player.pause();
+      } else {
+        // Si l'audio est à la fin, le redémarrer depuis le début
+        if (player.currentTime >= (player.duration || 0)) {
+          await player.seekTo(0);
+        }
+        await player.play();
+      }
+    } catch (error) {
+      console.error('Error in play/pause:', error);
     }
   };
 
