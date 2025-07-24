@@ -13,6 +13,7 @@ export default function VerificationScreen() {
   const [loadingMessage, setLoadingMessage] = useState<string>('');
   const inputRefs = useRef<TextInput[]>([]);
   const router = useRouter();
+  const { login } = useAuthStore();
 
   const handleCodeChange = (value: string, index: number) => {
     const newCode = [...code];
@@ -63,7 +64,7 @@ export default function VerificationScreen() {
           router.replace('/profile-setup');
         }, 300);
       } else {
-        const { login } = useAuthStore();
+      //  console.log(result.user);
         login(result.user);
         setLoadingMessage('Compte existant - Connexion réussie, redirection...');
         console.log('✓ UTILISATEUR EXISTANT CONFIRMÉ - Redirection vers /calls');

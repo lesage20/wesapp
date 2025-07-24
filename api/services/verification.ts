@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createUser, verifyOtp } from './authService';
-import { useAuthStore } from '~/store/store';
+// import { useAuthStore } from '~/store/store';
 
 interface User {
   id: string;
