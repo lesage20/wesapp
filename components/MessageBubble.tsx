@@ -74,7 +74,13 @@ export default function MessageBubble({
   const handlePanGesture = (event: any) => {
     const { translationX } = event.nativeEvent;
     
-    if (translationX > 0 && translationX <= SWIPE_THRESHOLD) {
+    // Messages reçus : swipe droite (translationX > 0)
+    // Messages envoyés : swipe gauche (translationX < 0)
+    const isValidSwipe = message.isOwn 
+      ? (translationX < 0 && Math.abs(translationX) <= SWIPE_THRESHOLD)
+      : (translationX > 0 && translationX <= SWIPE_THRESHOLD);
+    
+    if (isValidSwipe) {
       translateX.setValue(translationX);
       setHasStartedSwipe(true);
     }
@@ -83,7 +89,12 @@ export default function MessageBubble({
   const handlePanEnd = (event: any) => {
     const { translationX } = event.nativeEvent;
     
-    if (translationX >= SWIPE_THRESHOLD) {
+    // Vérifier si le seuil est atteint selon le type de message
+    const shouldTriggerReply = message.isOwn 
+      ? (Math.abs(translationX) >= SWIPE_THRESHOLD && translationX < 0)
+      : (translationX >= SWIPE_THRESHOLD);
+    
+    if (shouldTriggerReply) {
       // Trigger reply
       Vibration.vibrate(50);
       onSwipeReply(message.id);
@@ -250,10 +261,10 @@ export default function MessageBubble({
           handlePanEnd(event);
         }
       }}
-      activeOffsetX={SWIPE_START_THRESHOLD} // Active seulement pour swipe horizontal droite
+      activeOffsetX={[-SWIPE_START_THRESHOLD, SWIPE_START_THRESHOLD]} // Active pour swipe horizontal gauche ET droite
       failOffsetY={[-15, 15]} // Fail si mouvement vertical trop important
       shouldCancelWhenOutside={true}
-      enabled={!message.isOwn} // Désactivé pour les messages propres
+      enabled={true} // Activé pour tous les messages
     >
       <Animated.View style={{ transform: [{ translateX }] }}>
         <LongPressGestureHandler
@@ -278,27 +289,31 @@ export default function MessageBubble({
                 className={`mb-3 ${message.isOwn ? 'items-end' : 'items-start'}`}
               >
                 {/* Reply Icon for Swipe */}
-                {!message.isOwn && (
-                  <Animated.View 
-                    className="absolute right-4 top-1/2 w-8 h-8 bg-gray-400 rounded-full items-center justify-center"
-                    style={{
-                      opacity: translateX.interpolate({
-                        inputRange: [0, SWIPE_THRESHOLD],
-                        outputRange: [0, 1],
+                <Animated.View 
+                  className={`absolute top-1/2 w-8 h-8 bg-gray-400 rounded-full items-center justify-center ${
+                    message.isOwn ? 'left-4' : 'right-4'
+                  }`}
+                  style={{
+                    opacity: translateX.interpolate({
+                      inputRange: message.isOwn 
+                        ? [-SWIPE_THRESHOLD, 0]
+                        : [0, SWIPE_THRESHOLD],
+                      outputRange: [1, 0],
+                      extrapolate: 'clamp',
+                    }),
+                    transform: [{
+                      translateX: translateX.interpolate({
+                        inputRange: message.isOwn 
+                          ? [-SWIPE_THRESHOLD, 0]
+                          : [0, SWIPE_THRESHOLD],
+                        outputRange: message.isOwn ? [0, -30] : [30, 0],
                         extrapolate: 'clamp',
-                      }),
-                      transform: [{
-                        translateX: translateX.interpolate({
-                          inputRange: [0, SWIPE_THRESHOLD],
-                          outputRange: [30, 0],
-                          extrapolate: 'clamp',
-                        })
-                      }]
-                    }}
-                  >
-                    <Ionicons name="arrow-undo" size={16} color="white" />
-                  </Animated.View>
-                )}
+                      })
+                    }]
+                  }}
+                >
+                  <Ionicons name="arrow-undo" size={16} color="white" />
+                </Animated.View>
 
                 <View className={`max-w-[80%] px-4 py-3 rounded-2xl ${
                   message.isOwn 

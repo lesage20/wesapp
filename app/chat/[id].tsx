@@ -149,6 +149,14 @@ export default function ChatScreen() {
         audioDuration: 127, // 2:07
         isOwn: true,
         timestamp: '14:47'
+      },
+      {
+        id: '9',
+        type: 'text',
+        content: 'Exactement ! C\'était génial 👍',
+        isOwn: false,
+        timestamp: '14:50',
+        replyTo: '8' // Réponse à notre message audio
       }
     ];
     setMessages(mockMessages);
