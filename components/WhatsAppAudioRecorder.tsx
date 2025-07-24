@@ -9,7 +9,7 @@ import {
   Alert
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Audio } from 'expo-av';
+import { Audio } from 'expo-audio';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -26,64 +26,14 @@ export default function WhatsAppAudioRecorder({
 }: WhatsAppAudioRecorderProps) {
   const [recording, setRecording] = useState<Audio.Recording | null>(null);
   const [isRecording, setIsRecording] = useState(false);
-  const [isLocked, setIsLocked] = useState(false);
   const [recordingDuration, setRecordingDuration] = useState(0);
   const [waveformData, setWaveformData] = useState<number[]>([]);
   
-  // Animations
-  const slideAnim = useRef(new Animated.Value(0)).current;
-  const scaleAnim = useRef(new Animated.Value(1)).current;
-  const lockAnim = useRef(new Animated.Value(0)).current;
   const waveformAnim = useRef(new Animated.Value(0)).current;
   
   // Timer
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const recordingStartTime = useRef<number>(0);
-
-  // PanResponder for slide gestures
-  const panResponder = useRef(
-    PanResponder.create({
-      onMoveShouldSetPanResponder: (evt, gestureState) => {
-        return Math.abs(gestureState.dx) > 10 || Math.abs(gestureState.dy) > 10;
-      },
-      onPanResponderMove: (evt, gestureState) => {
-        if (!isLocked) {
-          // Slide to cancel (left swipe)
-          if (gestureState.dx < -50) {
-            slideAnim.setValue(gestureState.dx);
-            scaleAnim.setValue(Math.max(0.7, 1 + gestureState.dx / 200));
-          }
-          
-          // Slide up to lock
-          if (gestureState.dy < -80) {
-            lockAnim.setValue(Math.abs(gestureState.dy) / 80);
-          }
-        }
-      },
-      onPanResponderRelease: (evt, gestureState) => {
-        if (!isLocked) {
-          // Cancel if slid too far left
-          if (gestureState.dx < -100) {
-            handleCancel();
-            return;
-          }
-          
-          // Lock if slid up enough
-          if (gestureState.dy < -80) {
-            handleLock();
-            return;
-          }
-          
-          // Reset animations if not cancelled or locked
-          Animated.parallel([
-            Animated.spring(slideAnim, { toValue: 0, useNativeDriver: true }),
-            Animated.spring(scaleAnim, { toValue: 1, useNativeDriver: true }),
-            Animated.spring(lockAnim, { toValue: 0, useNativeDriver: true })
-          ]).start();
-        }
-      },
-    })
-  ).current;
 
   useEffect(() => {
     if (visible) {
@@ -144,9 +94,33 @@ export default function WhatsAppAudioRecorder({
         playsInSilentModeIOS: true,
       });
 
-      const { recording } = await Audio.Recording.createAsync(
-        Audio.RecordingOptionsPresets.HIGH_QUALITY
-      );
+      const recording = new Audio.Recording();
+      await recording.prepareAsync({
+        android: {
+          extension: '.m4a',
+          outputFormat: Audio.AndroidOutputFormat.MPEG_4,
+          audioEncoder: Audio.AndroidAudioEncoder.AAC,
+          sampleRate: 44100,
+          numberOfChannels: 2,
+          bitRate: 128000,
+        },
+        ios: {
+          extension: '.m4a',
+          outputFormat: Audio.IOSOutputFormat.MPEG4AAC,
+          audioQuality: Audio.IOSAudioQuality.HIGH,
+          sampleRate: 44100,
+          numberOfChannels: 2,
+          bitRate: 128000,
+          linearPCMBitDepth: 16,
+          linearPCMIsBigEndian: false,
+          linearPCMIsFloat: false,
+        },
+        web: {
+          mimeType: 'audio/webm',
+          bitsPerSecond: 128000,
+        },
+      });
+      await recording.startAsync();
 
       setRecording(recording);
       setIsRecording(true);
@@ -184,12 +158,6 @@ export default function WhatsAppAudioRecorder({
       setRecording(null);
       setRecordingDuration(0);
       setWaveformData([]);
-      setIsLocked(false);
-      
-      // Reset animations
-      slideAnim.setValue(0);
-      scaleAnim.setValue(1);
-      lockAnim.setValue(0);
       
     } catch (error) {
       console.error('Failed to stop recording', error);
@@ -205,7 +173,6 @@ export default function WhatsAppAudioRecorder({
     setIsRecording(false);
     setRecordingDuration(0);
     setWaveformData([]);
-    setIsLocked(false);
     
     if (timerRef.current) {
       clearInterval(timerRef.current);
@@ -213,15 +180,6 @@ export default function WhatsAppAudioRecorder({
     }
     
     onCancel();
-  };
-
-  const handleLock = () => {
-    setIsLocked(true);
-    Animated.parallel([
-      Animated.spring(slideAnim, { toValue: 0, useNativeDriver: true }),
-      Animated.spring(scaleAnim, { toValue: 1, useNativeDriver: true }),
-      Animated.spring(lockAnim, { toValue: 1, useNativeDriver: true })
-    ]).start();
   };
 
   const formatTime = (seconds: number) => {
@@ -234,47 +192,8 @@ export default function WhatsAppAudioRecorder({
 
   return (
     <View className="absolute inset-0 bg-white">
-      {/* Lock indicator */}
-      <Animated.View
-        style={{
-          position: 'absolute',
-          top: 100,
-          right: 30,
-          opacity: lockAnim,
-          transform: [{ translateY: lockAnim.interpolate({
-            inputRange: [0, 1],
-            outputRange: [50, 0]
-          })}]
-        }}
-        className="bg-gray-200 rounded-full p-3"
-      >
-        <Ionicons name="lock-closed" size={20} color="#6B7280" />
-      </Animated.View>
-
       {/* Recording content */}
       <View className="flex-1 justify-center items-center px-8">
-        {/* Cancel instruction */}
-        {!isLocked && (
-          <Animated.View
-            style={{
-              opacity: slideAnim.interpolate({
-                inputRange: [-100, 0],
-                outputRange: [1, 0],
-                extrapolate: 'clamp'
-              })
-            }}
-            className="absolute top-1/3"
-          >
-            <Text className="text-red-500 font-medium">← Slide to cancel</Text>
-          </Animated.View>
-        )}
-
-        {/* Lock instruction */}
-        {!isLocked && (
-          <View className="absolute top-1/4">
-            <Text className="text-gray-500 font-medium">↑ Slide up to lock</Text>
-          </View>
-        )}
 
         {/* Timer */}
         <View className="mb-8">
@@ -305,59 +224,32 @@ export default function WhatsAppAudioRecorder({
 
         {/* Recording instructions */}
         <Text className="text-gray-500 text-center mb-8">
-          {isLocked 
-            ? 'Recording... Tap the stop button to finish'
-            : 'Hold to record, release to send'
-          }
+          Recording... Use the buttons below to stop or cancel
         </Text>
       </View>
 
       {/* Bottom controls */}
-      <View className="absolute bottom-20 left-0 right-0 flex-row justify-center items-center px-8">
-        {/* Cancel button (when locked) */}
-        {isLocked && (
-          <TouchableOpacity
-            onPress={handleCancel}
-            className="w-12 h-12 bg-red-500 rounded-full items-center justify-center mr-8"
-          >
-            <Ionicons name="close" size={24} color="white" />
-          </TouchableOpacity>
-        )}
-
-        {/* Mic button */}
-        <Animated.View
-          style={{
-            transform: [
-              { translateX: slideAnim },
-              { scale: scaleAnim }
-            ]
-          }}
-          {...(!isLocked ? panResponder.panHandlers : {})}
+      <View className="absolute bottom-20 left-0 right-0 flex-row justify-center items-center px-8 space-x-8">
+        {/* Cancel button */}
+        <TouchableOpacity
+          onPress={handleCancel}
+          className="w-16 h-16 bg-red-500 rounded-full items-center justify-center"
         >
-          <TouchableOpacity
-            onPress={isLocked ? stopRecording : undefined}
-            className={`w-16 h-16 rounded-full items-center justify-center ${
-              isLocked ? 'bg-red-500' : 'bg-teal-600'
-            }`}
-            disabled={!isLocked}
-          >
-            <Ionicons 
-              name={isLocked ? "stop" : "mic"} 
-              size={28} 
-              color="white" 
-            />
-          </TouchableOpacity>
-        </Animated.View>
+          <Ionicons name="close" size={28} color="white" />
+        </TouchableOpacity>
 
-        {/* Send button (when locked) */}
-        {isLocked && (
-          <TouchableOpacity
-            onPress={stopRecording}
-            className="w-12 h-12 bg-teal-600 rounded-full items-center justify-center ml-8"
-          >
-            <Ionicons name="send" size={20} color="white" />
-          </TouchableOpacity>
-        )}
+        {/* Recording indicator */}
+        <View className="w-16 h-16 bg-gray-600 rounded-full items-center justify-center">
+          <Ionicons name="mic" size={28} color="white" />
+        </View>
+
+        {/* Send button */}
+        <TouchableOpacity
+          onPress={stopRecording}
+          className="w-16 h-16 bg-teal-600 rounded-full items-center justify-center"
+        >
+          <Ionicons name="send" size={24} color="white" />
+        </TouchableOpacity>
       </View>
     </View>
   );

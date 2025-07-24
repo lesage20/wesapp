@@ -71,9 +71,6 @@ interface MessageBubbleProps {
   onReaction: (messageId: string, emoji: string) => void;
   onImagePress?: (imageUrl: string) => void;
   onVideoPress?: (videoUrl: string) => void;
-  onLocationPress?: (location: MessageLocation) => void;
-  onContactPress?: (contact: MessageContact) => void;
-  onDocumentPress?: (document: MessageDocument) => void;
 }
 
 const { width: screenWidth } = Dimensions.get('window');
@@ -239,7 +236,6 @@ export default function MessageBubble({
             onPress={() => {
               if (message.location) {
                 openLocationInMaps(message.location);
-                onLocationPress?.(message.location);
               }
             }}
             className="rounded-2xl overflow-hidden"
@@ -297,7 +293,6 @@ export default function MessageBubble({
             onPress={() => {
               if (message.document) {
                 openDocument(message.document);
-                onDocumentPress?.(message.document);
               }
             }}
             className="w-60 p-4 bg-gray-200/80 rounded-2xl flex-row items-center"

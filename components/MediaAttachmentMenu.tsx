@@ -159,7 +159,10 @@ export default function MediaAttachmentMenu({
   };
 
   const handleOptionPress = async (type: AttachmentType) => {
-    onClose();
+    // Ne pas fermer immédiatement pour l'option contact
+    if (type !== 'contact') {
+      onClose();
+    }
 
     try {
       switch (type) {
@@ -223,6 +226,7 @@ export default function MediaAttachmentMenu({
 
         case 'contact':
           setShowContactSelector(true);
+          // setTimeout(() => onClose(), 100); // Fermer après un court délai
           break;
 
         case 'location':
@@ -328,10 +332,14 @@ export default function MediaAttachmentMenu({
       {/* Contact Selector Modal */}
       <ContactSelectorModal
         visible={showContactSelector}
-        onClose={() => setShowContactSelector(false)}
+        onClose={() => {
+          setShowContactSelector(false);
+          onClose();
+        }}
         onContactSelected={(contact) => {
           onContactSelected(contact);
           setShowContactSelector(false);
+          onClose();
         }}
       />
     </Modal>

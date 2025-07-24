@@ -11,6 +11,7 @@ import MessageActions from '~/components/MessageActions';
 import MediaAttachmentMenu from '~/components/MediaAttachmentMenu';
 import WhatsAppAudioRecorder from '~/components/WhatsAppAudioRecorder';
 import ImageViewerModal from '~/components/ImageViewerModal';
+import VideoPlayer from '~/components/VideoPlayer';
 import VideoCallIcon from '~/assets/svgs/chat/video-call';
 import VoiceCallIcon from '~/assets/svgs/chat/voice-call';
 import SendIcon from '~/assets/svgs/chat/send';
@@ -32,6 +33,8 @@ export default function ChatScreen() {
   const [showAudioRecorder, setShowAudioRecorder] = useState(false);
   const [showImageViewer, setShowImageViewer] = useState(false);
   const [currentImageUrl, setCurrentImageUrl] = useState('');
+  const [showVideoPlayer, setShowVideoPlayer] = useState(false);
+  const [currentVideoUrl, setCurrentVideoUrl] = useState('');
   const scrollViewRef = useRef<ScrollView>(null);
 
   // Get contact data based on ID
@@ -483,7 +486,8 @@ export default function ChatScreen() {
                   setShowImageViewer(true);
                 }}
                 onVideoPress={(videoUrl) => {
-                  Alert.alert('Video', 'Video player coming soon!');
+                  setCurrentVideoUrl(videoUrl);
+                  setShowVideoPlayer(true);
                 }}
                 // onLocationPress={(location) => {
                 //   Alert.alert('Location', `Opening ${location.name}...`);
@@ -602,6 +606,13 @@ export default function ChatScreen() {
           visible={showImageViewer}
           imageUrl={currentImageUrl}
           onClose={() => setShowImageViewer(false)}
+        />
+
+        {/* Video Player Modal */}
+        <VideoPlayer
+          visible={showVideoPlayer}
+          videoUrl={currentVideoUrl}
+          onClose={() => setShowVideoPlayer(false)}
         />
       </KeyboardAvoidingView>
     </>
