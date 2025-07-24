@@ -43,6 +43,12 @@
           "launchMode": "most-recent"
         }
       ],
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone."
+        }
+      ],
       "expo-web-browser"
     ],
     "experiments": {

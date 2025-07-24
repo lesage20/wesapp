@@ -11,6 +11,7 @@ import {
   Alert,
   Platform
 } from 'react-native';
+import * as Sharing from 'expo-sharing';
 import {
   PanGestureHandler,
   LongPressGestureHandler,
@@ -162,13 +163,30 @@ export default function MessageBubble({
 
   const openDocument = async (document: MessageDocument) => {
     try {
-      const supported = await Linking.canOpenURL(document.uri);
-      if (supported) {
-        await Linking.openURL(document.uri);
+      // Check if it's an image - should open in image viewer
+      if (document.mimeType.startsWith('image/')) {
+        onImagePress?.(document.uri);
+        return;
+      }
+
+      // Check if it's a video - should open in video player
+      if (document.mimeType.startsWith('video/')) {
+        onVideoPress?.(document.uri);
+        return;
+      }
+
+      // For other documents, use sharing to open with system app
+      const isAvailable = await Sharing.isAvailableAsync();
+      if (isAvailable) {
+        await Sharing.shareAsync(document.uri, {
+          mimeType: document.mimeType,
+          dialogTitle: `Open ${document.name}`,
+        });
       } else {
-        Alert.alert('Error', 'Unable to open this document type');
+        Alert.alert('Error', 'Document sharing is not available on this device');
       }
     } catch (error) {
+      console.error('Error opening document:', error);
       Alert.alert('Error', 'Failed to open document');
     }
   };

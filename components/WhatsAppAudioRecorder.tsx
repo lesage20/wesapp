@@ -9,7 +9,7 @@ import {
   Alert
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Audio } from 'expo-audio';
+import { useAudioRecorder, RecordingPresets, AudioModule } from 'expo-audio';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -24,8 +24,8 @@ export default function WhatsAppAudioRecorder({
   onRecordingComplete,
   onCancel
 }: WhatsAppAudioRecorderProps) {
-  const [recording, setRecording] = useState<Audio.Recording | null>(null);
-  const [isRecording, setIsRecording] = useState(false);
+  const audioRecorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
+  const [permissions, setPermissions] = useState(false);
   const [recordingDuration, setRecordingDuration] = useState(0);
   const [waveformData, setWaveformData] = useState<number[]>([]);
   
@@ -51,7 +51,7 @@ export default function WhatsAppAudioRecorder({
 
   useEffect(() => {
     // Generate random waveform data for animation
-    if (isRecording) {
+    if (visible && audioRecorder.isRecording) {
       const interval = setInterval(() => {
         const newHeight = Math.random() * 40 + 10;
         setWaveformData(prev => {
@@ -78,52 +78,32 @@ export default function WhatsAppAudioRecorder({
 
       return () => clearInterval(interval);
     }
-  }, [isRecording]);
+  }, [visible, audioRecorder.isRecording]);
 
   const startRecording = async () => {
     try {
-      const { status } = await Audio.requestPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert('Permission Required', 'Microphone permission is required to record audio.');
-        onCancel();
-        return;
+      // Check and request microphone permission
+      if (!permissions) {
+        const permissionResponse = await AudioModule.requestRecordingPermissionsAsync();
+        if (!permissionResponse.granted) {
+          Alert.alert(
+            'Permission Required',
+            'Microphone access is required to record audio messages. Please enable it in your device settings.',
+            [
+              { text: 'Cancel', style: 'cancel', onPress: onCancel },
+              { text: 'Settings', onPress: () => {
+                // On iOS, this might open settings. On Android, user needs to manually go to settings
+                onCancel();
+              }}
+            ]
+          );
+          return;
+        }
       }
 
-      await Audio.setAudioModeAsync({
-        allowsRecordingIOS: true,
-        playsInSilentModeIOS: true,
-      });
-
-      const recording = new Audio.Recording();
-      await recording.prepareAsync({
-        android: {
-          extension: '.m4a',
-          outputFormat: Audio.AndroidOutputFormat.MPEG_4,
-          audioEncoder: Audio.AndroidAudioEncoder.AAC,
-          sampleRate: 44100,
-          numberOfChannels: 2,
-          bitRate: 128000,
-        },
-        ios: {
-          extension: '.m4a',
-          outputFormat: Audio.IOSOutputFormat.MPEG4AAC,
-          audioQuality: Audio.IOSAudioQuality.HIGH,
-          sampleRate: 44100,
-          numberOfChannels: 2,
-          bitRate: 128000,
-          linearPCMBitDepth: 16,
-          linearPCMIsBigEndian: false,
-          linearPCMIsFloat: false,
-        },
-        web: {
-          mimeType: 'audio/webm',
-          bitsPerSecond: 128000,
-        },
-      });
-      await recording.startAsync();
-
-      setRecording(recording);
-      setIsRecording(true);
+      await audioRecorder.prepareToRecordAsync();
+      audioRecorder.record();
+      
       recordingStartTime.current = Date.now();
 
       // Start timer
@@ -139,23 +119,20 @@ export default function WhatsAppAudioRecorder({
   };
 
   const stopRecording = async () => {
-    if (!recording) return;
+    if (!audioRecorder.isRecording) return;
 
     try {
-      setIsRecording(false);
       if (timerRef.current) {
         clearInterval(timerRef.current);
         timerRef.current = null;
       }
 
-      await recording.stopAndUnloadAsync();
-      const uri = recording.getURI();
+      await audioRecorder.stop();
       
-      if (uri) {
-        onRecordingComplete(uri, recordingDuration);
+      if (audioRecorder.uri) {
+        onRecordingComplete(audioRecorder.uri, recordingDuration);
       }
       
-      setRecording(null);
       setRecordingDuration(0);
       setWaveformData([]);
       
@@ -165,12 +142,10 @@ export default function WhatsAppAudioRecorder({
   };
 
   const handleCancel = () => {
-    if (recording) {
-      recording.stopAndUnloadAsync();
-      setRecording(null);
+    if (audioRecorder.isRecording) {
+      audioRecorder.stop();
     }
     
-    setIsRecording(false);
     setRecordingDuration(0);
     setWaveformData([]);
     
@@ -229,13 +204,13 @@ export default function WhatsAppAudioRecorder({
       </View>
 
       {/* Bottom controls */}
-      <View className="absolute bottom-20 left-0 right-0 flex-row justify-center items-center px-8 space-x-8">
+      <View className="absolute bottom-20 left-0 right-0 flex-row justify-center items-center gap-8 px-8 space-x-8">
         {/* Cancel button */}
         <TouchableOpacity
           onPress={handleCancel}
           className="w-16 h-16 bg-red-500 rounded-full items-center justify-center"
         >
-          <Ionicons name="close" size={28} color="white" />
+          <Ionicons name="stop" size={28} color="white" />
         </TouchableOpacity>
 
         {/* Recording indicator */}
