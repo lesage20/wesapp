@@ -4,6 +4,10 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Stack } from 'expo-router';
 import { useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useColorScheme, Platform } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
+import * as NavigationBar from 'expo-navigation-bar';
+import * as SystemUI from 'expo-system-ui';
 import * as SplashScreen from 'expo-splash-screen';
 
 SplashScreen.preventAutoHideAsync();
@@ -14,6 +18,9 @@ export const unstable_settings = {
 };
 
 export default function RootLayout() {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+
   useEffect(() => {
     const hideSplash = async () => {
       await new Promise(resolve => setTimeout(resolve, 2000));
@@ -23,8 +30,28 @@ export default function RootLayout() {
     hideSplash();
   }, []);
 
+  useEffect(() => {
+    const configureSystemUI = async () => {
+      try {
+        // Configure status bar
+        await SystemUI.setBackgroundColorAsync(isDark ? '#000000' : '#ffffff');
+        
+        // Configure Android navigation bar
+        if (Platform.OS === 'android') {
+          await NavigationBar.setBackgroundColorAsync(isDark ? '#000000' : '#ffffff');
+          await NavigationBar.setButtonStyleAsync(isDark ? 'light' : 'dark');
+        }
+      } catch (error) {
+        console.warn('Failed to configure system UI:', error);
+      }
+    };
+
+    configureSystemUI();
+  }, [isDark]);
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
+      <StatusBar style="auto" />
       <SafeAreaView style={{ flex: 1 }} edges={['left', 'right', 'bottom']}>
         <Stack>
           <Stack.Screen name="index" options={{ headerShown: false }} />
