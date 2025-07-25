@@ -74,22 +74,7 @@ export interface CreateProfilePayload {
 // TYPES UTILISATEUR
 // ============================================================================
 
-// export interface User {
-//   id: string;
-//   user_id: string;
-//   username: string;
-//   phone_number: string;
-//   status: string;
-//   last_seen: string | null;
-//   is_online: boolean;
-//   device_tokens: Record<string, any>;
-//   language: string;
-//   country_code: string;
-//   verified_at: string | null;
-//   is_signup_confirm: boolean;
-//   created_at: string;
-//   updated_at: string;
-// }
+
 export interface VerifyOTPAPIResponse {
   existing_user?: boolean;
   pending_user_id?: string | null;
@@ -380,11 +365,7 @@ export interface UseAuthReturn {
   error: string | null;
   
   // Actions
-<<<<<<< HEAD
-  requestOTP: (phoneNumber: string, countryCode: string) => Promise<void>;
-=======
   requestOTP: (phoneNumber: string, countryCode?: string) => Promise<void>;
->>>>>>> a61a86fca24029158dca5dd58a13b0b12637eff1
   verifyOTP: (phoneNumber: string, otpCode: string) => Promise<void>;
   createProfile: (profileData: CreateProfilePayload) => Promise<void>;
   logout: () => Promise<void>;
