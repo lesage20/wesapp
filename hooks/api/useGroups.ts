@@ -425,6 +425,191 @@ export const useGroups = (options: UseGroupsOptions = {}): UseGroupsReturn => {
   }, [groups]);
   
   /**
+   * Créer un groupe (inspiré de l'API existante - GroupeService.ts)
+   */
+  const createGroupImproved = useCallback(async (
+    name: string,
+    description: string,
+    members: string[],
+    admin: string,
+    profilePhoto?: string
+  ): Promise<Group> => {
+    const payload = {
+      name,
+      description,
+      members,
+      admin,
+      profile_photo: profilePhoto,
+    };
+    
+    const result = await createGroupApi.post(API_ENDPOINTS.GROUPS.CREATE_GROUP, payload);
+    
+    if (result) {
+      setGroups(prev => [result, ...prev]);
+    }
+    
+    return result;
+  }, [createGroupApi]);
+
+  /**
+   * Mettre à jour un groupe (inspiré de l'API existante - GroupeService.ts)
+   */
+  const updateGroupImproved = useCallback(async (
+    id: string, 
+    name?: string, 
+    description?: string, 
+    members?: string[], 
+    admin?: string, 
+    profilePhoto?: string
+  ): Promise<Group> => {
+    const payload: any = {};
+    if (name !== undefined) payload.name = name;
+    if (description !== undefined) payload.description = description;
+    if (members !== undefined) payload.members = members;
+    if (admin !== undefined) payload.admin = admin;
+    if (profilePhoto !== undefined) payload.profile_photo = profilePhoto;
+    
+    const url = `${API_ENDPOINTS.GROUPS.UPDATE_GROUP}${id}/`;
+    const result = await updateGroupApi.patch(url, payload);
+    
+    if (result) {
+      setGroups(prev => prev.map(group => group.id === id ? result : group));
+      if (currentGroup?.id === id) {
+        setCurrentGroup(result);
+      }
+    }
+    
+    return result;
+  }, [updateGroupApi, currentGroup]);
+
+  /**
+   * Ajouter des membres à un groupe (inspiré de l'API existante - GroupeService.ts)
+   */
+  const addMembersToGroupImproved = useCallback(async (
+    id: string, 
+    members: string[], 
+    conversationId: string
+  ): Promise<Group> => {
+    const payload = {
+      members,
+      conversation_id: conversationId,
+    };
+    
+    const url = `${API_ENDPOINTS.GROUPS.BASE}${id}/add-members/`;
+    const result = await addMembersApi.patch(url, payload);
+    
+    if (result) {
+      setGroups(prev => prev.map(group => group.id === id ? result : group));
+      if (currentGroup?.id === id) {
+        setCurrentGroup(result);
+      }
+    }
+    
+    return result;
+  }, [addMembersApi, currentGroup]);
+
+  /**
+   * Supprimer un groupe (inspiré de l'API existante - GroupeService.ts)
+   */
+  const deleteGroupImproved = useCallback(async (id: string): Promise<void> => {
+    const url = `${API_ENDPOINTS.GROUPS.DELETE_GROUP}${id}/`;
+    await deleteGroupApi.delete(url);
+    
+    // Supprimer de la liste locale
+    setGroups(prev => prev.filter(group => group.id !== id));
+    
+    // Réinitialiser le groupe courant si c'était celui supprimé
+    if (currentGroup?.id === id) {
+      setCurrentGroup(null);
+    }
+  }, [deleteGroupApi, currentGroup]);
+
+  /**
+   * Quitter un groupe (inspiré de l'API existante - GroupeService.ts)
+   */
+  const leaveGroupImproved = useCallback(async (
+    groupId: string, 
+    conversationId: string, 
+    code: string
+  ): Promise<any> => {
+    try {
+      const url = API_ENDPOINTS.GROUPS.LEAVE_GROUP(groupId);
+      const payload = {
+        conversation_id: conversationId,
+        code: code,
+      };
+      
+      const result = await leaveGroupApi.post(url, payload);
+      
+      // Supprimer de la liste locale
+      setGroups(prev => prev.filter(group => group.id !== groupId));
+      
+      // Réinitialiser le groupe courant si nécessaire
+      if (currentGroup?.id === groupId) {
+        setCurrentGroup(null);
+      }
+      
+      return result;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.error || 'Failed to leave group');
+    }
+  }, [leaveGroupApi, currentGroup]);
+
+  /**
+   * Supprimer un membre d'un groupe (inspiré de l'API existante - GroupeService.ts)
+   */
+  const removeMemberFromGroupImproved = useCallback(async (
+    groupId: string, 
+    conversationId: string, 
+    memberId: string
+  ): Promise<any> => {
+    try {
+      const url = API_ENDPOINTS.GROUPS.REMOVE_MEMBER(groupId);
+      const payload = {
+        conversation_id: conversationId,
+        member_id: memberId,
+      };
+      
+      const result = await removeMemberApi.patch(url, payload);
+      
+      // Mettre à jour la liste des groupes
+      setGroups(prev => prev.map(group => {
+        if (group.id === groupId && result) {
+          return { ...group, members: group.members.filter(member => member.id !== memberId) };
+        }
+        return group;
+      }));
+      
+      // Mettre à jour le groupe courant si nécessaire
+      if (currentGroup?.id === groupId && result) {
+        setCurrentGroup(prev => prev ? {
+          ...prev,
+          members: prev.members.filter(member => member.id !== memberId)
+        } : null);
+      }
+      
+      return result;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.error || 'Failed to remove member from group');
+    }
+  }, [removeMemberApi, currentGroup]);
+
+  /**
+   * Récupérer un groupe par ID (inspiré de l'API existante - GroupeService.ts)
+   */
+  const getGroupByIdImproved = useCallback(async (id: string, code: string): Promise<Group> => {
+    const url = `${API_ENDPOINTS.GROUPS.GET_GROUPS}${id}&code=${code}`;
+    const result = await getGroupApi.get(url);
+    
+    if (result) {
+      // Mettre à jour dans la liste si il existe déjà
+      setGroups(prev => prev.map(group => group.id === id ? result : group));
+    }
+    
+    return result;
+  }, [getGroupApi]);
+
+  /**
    * Rafraîchir les données
    */
   const refresh = useCallback(async (): Promise<void> => {
@@ -466,6 +651,15 @@ export const useGroups = (options: UseGroupsOptions = {}): UseGroupsReturn => {
     removeMember,
     leaveGroup,
     getGroupMembers,
+    
+    // Nouvelles fonctions harmonisées avec l'API existante (GroupeService.ts)
+    createGroupImproved,
+    updateGroupImproved,
+    addMembersToGroupImproved,
+    deleteGroupImproved,
+    leaveGroupImproved,
+    removeMemberFromGroupImproved,
+    getGroupByIdImproved,
     
     // Fonctions utilitaires
     isUserAdmin,

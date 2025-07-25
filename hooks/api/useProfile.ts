@@ -393,6 +393,138 @@ export const useProfile = (options: UseProfileOptions = {}): UseProfileReturn =>
   }, [updateUserAccount]);
   
   /**
+   * Mettre à jour un code WeSapp (inspiré de l'API existante - ProfileService.ts)
+   */
+  const updateCodeImproved = useCallback(async (
+    ownerWeSappCodeId: string,
+    username?: string,
+    label?: string,
+    bio?: string,
+    profilePhoto?: string,
+    unreadMessages?: number
+  ): Promise<any> => {
+    if (!ownerWeSappCodeId) {
+      throw new Error('ownerWeSappCodeId requis');
+    }
+    
+    const payload: any = {
+      owner_we_sapp_code: ownerWeSappCodeId,
+    };
+    
+    if (username !== undefined) payload.username = username;
+    if (label !== undefined) payload.label = label;
+    if (bio !== undefined) payload.bio = bio;
+    if (profilePhoto !== undefined) payload.profile_photo = profilePhoto;
+    if (unreadMessages !== undefined) payload.unread_messages = unreadMessages;
+    
+    const url = `${API_ENDPOINTS.USERS.UPDATE_CODE}${ownerWeSappCodeId}/`;
+    const result = await updateProfileApi.patch(url, payload);
+    
+    if (result) {
+      // Mettre à jour le profil s'il correspond
+      if (profile?.id === ownerWeSappCodeId) {
+        setProfile(result);
+        login(result);
+      }
+      
+      // Mettre à jour dans la liste des codes WeSapp
+      setWeSappCodes(prev => prev.map(code => 
+        code.id === ownerWeSappCodeId ? result : code
+      ));
+    }
+    
+    console.log('Code WeSapp mis à jour:', result);
+    return result;
+  }, [updateProfileApi, profile, login]);
+
+  /**
+   * Supprimer un code WeSapp (inspiré de l'API existante - ProfileService.ts)
+   */
+  const deleteCodeImproved = useCallback(async (ownerWeSappCodeId: string): Promise<boolean> => {
+    if (!ownerWeSappCodeId) {
+      throw new Error('Code WeSapp requis');
+    }
+    
+    const url = `${API_ENDPOINTS.USERS.UPDATE_CODE}${ownerWeSappCodeId}/`;
+    const result = await profileApi.delete(url);
+    
+    if (result !== null) {
+      // Supprimer de la liste des codes WeSapp
+      setWeSappCodes(prev => prev.filter(code => code.id !== ownerWeSappCodeId));
+      
+      // Réinitialiser le profil si c'était le profil actuel
+      if (profile?.id === ownerWeSappCodeId) {
+        setProfile(null);
+        storeLogout();
+      }
+      
+      return true;
+    }
+    
+    return false;
+  }, [profileApi, profile, storeLogout]);
+
+  /**
+   * Définir un code comme par défaut (inspiré de l'API existante - ProfileService.ts)
+   */
+  const setDefaultCodeImproved = useCallback(async (ownerWeSappCodeId: string): Promise<any> => {
+    if (!ownerWeSappCodeId) {
+      throw new Error('Code par défaut requis');
+    }
+    
+    const payload = {
+      is_default: true,
+    };
+    
+    const url = `${API_ENDPOINTS.USERS.UPDATE_CODE}${ownerWeSappCodeId}/`;
+    const result = await updateProfileApi.patch(url, payload);
+    
+    if (result) {
+      // Mettre à jour tous les codes : démarquer les autres comme non-défaut
+      setWeSappCodes(prev => prev.map(code => ({
+        ...code,
+        is_default: code.id === ownerWeSappCodeId
+      })));
+      
+      // Mettre à jour le profil si c'est le profil actuel
+      if (profile?.id === ownerWeSappCodeId) {
+        setProfile({ ...profile, is_default: true });
+        login({ ...profile, is_default: true });
+      }
+    }
+    
+    return result;
+  }, [updateProfileApi, profile, login]);
+
+  /**
+   * Mettre à jour les messages non lus (inspiré de l'API existante - ProfileService.ts)
+   */
+  const updateCodeUnreadMessagesImproved = useCallback(async (ownerWeSappCodeId: string): Promise<void> => {
+    if (!ownerWeSappCodeId) {
+      throw new Error('ownerWeSappCodeId requis');
+    }
+    
+    const url = `${API_ENDPOINTS.USERS.UPDATE_CODE}update-notification?owner_we_sapp_code=${ownerWeSappCodeId}`;
+    const result = await profileApi.get(url);
+    
+    if (result) {
+      // Mettre à jour le compteur de messages non lus
+      if (profile?.id === ownerWeSappCodeId) {
+        setProfile(prev => prev ? { ...prev, unread_messages: result.unread_messages || 0 } : null);
+      }
+      
+      // Mettre à jour dans la liste des codes WeSapp
+      setWeSappCodes(prev => prev.map(code => 
+        code.id === ownerWeSappCodeId 
+          ? { ...code, unread_messages: result.unread_messages || 0 }
+          : code
+      ));
+    }
+    
+    console.log('Messages non lus mis à jour:', result);
+  }, [profileApi, profile]);
+
+  /**
    * Rafraîchir toutes les données
    */
   const refresh = useCallback(async (): Promise<void> => {
@@ -469,6 +601,12 @@ export const useProfile = (options: UseProfileOptions = {}): UseProfileReturn =>
     updateProfilePhoto,
     updateLanguage,
     updateStatus,
+    
+    // Nouvelles fonctions harmonisées avec l'API existante (ProfileService.ts)
+    updateCodeImproved,
+    deleteCodeImproved,
+    setDefaultCodeImproved,
+    updateCodeUnreadMessagesImproved,
     
     // Actions générales
     refresh,
