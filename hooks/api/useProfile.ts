@@ -47,7 +47,7 @@ interface CreatePremiumProfilePayload {
 
 export const useProfile = (options: UseProfileOptions = {}): UseProfileReturn => {
   const { autoLoad = false, loadUserSettings = false } = options;
-  const { user, login } = useAuthStore();
+  const { user, login, logout } = useAuthStore();
   
   // États locaux
   const [profile, setProfile] = useState<WeSappCode | null>(user);
@@ -455,14 +455,14 @@ export const useProfile = (options: UseProfileOptions = {}): UseProfileReturn =>
       // Réinitialiser le profil si c'était le profil actuel
       if (profile?.id === ownerWeSappCodeId) {
         setProfile(null);
-        storeLogout();
+        logout();
       }
       
       return true;
     }
     
     return false;
-  }, [profileApi, profile, storeLogout]);
+  }, [profileApi, profile, logout]);
 
   /**
    * Définir un code comme par défaut (inspiré de l'API existante - ProfileService.ts)

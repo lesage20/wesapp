@@ -1,4 +1,4 @@
-import { API_ENDPOINTS } from "~/constants/ApiConstant";
+import { API_ENDPOINTS } from "../ApiConstant";
 import { ConversationWesapp, MessageResponse, MessageWesapp } from "~/types";
 import ApiClient from "~/api/ApiClient";
 

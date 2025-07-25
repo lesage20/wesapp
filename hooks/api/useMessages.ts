@@ -299,21 +299,6 @@ export const useMessages = (options: UseMessagesOptions = {}): UseMessagesReturn
     }
   }, [createConversationApi]);
   
-  /**
-   * Vérifier si une conversation existe déjà
-   */
-  const checkExistingConversation = useCallback(async (participantIds: string[]): Promise<Conversation | null> => {
-    if (!participantIds || participantIds.length === 0) {
-      return null;
-    }
-    
-    const queryParams = new URLSearchParams({
-      participants: participantIds.join(','),
-    });
-    
-    const url = `${API_ENDPOINTS.CONVERSATIONS.CHECK_EXISTING}?${queryParams}`;
-    return await checkExistingApi.get(url);
-  }, [checkExistingApi]);
   
   /**
    * Rafraîchir les données
@@ -389,7 +374,7 @@ export const useMessages = (options: UseMessagesOptions = {}): UseMessagesReturn
   /**
    * Vérifier si une conversation existe déjà entre des participants (inspiré de l'API existante)
    */
-  const checkExistingConversationImproved = useCallback(async (participantIds: string[]): Promise<Conversation | null> => {
+  const checkExistingConversation = useCallback(async (participantIds: string[]): Promise<Conversation | null> => {
     try {
       if (!participantIds || participantIds.length === 0) {
         throw new Error('Les identifiants des participants sont requis');
@@ -425,7 +410,7 @@ export const useMessages = (options: UseMessagesOptions = {}): UseMessagesReturn
       }
       
       // D'abord vérifier si une conversation existe déjà
-      const existingConversation = await checkExistingConversationImproved(participantIds);
+      const existingConversation = await checkExistingConversation(participantIds);
       
       if (existingConversation) {
         return existingConversation;
@@ -434,9 +419,7 @@ export const useMessages = (options: UseMessagesOptions = {}): UseMessagesReturn
       // Si aucune conversation existante, en créer une nouvelle
       console.log('Création d\'une nouvelle conversation avec les participants:', participantIds);
       
-      const response = await createConversationApi.post(API_ENDPOINTS.CONVERSATIONS.BASE, {
-        'participant_ids': participantIds
-      });
+      const response =  await createConversation(participantIds);
       
       console.log('Nouvelle conversation créée:', response);
       return response;
@@ -444,7 +427,7 @@ export const useMessages = (options: UseMessagesOptions = {}): UseMessagesReturn
       console.error('Erreur lors de la création/récupération de conversation:', error);
       throw error;
     }
-  }, [checkExistingConversationImproved, createConversationApi]);
+  }, [checkExistingConversation, createConversationApi]);
   
   /**
    * Récupérer les conversations pour un code WeSapp (inspiré de l'API existante)
@@ -609,7 +592,7 @@ export const useMessages = (options: UseMessagesOptions = {}): UseMessagesReturn
     refresh,
     
     // Nouvelles fonctions harmonisées avec l'API existante
-    checkExistingConversationImproved,
+    checkExistingConversation,
     getOrCreateConversation,
     getConversationById,
     getConversationWithMessages,

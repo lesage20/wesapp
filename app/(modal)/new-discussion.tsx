@@ -6,6 +6,7 @@ import CustomHeader from '~/components/CustomHeader';
 import SmartAvatar from '~/components/SmartAvatar';
 import { useContacts } from '~/hooks/api/useContacts';
 import { useMessages } from '~/hooks/api/useMessages';
+import { useProfile } from '~/hooks/api/useProfile';
 
 interface Connection {
   id: string;
@@ -24,7 +25,8 @@ export default function NewDiscussionScreen() {
   const [frequentContacts, setFrequentContacts] = useState<Connection[]>([]);
   
   const { fetchWeSappUsers, isLoading: contactsLoading } = useContacts();
-  const { loadConversations, isLoading: conversationsLoading } = useMessages();
+  const { getConversationById, getOrCreateConversation, isLoading: conversationsLoading } = useMessages();
+  const { profile: currentUser } = useProfile();
 
   // Charger les données au montage
   useEffect(() => {
@@ -45,17 +47,8 @@ export default function NewDiscussionScreen() {
 
       setConnections(formattedConnections);
 
-      // Charger les conversations récentes pour déterminer les contacts fréquents
-      try {
-        await loadConversations();
-        // Les conversations sont maintenant dans le state du hook useMessages
-        // Pour le moment, prendre les 3 premiers contacts comme fréquents
-        setFrequentContacts(formattedConnections.slice(0, 3));
-      } catch (error) {
-        console.error('Erreur lors du chargement des conversations:', error);
-        // En cas d'erreur, prendre les 3 premiers contacts comme fréquents
-        setFrequentContacts(formattedConnections.slice(0, 3));
-      }
+      // Pour le moment, prendre les 3 premiers contacts comme fréquents
+      setFrequentContacts(formattedConnections.slice(0, 3));
 
     } catch (error) {
       console.error('Erreur lors du chargement des données:', error);
@@ -100,9 +93,34 @@ export default function NewDiscussionScreen() {
     return groupedConnections.map(group => group.letter);
   }, [groupedConnections]);
 
-  const handleConnectionPress = (connection: Connection) => {
-    // Naviguer vers le chat avec cette connexion
-    router.push(`/chat/${connection.id}`);
+  const handleConnectionPress = async (connection: Connection) => {
+    if (!currentUser) {
+      Alert.alert('Erreur', 'Utilisateur non connecté');
+      return;
+    }
+
+    console.log('Utilisateur actuel:', currentUser);
+    console.log('Connexion sélectionnée:', connection);
+
+    try {
+      // Utiliser le code WeSapp plutôt que l'ID pour les participants
+      const participantIds = [currentUser.id,  connection.id];
+      
+      console.log('Participants pour la conversation:', participantIds);
+      
+      // Créer ou récupérer une conversation avec l'utilisateur sélectionné
+      const conversation = await getOrCreateConversation(participantIds);
+      
+      if (conversation && conversation.id) {
+        // Naviguer vers le chat avec la conversation créée/récupérée
+        router.push(`/chat/${conversation.id}`);
+      } else {
+        Alert.alert('Erreur', 'Impossible de créer la conversation');
+      }
+    } catch (error) {
+      console.error('Erreur lors de la création de la conversation:', error);
+      Alert.alert('Erreur', 'Impossible de créer la conversation');
+    }
   };
 
   const scrollToLetter = (letter: string) => {
