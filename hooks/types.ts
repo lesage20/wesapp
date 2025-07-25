@@ -405,7 +405,7 @@ export interface UseMessagesReturn {
   // Nouvelles fonctions harmonisées avec l'API existante
   checkExistingConversationImproved: (participantIds: string[]) => Promise<Conversation | null>;
   getOrCreateConversation: (participantIds: string[]) => Promise<Conversation>;
-  getConversationByIdImproved: (codeWeSapp: string) => Promise<any>;
+  getConversationById: (codeWeSapp: string) => Promise<void>;
   getConversationWithMessages: (conversationId: string) => Promise<any>;
   getMessagesByConversationId: (conversationId: string, page?: number, pageSize?: number) => Promise<any>;
   setReplyToMessage: (messageId: string) => Promise<Message[]>;

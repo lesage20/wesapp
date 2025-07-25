@@ -34,7 +34,7 @@ export default function ConversationsScreen() {
   const navigation = useNavigation();
   const router = useRouter();
   
-  const { loadConversations, conversations: hookConversations, isLoading } = useMessages();
+  const { getConversationById, conversations: hookConversations, isLoading } = useMessages();
   const { loadGroups: getUserGroups, groups: hookGroups, isLoading: groupsLoading } = useGroups();
   const { fetchWeSappUsers } = useContacts();
   const { profile: currentUser } = useAuth();
@@ -56,7 +56,6 @@ export default function ConversationsScreen() {
         setUsersLoaded(true);
         const users = await fetchWeSappUsers();
         setUsersData(users);
-        console.log('[Conversations] Utilisateurs chargés:', users.length);
       } catch (error) {
         console.error('[Conversations] Erreur lors du chargement des utilisateurs:', error);
         setUsersData([]);
@@ -101,14 +100,13 @@ export default function ConversationsScreen() {
       return;
     }
     
-    console.log('[Conversations] Début du chargement des conversations pour:', currentUser.username || currentUser.code);
+    console.log('[Conversations] Début du chargement des conversations pour:', currentUser);
     
     try {
       // Lancer les requêtes pour charger les données dans les hooks
       await Promise.all([
-        loadConversations(true).catch((err) => {
+        getConversationById(currentUser?.code || currentUser?.id).catch((err) => {
           console.error('[Conversations] Erreur lors du chargement des conversations:', err);
-          return [];
         }),
         getUserGroups(true).catch((err) => {
           console.error('[Conversations] Erreur lors du chargement des groupes:', err);
@@ -116,7 +114,6 @@ export default function ConversationsScreen() {
         })
       ]);
       
-      console.log('[Conversations] Requêtes lancées avec succès');
       
     } catch (error) {
       console.error('[Conversations] Erreur lors du chargement des conversations:', error);
@@ -129,26 +126,19 @@ export default function ConversationsScreen() {
     
     const processConversationsData = async () => {
       try {
-        console.log('[Conversations] Traitement des données:', {
-          conversations: hookConversations.length,
-          groups: hookGroups.length,
-          isLoading,
-          groupsLoading
-        });
-        
-        console.log('[Conversations] Utilisation des utilisateurs en cache:', usersData.length);
-        
         const formattedConversations: ConversationItem[] = [];
         
         // Traitement des conversations individuelles depuis le hook
         if (Array.isArray(hookConversations)) {
-          hookConversations.forEach((conv: any) => {
+          // console.log('[Conversations] Traitement de', hookConversations.length, 'conversations');
+          hookConversations.forEach((conv: any, index) => {
+            
             const otherUser = usersData.find((user: any) => 
               user.id === conv.other_user_id || user.id === conv.participant_id
             );
-            
+                        
             if (otherUser) {
-              formattedConversations.push({
+              const formattedConv = {
                 id: conv.id,
                 name: otherUser.username || otherUser.code,
                 lastMessage: conv.last_message || 'Aucun message',
@@ -157,7 +147,11 @@ export default function ConversationsScreen() {
                 unreadCount: conv.unread_count || 0,
                 profileImage: otherUser.profile_image || otherUser.avatar,
                 isOnline: false // TODO: Intégrer le statut en ligne
-              });
+              };
+              
+              formattedConversations.push(formattedConv);
+            } else {
+              console.log(`[Conversations] Conv ${index} - Aucun utilisateur correspondant trouvé`);
             }
           });
         }
@@ -185,7 +179,6 @@ export default function ConversationsScreen() {
           return timeB - timeA;
         });
         
-        console.log('[Conversations] Conversations formatées:', formattedConversations.length);
         setConversations(formattedConversations);
         
       } catch (error) {
@@ -221,13 +214,15 @@ export default function ConversationsScreen() {
 
   // Filtrer les conversations selon la recherche
   const filteredConversations = useMemo(() => {
+    // console.log('[Conversations] Filtrage - conversations:', conversations.length, 'searchText:', searchText);
     if (!searchText.trim()) return conversations;
     
     const searchLower = searchText.toLowerCase();
-    return conversations.filter(conv => 
+    const filtered = conversations.filter(conv => 
       conv.name.toLowerCase().includes(searchLower) ||
       conv.lastMessage.toLowerCase().includes(searchLower)
     );
+    return filtered;
   }, [conversations, searchText]);
 
   const handleConversationPress = (conversationId: string) => {
@@ -319,6 +314,7 @@ export default function ConversationsScreen() {
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingBottom: 20 }}
           >
+
             {isLoading ? (
               <View className="flex-1 items-center justify-center py-12">
                 <Text className="text-gray-500">Chargement des conversations...</Text>

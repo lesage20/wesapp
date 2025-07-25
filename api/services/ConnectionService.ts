@@ -1,6 +1,6 @@
 import ApiClient from '../ApiClient';
 // import ApiClient from '../apiClient';
-import { API_ENDPOINTS } from '../../constants/ApiConstant';
+import { API_ENDPOINTS } from '../ApiConstant';
 
 // export const createConnection = async (
 //   connectionName: string,

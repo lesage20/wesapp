@@ -117,7 +117,8 @@ export const useMessages = (options: UseMessagesOptions = {}): UseMessagesReturn
     
     const url = `${API_ENDPOINTS.CONVERSATIONS.BASE}?${queryParams}`;
     const result = await conversationsApi.get(url);
-    
+    console.log('[Conversations] url:', url);
+    console.log('[Conversations] result:', result);
     if (result) {
       if (refresh) {
         setConversations(result.results);
@@ -448,13 +449,26 @@ export const useMessages = (options: UseMessagesOptions = {}): UseMessagesReturn
   /**
    * Récupérer les conversations pour un code WeSapp (inspiré de l'API existante)
    */
-  const getConversationByIdImproved = useCallback(async (codeWeSapp: string): Promise<any> => {
+  const getConversationById = useCallback(async (codeWeSapp: string): Promise<void> => {
     try {
       const response = await getConversationByIdApi.get(`${API_ENDPOINTS.CONVERSATIONS.GET_CONVERSATION_BY_ID}?code=${codeWeSapp}`);
-      return response;
+      
+      if (response && Array.isArray(response)) {
+        // Si la réponse est directement un tableau de conversations
+        setConversations(response);
+      } else if (response && response.conversations && Array.isArray(response.conversations)) {
+        // Si la réponse contient un objet avec une propriété conversations
+        setConversations(response.conversations);
+      } else if (response && response.results && Array.isArray(response.results)) {
+        // Si la réponse est paginée
+        setConversations(response.results);
+      } else {
+        console.warn('Format de réponse inattendu pour getConversationById:', response);
+        setConversations([]);
+      }
     } catch (error) {
       console.error('Erreur lors de la récupération des conversations:', error);
-      return null;
+      setConversations([]);
     }
   }, [getConversationByIdApi]);
   
@@ -597,7 +611,7 @@ export const useMessages = (options: UseMessagesOptions = {}): UseMessagesReturn
     // Nouvelles fonctions harmonisées avec l'API existante
     checkExistingConversationImproved,
     getOrCreateConversation,
-    getConversationByIdImproved,
+    getConversationById,
     getConversationWithMessages,
     getMessagesByConversationId,
     setReplyToMessage,
