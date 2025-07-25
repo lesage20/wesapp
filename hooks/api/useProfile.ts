@@ -107,18 +107,19 @@ export const useProfile = (options: UseProfileOptions = {}): UseProfileReturn =>
   /**
    * Charger le profil utilisateur actuel
    */
-  const loadProfile = useCallback(async (): Promise<void> => {
+  const loadProfile = useCallback(async (index: number = 0): Promise<void> => {
     if (!user?.id) {
       throw new Error('Utilisateur non authentifié');
     }
     
-    const url = `${API_ENDPOINTS.USERS.WE_SAPP_CODES}${user.id}/`;
+    const url = `${API_ENDPOINTS.USERS.SEARCH_BY_PHONE}?phone_number=${user.phoneNumber}`;
     const result = await profileApi.get(url);
-    
+
     if (result) {
-      setProfile(result);
+      setProfile(result[index]);
       // Mettre à jour aussi le store global
-      login(result);
+      login(result[index]);
+      console.log('profile from profile hook', profile);
     }
   }, [profileApi, user?.id, login]);
   

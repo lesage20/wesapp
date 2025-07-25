@@ -281,7 +281,7 @@ export const useMessages = (options: UseMessagesOptions = {}): UseMessagesReturn
   /**
    * Créer une nouvelle conversation
    */
-  const createConversation = useCallback(async (participantIds: string[]): Promise<void> => {
+  const createConversation = useCallback(async (participantIds: string[]): Promise<Conversation | null> => {
     if (!participantIds || participantIds.length === 0) {
       throw new Error('Au moins un participant est requis');
     }
@@ -296,7 +296,9 @@ export const useMessages = (options: UseMessagesOptions = {}): UseMessagesReturn
     if (result) {
       // Ajouter la nouvelle conversation au début de la liste
       setConversations(prev => [result, ...prev]);
+      return result;
     }
+    return null;
   }, [createConversationApi]);
   
   

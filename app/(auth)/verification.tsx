@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useAuth } from '~/hooks';
+import { useProfile } from '~/hooks';
 
 export default function VerificationScreen() {
   const { phoneNumber } = useLocalSearchParams();
@@ -20,6 +21,7 @@ export default function VerificationScreen() {
   const router = useRouter();
 
   const { verifyOTP, isLoading, error } = useAuth();
+  const { loadProfile } = useProfile();
 
   const handleCodeChange = (value: string, index: number) => {
     const newCode = [...code];
@@ -43,6 +45,8 @@ export default function VerificationScreen() {
   
     try {
       await verifyOTP(phoneNumber as string, verificationCode);
+      loadProfile();
+
     } catch (err) {
       console.error('Erreur lors de la vérification OTP:', err);
       setCode(['', '', '', '', '', '']);

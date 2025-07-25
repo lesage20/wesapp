@@ -52,7 +52,6 @@ export default function NewDiscussionScreen() {
 
     } catch (error) {
       console.error('Erreur lors du chargement des données:', error);
-      Alert.alert('Erreur', 'Impossible de charger les contacts');
     }
   };
 
@@ -99,7 +98,7 @@ export default function NewDiscussionScreen() {
       return;
     }
 
-    console.log('Utilisateur actuel:', currentUser);
+    console.log('Utilisateur actuel nouvelle discussion:', currentUser);
     console.log('Connexion sélectionnée:', connection);
 
     try {
@@ -110,7 +109,7 @@ export default function NewDiscussionScreen() {
       
       // Créer ou récupérer une conversation avec l'utilisateur sélectionné
       const conversation = await getOrCreateConversation(participantIds);
-      
+      console.log('new conversation', conversation);
       if (conversation && conversation.id) {
         // Naviguer vers le chat avec la conversation créée/récupérée
         router.push(`/chat/${conversation.id}`);

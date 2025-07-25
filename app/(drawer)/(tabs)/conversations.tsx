@@ -100,7 +100,6 @@ export default function ConversationsScreen() {
       return;
     }
     
-    console.log('[Conversations] Début du chargement des conversations pour:', currentUser);
     
     try {
       // Lancer les requêtes pour charger les données dans les hooks
@@ -130,14 +129,10 @@ export default function ConversationsScreen() {
         
         // Traitement des conversations individuelles depuis le hook
         if (Array.isArray(hookConversations)) {
-          // console.log('[Conversations] Traitement de', hookConversations.length, 'conversations');
           hookConversations.forEach((conv: any, index) => {
-            
-            const otherUser = usersData.find((user: any) => 
-              user.id === conv.other_user_id || user.id === conv.participant_id
-            );
+            const otherUser = conv.participants.find((participant: any) => participant.id !== currentUser?.id);
                         
-            if (otherUser) {
+            
               const formattedConv = {
                 id: conv.id,
                 name: otherUser.username || otherUser.code,
@@ -150,9 +145,7 @@ export default function ConversationsScreen() {
               };
               
               formattedConversations.push(formattedConv);
-            } else {
-              console.log(`[Conversations] Conv ${index} - Aucun utilisateur correspondant trouvé`);
-            }
+            
           });
         }
         
@@ -214,7 +207,6 @@ export default function ConversationsScreen() {
 
   // Filtrer les conversations selon la recherche
   const filteredConversations = useMemo(() => {
-    // console.log('[Conversations] Filtrage - conversations:', conversations.length, 'searchText:', searchText);
     if (!searchText.trim()) return conversations;
     
     const searchLower = searchText.toLowerCase();
