@@ -23,7 +23,8 @@ import {
   CreateProfilePayload,
   WeSappCode,
   VerifyOTPResponse,
-  VerifyOTPAPIResponse
+  VerifyOTPAPIResponse,
+  User
 } from '../types';
 import { router } from 'expo-router';
 
