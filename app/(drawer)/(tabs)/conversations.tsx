@@ -38,12 +38,36 @@ export default function ConversationsScreen() {
   const { loadGroups: getUserGroups, groups: hookGroups, isLoading: groupsLoading } = useGroups();
   const { fetchWeSappUsers } = useContacts();
   const { profile: currentUser } = useAuth();
+  const [usersData, setUsersData] = useState<any[]>([]);
+  const [usersLoaded, setUsersLoaded] = useState(false);
   const { addMessageListener, removeMessageListener } = useWebSocket();
 
   // Charger les conversations au montage
   useEffect(() => {
     loadConversationsData();
   }, []);
+
+  // Charger les utilisateurs une seule fois au montage
+  useEffect(() => {
+    const loadUsers = async () => {
+      if (usersLoaded) return; // Éviter les chargements multiples
+      
+      try {
+        setUsersLoaded(true);
+        const users = await fetchWeSappUsers();
+        setUsersData(users);
+        console.log('[Conversations] Utilisateurs chargés:', users.length);
+      } catch (error) {
+        console.error('[Conversations] Erreur lors du chargement des utilisateurs:', error);
+        setUsersData([]);
+        setUsersLoaded(false); // Permettre un nouveau try en cas d'erreur
+      }
+    };
+
+    if (currentUser && !usersLoaded) {
+      loadUsers();
+    }
+  }, [currentUser, usersLoaded]); // Plus de fetchWeSappUsers dans les dépendances
 
   // Écouter les nouveaux messages via WebSocket
   useEffect(() => {
@@ -112,9 +136,7 @@ export default function ConversationsScreen() {
           groupsLoading
         });
         
-        // Récupérer les utilisateurs
-        const usersData = await fetchWeSappUsers().catch(() => []);
-        console.log('[Conversations] Utilisateurs récupérés:', usersData.length);
+        console.log('[Conversations] Utilisation des utilisateurs en cache:', usersData.length);
         
         const formattedConversations: ConversationItem[] = [];
         
@@ -171,11 +193,11 @@ export default function ConversationsScreen() {
       }
     };
 
-    // Traiter les données quand les hooks ont fini de charger (même si vides)
-    if (!isLoading && !groupsLoading) {
+    // Traiter les données quand les hooks ont fini de charger ET que les utilisateurs sont disponibles
+    if (!isLoading && !groupsLoading && usersLoaded) {
       processConversationsData();
     }
-  }, [hookConversations, hookGroups, currentUser, fetchWeSappUsers, isLoading, groupsLoading]);
+  }, [hookConversations, hookGroups, currentUser, usersData, isLoading, groupsLoading, usersLoaded]);
 
   // Formater le temps du message
   const formatMessageTime = (timestamp: string | null) => {
