@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import useWesappCodeStore from '@/stores/wesapp-code-store';
+import { useAuthStore } from '~/store/store';
 
 // Configuration et constantes
 const WEBSOCKET_RECONNECT_TIMEOUT = 5000; // 5 secondes entre les tentatives
@@ -386,18 +386,18 @@ class WebSocketService {
     }
     
     try {
-      // Récupérer le sender_id (l'ID du code WeApp de l'utilisateur actuel)
-      const { currentCode } = useWesappCodeStore.getState();
-      if (!currentCode || !currentCode.id) {
+      // Récupérer le sender_id (l'ID de l'utilisateur actuel)
+      const { user } = useAuthStore.getState();
+      if (!user || !user.id) {
         console.error('Impossible de récupérer l\'ID de l\'utilisateur pour marquer le message comme lu');
         return false;
       }
       
-      console.log(`Marquer le message ${messageId} comme lu avec sender_id ${currentCode.id}`);
+      console.log(`Marquer le message ${messageId} comme lu avec sender_id ${user.id}`);
       return this.sendMessage('mark_message_as_read', {
         
           conversation_id: this.activeConversationId,
-          sender_id: currentCode.id,
+          sender_id: user.id,
           message_id: messageId
         
       });
@@ -414,9 +414,9 @@ class WebSocketService {
     }
     
     try {
-      // Récupérer le sender_id (l'ID du code WeApp de l'utilisateur actuel)
-      const { currentCode } = useWesappCodeStore.getState();
-      if (!currentCode || !currentCode.id) {
+      // Récupérer le sender_id (l'ID de l'utilisateur actuel)
+      const { user } = useAuthStore.getState();
+      if (!user || !user.id) {
         console.error('Impossible de récupérer l\'ID de l\'utilisateur pour supprimer le message');
         return false;
       }
@@ -428,7 +428,7 @@ class WebSocketService {
       return this.sendMessage('delete_message', {
        
           conversation_id: this.activeConversationId,
-          sender_id: currentCode.id,
+          sender_id: user.id,
           message_ids: messageIds
         
       });

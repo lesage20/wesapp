@@ -1,83 +1,131 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, TextInput } from 'react-native';
+import React, { useState, useEffect, useMemo } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, TextInput, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import CustomHeader from '~/components/CustomHeader';
-import Avatar from '~/components/Avatar';
+import SmartAvatar from '~/components/SmartAvatar';
+import { useContacts } from '~/hooks/api/useContacts';
+import { useOnlineStatus } from '~/hooks/api/useOnlineStatus';
+import { useAuth } from '~/hooks/api/useAuth';
 
 interface Connection {
   id: string;
   name: string;
+  username?: string;
   wesappCode: string;
-  avatarText?: string;
-  avatarBg?: string;
-  avatarImage?: string;
-  isSpecial?: boolean;
+  profileImage?: string;
   isVerified?: boolean;
-  hasHeart?: boolean;
+  isOnline?: boolean;
+  lastSeen?: string;
 }
 
 export default function MyConnectionsScreen() {
   const router = useRouter();
   const [searchText, setSearchText] = useState('');
+  const [connections, setConnections] = useState<Connection[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [onlineStatuses, setOnlineStatuses] = useState<Record<string, boolean>>({});
 
-  const connections: Connection[] = [
-    {
-      id: 'akissi',
-      name: 'Akissi ❤️',
-      wesappCode: 'YKB-7505-CIV',
-      avatarText: '🖼️',
-      avatarBg: 'gray-400',
-      hasHeart: true,
-    },
-    {
-      id: 'kamate',
-      name: 'Kamaté drissa',
-      wesappCode: '259-OIXQ-CIV',
-      avatarText: '🖼️',
-      avatarBg: 'gray-400',
-    },
-    {
-      id: 'kouassi',
-      name: 'Kouassi Affouet ❤️',
-      wesappCode: '766-IWWK-CIV',
-      avatarText: 'KA',
-      avatarBg: 'red-500',
-      hasHeart: true,
-    },
-    {
-      id: 'narcisse',
-      name: 'Narcisse professionnels',
-      wesappCode: '526-LQ-025-CIV',
-      avatarText: 'OEUFS',
-      avatarBg: 'orange-400',
-      isSpecial: true,
-      isVerified: true,
-    },
-  ];
+  const { fetchWeSappUsers, isLoading: contactsLoading } = useContacts();
+  const { 
+    connect: connectStatus, 
+    requestUserStatus, 
+    addStatusListener,
+    removeStatusListener 
+  } = useOnlineStatus();
+  const { currentUser } = useAuth();
 
-  const filteredConnections = connections.filter(connection =>
-    connection.name.toLowerCase().includes(searchText.toLowerCase()) ||
-    connection.wesappCode.toLowerCase().includes(searchText.toLowerCase())
-  );
+  // Charger les connexions au montage
+  useEffect(() => {
+    loadConnections();
+  }, []);
 
-  const handleConnectionPress = (connection: Connection) => {
-    router.push({
-      pathname: '/(modal)/connection-detail',
-      params: { 
-        connectionId: connection.id,
-        name: connection.name,
-        wesappCode: connection.wesappCode,
-        avatarText: connection.avatarText,
-        avatarBg: connection.avatarBg,
-        isSpecial: connection.isSpecial ? 'true' : 'false',
-        isVerified: connection.isVerified ? 'true' : 'false',
-        hasHeart: connection.hasHeart ? 'true' : 'false',
+  // Configurer le statut en ligne
+  useEffect(() => {
+    const setupOnlineStatus = async () => {
+      if (!currentUser?.code) return;
+      
+      try {
+        await connectStatus(currentUser.code);
+        
+        // Écouter les changements de statut
+        const handleStatusUpdate = (data: any) => {
+          if (data.action === 'status_update' && data.user_code) {
+            setOnlineStatuses(prev => ({
+              ...prev,
+              [data.user_code]: data.status === 'online'
+            }));
+          }
+        };
+        
+        addStatusListener('status_update', handleStatusUpdate);
+        
+        // Demander le statut de toutes les connexions
+        connections.forEach(conn => {
+          if (conn.wesappCode) {
+            requestUserStatus(conn.wesappCode);
+          }
+        });
+        
+        return () => {
+          removeStatusListener('status_update', handleStatusUpdate);
+        };
+      } catch (error) {
+        console.error('Erreur lors de la configuration du statut en ligne:', error);
       }
-    });
+    };
+    
+    if (connections.length > 0) {
+      setupOnlineStatus();
+    }
+  }, [connections, currentUser, connectStatus, requestUserStatus, addStatusListener, removeStatusListener]);
+
+  const loadConnections = async () => {
+    setIsLoading(true);
+    
+    try {
+      const users = await fetchWeSappUsers();
+      const formattedConnections: Connection[] = users
+        .filter((user: any) => user.id !== currentUser?.id) // Exclure l'utilisateur actuel
+        .map((user: any) => ({
+          id: user.id,
+          name: user.username || user.code,
+          username: user.username,
+          wesappCode: user.code,
+          profileImage: user.profile_image || user.avatar,
+          isVerified: user.is_verified || false,
+          isOnline: false, // Sera mis à jour par le WebSocket
+          lastSeen: user.last_seen
+        }));
+
+      setConnections(formattedConnections);
+    } catch (error) {
+      console.error('Erreur lors du chargement des connexions:', error);
+      Alert.alert('Erreur', 'Impossible de charger les connexions');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const getConnectionsByLetter = () => {
+  // Filtrer les connexions selon la recherche
+  const filteredConnections = useMemo(() => {
+    if (!searchText.trim()) return connections;
+    
+    const searchLower = searchText.toLowerCase();
+    return connections.filter(connection =>
+      connection.name.toLowerCase().includes(searchLower) ||
+      connection.wesappCode.toLowerCase().includes(searchLower) ||
+      (connection.username && connection.username.toLowerCase().includes(searchLower))
+    );
+  }, [connections, searchText]);
+
+  const handleConnectionPress = (connection: Connection) => {
+    // Naviguer vers le chat avec cette connexion
+    router.push(`/chat/${connection.id}`);
+  };
+
+  // Grouper les connexions par première lettre
+  const getConnectionsByLetter = useMemo(() => {
     const grouped: { [key: string]: Connection[] } = {};
     
     filteredConnections.forEach(connection => {
@@ -90,9 +138,12 @@ export default function MyConnectionsScreen() {
 
     return Object.keys(grouped).sort().map(letter => ({
       letter,
-      connections: grouped[letter]
+      connections: grouped[letter].map(conn => ({
+        ...conn,
+        isOnline: onlineStatuses[conn.wesappCode] || false
+      }))
     }));
-  };
+  }, [filteredConnections, onlineStatuses]);
 
   return (
     <>
@@ -113,71 +164,80 @@ export default function MyConnectionsScreen() {
                 placeholderTextColor="#9CA3AF"
                 value={searchText}
                 onChangeText={setSearchText}
+                editable={!isLoading}
               />
             </View>
           </View>
 
           {/* Connections List */}
           <ScrollView className="flex-1">
-            {getConnectionsByLetter().map(({ letter, connections }) => (
-              <View key={letter}>
-                {/* Letter Separator */}
-                <View className="px-6 py-2">
-                  <View className="w-10 h-10 bg-teal-100 rounded-full items-center justify-center">
-                    <Text className="text-teal-600 font-bold text-lg">{letter}</Text>
-                  </View>
-                </View>
-
-                {/* Connections for this letter */}
-                {connections.map((connection) => (
-                  <TouchableOpacity
-                    key={connection.id}
-                    onPress={() => handleConnectionPress(connection)}
-                    className="flex-row items-center px-6 py-4 border-b border-gray-100"
-                    hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
-                  >
-                    {/* Avatar */}
-                    <View className="mr-4">
-                      {connection.isSpecial ? (
-                        <View className="w-16 h-16 rounded-2xl bg-orange-400 items-center justify-center">
-                          <View className="w-14 h-14 rounded-xl bg-yellow-400 items-center justify-center">
-                            <Text className="text-black font-bold text-xs">OEUFS</Text>
-                            <Text className="text-black text-xs">DE QUALITÉ</Text>
-                            <Text className="text-red-500 font-bold text-xs">2.500</Text>
-                          </View>
-                        </View>
-                      ) : (
-                        <Avatar
-                          text={connection.avatarText}
-                          size={64}
-                          backgroundColor={connection.avatarBg}
-                        />
-                      )}
+            {isLoading ? (
+              <View className="flex-1 items-center justify-center py-12">
+                <Text className="text-gray-500 text-lg">Chargement des connexions...</Text>
+              </View>
+            ) : getConnectionsByLetter.length === 0 ? (
+              <View className="flex-1 items-center justify-center py-12">
+                <Ionicons name="people-outline" size={64} color="#9CA3AF" />
+                <Text className="text-gray-500 text-lg mt-4 mb-2">Aucune connexion</Text>
+                <Text className="text-gray-400 text-center px-8">Ajoutez des contacts pour commencer à discuter</Text>
+              </View>
+            ) : (
+              getConnectionsByLetter.map(({ letter, connections }) => (
+                <View key={letter}>
+                  {/* Letter Separator */}
+                  <View className="px-6 py-2">
+                    <View className="w-10 h-10 bg-teal-100 rounded-full items-center justify-center">
+                      <Text className="text-teal-600 font-bold text-lg">{letter}</Text>
                     </View>
+                  </View>
 
-                    {/* Connection Info */}
-                    <View className="flex-1">
-                      <View className="flex-row items-center mb-1">
-                        <Text className="text-gray-900 font-semibold text-lg mr-2">
-                          {connection.name}
-                        </Text>
-                        {connection.isVerified && (
-                          <View className="w-6 h-6 bg-teal-500 rounded-full items-center justify-center">
-                            <Ionicons name="checkmark" size={16} color="white" />
-                          </View>
+                  {/* Connections for this letter */}
+                  {connections.map((connection) => (
+                    <TouchableOpacity
+                      key={connection.id}
+                      onPress={() => handleConnectionPress(connection)}
+                      className="flex-row items-center px-6 py-4 border-b border-gray-100"
+                      hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+                    >
+                      {/* Avatar avec indicateur en ligne */}
+                      <View className="mr-4 relative">
+                        <SmartAvatar
+                          user={{
+                            name: connection.name,
+                            username: connection.username,
+                            profileImage: connection.profileImage
+                          }}
+                          size={64}
+                        />
+                        {/* Indicateur en ligne */}
+                        {connection.isOnline && (
+                          <View className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-white" />
                         )}
                       </View>
-                      <Text className="text-gray-600 text-base">{connection.wesappCode}</Text>
-                    </View>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            ))}
 
-            {filteredConnections.length === 0 && (
-              <View className="flex-1 items-center justify-center py-12">
-                <Text className="text-gray-500 text-lg">No connections found</Text>
-              </View>
+                      {/* Connection Info */}
+                      <View className="flex-1">
+                        <View className="flex-row items-center mb-1">
+                          <Text className="text-gray-900 font-semibold text-lg mr-2">
+                            {connection.name}
+                          </Text>
+                          {connection.isVerified && (
+                            <View className="w-6 h-6 bg-teal-500 rounded-full items-center justify-center">
+                              <Ionicons name="checkmark" size={16} color="white" />
+                            </View>
+                          )}
+                        </View>
+                        <View className="flex-row items-center justify-between">
+                          <Text className="text-gray-600 text-base">{connection.wesappCode}</Text>
+                          <Text className="text-gray-400 text-sm">
+                            {connection.isOnline ? 'En ligne' : 'Hors ligne'}
+                          </Text>
+                        </View>
+                      </View>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              ))
             )}
           </ScrollView>
         </View>

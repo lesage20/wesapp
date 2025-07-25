@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, TouchableOpacity, TextInput, ScrollView, Image, ImageBackground, Alert, Clipboard, Vibration, KeyboardAvoidingView, Platform } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';  
 import { Ionicons } from '@expo/vector-icons';
@@ -16,6 +16,13 @@ import VideoCallIcon from '~/assets/svgs/chat/video-call';
 import VoiceCallIcon from '~/assets/svgs/chat/voice-call';
 import SendIcon from '~/assets/svgs/chat/send';
 import MicIcon from '~/assets/svgs/chat/mic';
+
+// Import des hooks API
+import { useMessages } from '~/hooks/api/useMessages';
+import { useWebSocket, WebSocketMessage } from '~/hooks/api/useWebSocket';
+import { useAuth } from '~/hooks/api/useAuth';
+import { useContacts } from '~/hooks/api/useContacts';
+import { useOnlineStatus } from '~/hooks/api/useOnlineStatus';
 
 
 export default function ChatScreen() {
@@ -36,6 +43,41 @@ export default function ChatScreen() {
   const [showVideoPlayer, setShowVideoPlayer] = useState(false);
   const [currentVideoUrl, setCurrentVideoUrl] = useState('');
   const scrollViewRef = useRef<ScrollView>(null);
+
+  // Hooks API
+  const { 
+    isLoading: messagesLoading, 
+    getConversationWithMessages, 
+    sendMessage: sendMessageAPI, 
+    createGroupConversation,
+    setReaction: setMessageReaction,
+    setReplyToMessage: setReplyToMessageAPI
+  } = useMessages();
+  
+  const { 
+    isConnected: wsConnected, 
+    connectionStatus,
+    subscribeToConversation,
+    unsubscribeFromConversation,
+    addMessageListener,
+    removeMessageListener,
+    markMessageAsRead,
+    deleteMessage: deleteMessageWS,
+    activeConversationId
+  } = useWebSocket();
+  
+  const { currentUser } = useAuth();
+  const { isLoading: contactsLoading, getWeSappUsers } = useContacts();
+  const { 
+    isConnected: statusConnected, 
+    connect: connectStatus, 
+    requestUserStatus, 
+    addStatusListener 
+  } = useOnlineStatus();
+  
+  const [isLoadingMessages, setIsLoadingMessages] = useState(true);
+  const [contactInfo, setContactInfo] = useState<any>(null);
+  const [isOnline, setIsOnline] = useState(false);
 
   // Get contact data based on ID
   const getContactData = (contactId: string) => {
@@ -395,13 +437,13 @@ export default function ChatScreen() {
     }, 100);
   };
 
-  if (!messages || messages.length === 0) {
+  if (isLoadingMessages || !contactInfo) {
     return (
       <>
         <CustomHeader 
           showAvatar={true}
           title={contact.shortName}
-          subtitle="Online"
+          subtitle={isOnline ? 'En ligne' : 'Hors ligne'}
           avatarBg={contact.avatarBg}
           avatarText={contact.avatar}
           isSpecialAvatar={contact.isSpecialAvatar}
@@ -423,7 +465,7 @@ export default function ChatScreen() {
             className="flex-1 items-center justify-center"
             resizeMode="cover"
           >
-            <Text className="text-white/70">Loading messages...</Text>
+            <Text className="text-white/70">Chargement des messages...</Text>
           </ImageBackground>
         </View>
       </>
@@ -435,7 +477,7 @@ export default function ChatScreen() {
       <CustomHeader 
         showAvatar={true}
         title={contact.shortName}
-        subtitle="Online"
+        subtitle={isOnline ? 'En ligne' : 'Hors ligne'}
         avatarBg={contact.avatarBg}
         avatarText={contact.avatar}
         isSpecialAvatar={contact.isSpecialAvatar}
