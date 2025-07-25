@@ -347,7 +347,8 @@ export default function ConversationsScreen() {
                         <SmartAvatar 
                           user={{ 
                             profileImage: conversation.profileImage, 
-                            name: conversation.name 
+                            name: conversation.name,
+                            id: conversation.id
                           }} 
                           size={48} 
                         />
