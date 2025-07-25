@@ -34,8 +34,8 @@ export default function ConversationsScreen() {
   const navigation = useNavigation();
   const router = useRouter();
   
-  const { loadConversations, isLoading } = useMessages();
-  const { loadGroups: getUserGroups, isLoading: groupsLoading } = useGroups();
+  const { loadConversations, conversations: hookConversations, isLoading } = useMessages();
+  const { loadGroups: getUserGroups, groups: hookGroups, isLoading: groupsLoading } = useGroups();
   const { fetchWeSappUsers } = useContacts();
   const { profile: currentUser } = useAuth();
   const { addMessageListener, removeMessageListener } = useWebSocket();
@@ -72,73 +72,110 @@ export default function ConversationsScreen() {
   }, [currentUser, addMessageListener, removeMessageListener]);
 
   const loadConversationsData = async () => {
-    if (!currentUser) return;
+    if (!currentUser) {
+      console.log('[Conversations] Aucun utilisateur connecté, pas de chargement');
+      return;
+    }
     
-    // setIsLoading(true);
+    console.log('[Conversations] Début du chargement des conversations pour:', currentUser.username || currentUser.code);
     
     try {
-      // Charger les conversations individuelles et de groupe en parallèle
-      const [conversationsData, groupsData, usersData] = await Promise.all([
-        loadConversations().catch(() => []),
-        getUserGroups().catch(() => []),
-        fetchWeSappUsers().catch(() => [])
+      // Lancer les requêtes pour charger les données dans les hooks
+      await Promise.all([
+        loadConversations(true).catch((err) => {
+          console.error('[Conversations] Erreur lors du chargement des conversations:', err);
+          return [];
+        }),
+        getUserGroups(true).catch((err) => {
+          console.error('[Conversations] Erreur lors du chargement des groupes:', err);
+          return [];
+        })
       ]);
-
-      const formattedConversations: ConversationItem[] = [];
       
-      // Traitement des conversations individuelles
-      if (Array.isArray(conversationsData)) {
-        conversationsData.forEach((conv: any) => {
-          const otherUser = usersData.find((user: any) => 
-            user.id === conv.other_user_id || user.id === conv.participant_id
-          );
-          
-          if (otherUser) {
-            formattedConversations.push({
-              id: conv.id,
-              name: otherUser.username || otherUser.code,
-              lastMessage: conv.last_message || 'Aucun message',
-              lastMessageTime: formatMessageTime(conv.last_message_time),
-              isGroup: false,
-              unreadCount: conv.unread_count || 0,
-              profileImage: otherUser.profile_image || otherUser.avatar,
-              isOnline: false // TODO: Intégrer le statut en ligne
-            });
-          }
-        });
-      }
-      
-      // Traitement des groupes
-      if (Array.isArray(groupsData)) {
-        groupsData.forEach((group: any) => {
-          formattedConversations.push({
-            id: group.id,
-            name: group.name,
-            lastMessage: group.last_message || 'Groupe créé',
-            lastMessageTime: formatMessageTime(group.last_message_time || group.created_at),
-            isGroup: true,
-            unreadCount: group.unread_count || 0,
-            profileImage: group.profile_photo,
-            participants: group.members || []
-          });
-        });
-      }
-      
-      // Trier par temps du dernier message
-      formattedConversations.sort((a, b) => {
-        const timeA = new Date(a.lastMessageTime).getTime();
-        const timeB = new Date(b.lastMessageTime).getTime();
-        return timeB - timeA;
-      });
-      
-      setConversations(formattedConversations);
+      console.log('[Conversations] Requêtes lancées avec succès');
       
     } catch (error) {
-      console.error('Erreur lors du chargement des conversations:', error);
-    } finally {
-      // setIsLoading(false);
+      console.error('[Conversations] Erreur lors du chargement des conversations:', error);
     }
   };
+
+  // Traiter les données quand elles sont disponibles depuis les hooks
+  useEffect(() => {
+    if (!currentUser) return;
+    
+    const processConversationsData = async () => {
+      try {
+        console.log('[Conversations] Traitement des données:', {
+          conversations: hookConversations.length,
+          groups: hookGroups.length,
+          isLoading,
+          groupsLoading
+        });
+        
+        // Récupérer les utilisateurs
+        const usersData = await fetchWeSappUsers().catch(() => []);
+        console.log('[Conversations] Utilisateurs récupérés:', usersData.length);
+        
+        const formattedConversations: ConversationItem[] = [];
+        
+        // Traitement des conversations individuelles depuis le hook
+        if (Array.isArray(hookConversations)) {
+          hookConversations.forEach((conv: any) => {
+            const otherUser = usersData.find((user: any) => 
+              user.id === conv.other_user_id || user.id === conv.participant_id
+            );
+            
+            if (otherUser) {
+              formattedConversations.push({
+                id: conv.id,
+                name: otherUser.username || otherUser.code,
+                lastMessage: conv.last_message || 'Aucun message',
+                lastMessageTime: formatMessageTime(conv.last_message_time),
+                isGroup: false,
+                unreadCount: conv.unread_count || 0,
+                profileImage: otherUser.profile_image || otherUser.avatar,
+                isOnline: false // TODO: Intégrer le statut en ligne
+              });
+            }
+          });
+        }
+        
+        // Traitement des groupes depuis le hook
+        if (Array.isArray(hookGroups)) {
+          hookGroups.forEach((group: any) => {
+            formattedConversations.push({
+              id: group.id,
+              name: group.name,
+              lastMessage: group.last_message || 'Groupe créé',
+              lastMessageTime: formatMessageTime(group.last_message_time || group.created_at),
+              isGroup: true,
+              unreadCount: group.unread_count || 0,
+              profileImage: group.profile_photo,
+              participants: group.members || []
+            });
+          });
+        }
+        
+        // Trier par temps du dernier message
+        formattedConversations.sort((a, b) => {
+          const timeA = new Date(a.lastMessageTime).getTime();
+          const timeB = new Date(b.lastMessageTime).getTime();
+          return timeB - timeA;
+        });
+        
+        console.log('[Conversations] Conversations formatées:', formattedConversations.length);
+        setConversations(formattedConversations);
+        
+      } catch (error) {
+        console.error('[Conversations] Erreur lors du traitement des conversations:', error);
+      }
+    };
+
+    // Traiter les données quand les hooks ont fini de charger (même si vides)
+    if (!isLoading && !groupsLoading) {
+      processConversationsData();
+    }
+  }, [hookConversations, hookGroups, currentUser, fetchWeSappUsers, isLoading, groupsLoading]);
 
   // Formater le temps du message
   const formatMessageTime = (timestamp: string | null) => {

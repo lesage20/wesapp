@@ -24,7 +24,7 @@ export default function NewDiscussionScreen() {
   const [frequentContacts, setFrequentContacts] = useState<Connection[]>([]);
   
   const { fetchWeSappUsers, isLoading: contactsLoading } = useContacts();
-  const { getConversations, isLoading: conversationsLoading } = useMessages();
+  const { loadConversations, isLoading: conversationsLoading } = useMessages();
 
   // Charger les données au montage
   useEffect(() => {
@@ -47,16 +47,10 @@ export default function NewDiscussionScreen() {
 
       // Charger les conversations récentes pour déterminer les contacts fréquents
       try {
-        const conversations = await getConversations();
-        const recentConversations = conversations
-          .filter((conv: any) => conv.last_message_time)
-          .sort((a: any, b: any) => new Date(b.last_message_time).getTime() - new Date(a.last_message_time).getTime())
-          .slice(0, 5); // Top 5 conversations récentes
-
-        const frequentIds = recentConversations.map((conv: any) => conv.other_user_id || conv.participant_id);
-        const frequent = formattedConnections.filter(conn => frequentIds.includes(conn.id));
-        
-        setFrequentContacts(frequent);
+        await loadConversations();
+        // Les conversations sont maintenant dans le state du hook useMessages
+        // Pour le moment, prendre les 3 premiers contacts comme fréquents
+        setFrequentContacts(formattedConnections.slice(0, 3));
       } catch (error) {
         console.error('Erreur lors du chargement des conversations:', error);
         // En cas d'erreur, prendre les 3 premiers contacts comme fréquents

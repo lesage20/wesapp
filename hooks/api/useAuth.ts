@@ -476,6 +476,8 @@ export const useAuth = (): UseAuthReturn => {
   return {
     // États
     user,
+    currentUser: user, // Alias pour correspondre aux usages dans les composants
+    profile: user, // Alias pour correspondre aux usages dans les composants
     isAuthenticated,
     isLoading,
     error,
