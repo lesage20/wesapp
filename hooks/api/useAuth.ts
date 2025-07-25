@@ -22,8 +22,10 @@ import {
   TokenResponse,
   CreateProfilePayload,
   WeSappCode,
-  User
+  VerifyOTPResponse,
+  VerifyOTPAPIResponse
 } from '../types';
+import { router } from 'expo-router';
 
 // Fonction pour formater le numéro de téléphone (inspirée de l'API existante)
 const formatPhoneNumber = (phone: string): string => {
@@ -170,42 +172,132 @@ export const useAuth = (): UseAuthReturn => {
   /**
    * Vérifier le code OTP et obtenir les tokens (harmonisée avec l'API existante)
    */
-  const verifyOTP = useCallback(async (phoneNumber: string, otpCode: string): Promise<void> => {
-    if (!phoneNumber.trim() || !otpCode.trim()) {
-      handleError('Le numéro de téléphone et le code OTP sont requis');
-      return;
-    }
+  // const verifyOTP = useCallback(async (phoneNumber: string, otpCode: string): Promise<void> => {
+  //   if (!phoneNumber.trim() || !otpCode.trim()) {
+  //     handleError('Le numéro de téléphone et le code OTP sont requis');
+  //     return;
+  //   }
     
-    if (otpCode.length !== 6) {
-      handleError('Le code OTP doit contenir 6 chiffres');
-      return;
-    }
+  //   if (otpCode.length !== 6) {
+  //     handleError('Le code OTP doit contenir 6 chiffres');
+  //     return;
+  //   }
     
-    setIsLoading(true);
-    setError(null);
+  //   setIsLoading(true);
+  //   setError(null);
     
-    try {
-      // Formater le numéro de téléphone de la même manière que pour la demande
-      const formattedPhone = formatPhoneNumber(phoneNumber);
-      console.log('Verifying OTP for phone:', formattedPhone, 'with code:', otpCode);
+  //   try {
+  //     // Formater le numéro de téléphone de la même manière que pour la demande
+  //     const formattedPhone = formatPhoneNumber(phoneNumber);
+  //     console.log('Verifying OTP for phone:', formattedPhone, 'with code:', otpCode);
       
-      const payload: VerifyOTPPayload = {
-        phone_number: formattedPhone,
-        otp: otpCode,
-      };
+  //     const payload: VerifyOTPPayload = {
+  //       phone_number: formattedPhone,
+  //       otp: otpCode,
+  //     };
       
-      const response = await verifyApi.post(API_ENDPOINTS.AUTH.VERIFY_OTP, payload);
+  //     const response = await verifyApi.post(API_ENDPOINTS.AUTH.VERIFY_OTP, payload);
       
-      if (response) {
-        console.log('OTP verification response:', response);
-        await saveTokens(response);
-        setIsLoading(false);
-        // Navigation vers profile-setup sera gérée par le composant appelant
+  //     if (response) {
+  //       console.log('OTP verification response:', response);
+  //       await saveTokens(response);
+  //       setIsLoading(false);
+  //       // Navigation vers profile-setup sera gérée par le composant appelant
+  //     }
+  //   } catch (error: any) {
+  //     handleError(error.message || ERROR_MESSAGES.UNKNOWN_ERROR);
+  //   }
+  // }, [verifyApi, saveTokens, handleError]);
+  const verifyOTP = useCallback(
+    async (phoneNumber: string, otpCode: string): Promise<void> => {
+      if (!phoneNumber.trim() || !otpCode.trim()) {
+        handleError('Le numéro de téléphone et le code OTP sont requis');
+        return;
       }
-    } catch (error: any) {
-      handleError(error.message || ERROR_MESSAGES.UNKNOWN_ERROR);
-    }
-  }, [verifyApi, saveTokens, handleError]);
+  
+      if (otpCode.length !== 6) {
+        handleError('Le code OTP doit contenir 6 chiffres');
+        return;
+      }
+  
+      setIsLoading(true);
+      setError(null);
+  
+      try {
+        const formattedPhone = formatPhoneNumber(phoneNumber);
+        console.log('Verifying OTP for phone:', formattedPhone, 'with code:', otpCode);
+  
+        const payload: VerifyOTPPayload = {
+          phone_number: formattedPhone,
+          otp: otpCode,
+        };
+  
+        const response: VerifyOTPAPIResponse = await verifyApi.post(API_ENDPOINTS.AUTH.VERIFY_OTP, payload);
+  
+        // Log the full response to inspect its structure
+        console.log('Full OTP verification response:', JSON.stringify(response, null, 2));
+  
+        if (!response) {
+          throw new Error('Réponse API invalide ou vide');
+        }
+  
+        await saveTokens(response);
+  
+        // Check if token exists
+        if (response.token) {
+          await AsyncStorage.setItem('authToken', response.token);
+          console.log("Token d'authentification sauvegardé");
+        } else {
+          console.warn("Aucun token d'authentification dans la réponse");
+        }
+  
+        const userExists = response.existing_user === true;
+        console.log('Utilisateur existant?', userExists ? 'OUI' : 'NON');
+  
+        const userDataFromResponse = response.user;
+        const hasUserData = !!userDataFromResponse;
+        console.log('Données utilisateur présentes?', hasUserData ? 'OUI' : 'NON');
+  
+        let result: VerifyOTPResponse = {
+          success: true,
+          isNewUser: !userExists,
+        };
+  
+        if (userExists && hasUserData) {
+          const validUserData: User = {
+            id: userDataFromResponse.id || userDataFromResponse.user_id || '',
+            username: userDataFromResponse.username || '',
+            phoneNumber: userDataFromResponse.phone_number || phoneNumber,
+            profilePhoto: userDataFromResponse.profile_photo || '',
+            countryCode: userDataFromResponse.country_code || '',
+            isOnline: userDataFromResponse.is_online ?? true,
+            lastSeen: userDataFromResponse.last_seen || new Date().toISOString(),
+            createdAt: userDataFromResponse.created_at || new Date().toISOString(),
+            updatedAt: userDataFromResponse.updated_at || new Date().toISOString(),
+          };
+  
+          await AsyncStorage.setItem('userData', JSON.stringify(validUserData));
+          router.replace('/(drawer)/(tabs)');
+          console.log('Données utilisateur sauvegardées:', validUserData);
+  
+          result.user = validUserData;
+          result.token = response.token;
+        } else if (response.pending_user_id) {
+          router.replace('/profile-setup');
+          await AsyncStorage.setItem('pendingUserId', response.pending_user_id);
+          console.log('ID utilisateur en attente sauvegardé:', response.pending_user_id);
+          result.pendingUserId = response.pending_user_id;
+        }
+  
+        setIsLoading(false);
+      } catch (error: any) {
+        console.error('Erreur lors de la vérification OTP:', error);
+        handleError(error.message || ERROR_MESSAGES.UNKNOWN_ERROR);
+        setIsLoading(false);
+      }
+    },
+    [verifyApi, saveTokens, handleError]
+  );
   
   /**
    * Créer le profil utilisateur (harmonisée avec l'API existante)

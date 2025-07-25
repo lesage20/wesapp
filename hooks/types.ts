@@ -51,6 +51,13 @@ export interface VerifyOTPPayload {
   otp: string;
 }
 
+export interface VerifyOTPResponse {
+  success: boolean;
+  isNewUser: boolean;
+  user?: User;
+  pendingUserId?: string;
+  token?: string;
+}
 export interface TokenResponse {
   access: string;
   refresh: string;
@@ -67,22 +74,57 @@ export interface CreateProfilePayload {
 // TYPES UTILISATEUR
 // ============================================================================
 
-export interface User {
-  id: string;
-  user_id: string;
-  phone_number: string;
-  status: string;
-  last_seen: string | null;
-  is_online: boolean;
-  device_tokens: Record<string, any>;
-  language: string;
-  country_code: string;
-  verified_at: string | null;
-  is_signup_confirm: boolean;
-  created_at: string;
-  updated_at: string;
+// export interface User {
+//   id: string;
+//   user_id: string;
+//   username: string;
+//   phone_number: string;
+//   status: string;
+//   last_seen: string | null;
+//   is_online: boolean;
+//   device_tokens: Record<string, any>;
+//   language: string;
+//   country_code: string;
+//   verified_at: string | null;
+//   is_signup_confirm: boolean;
+//   created_at: string;
+//   updated_at: string;
+// }
+export interface VerifyOTPAPIResponse {
+  existing_user?: boolean;
+  pending_user_id?: string | null;
+  message?: string;
+  token?: string;
+  user?: {
+    id?: string;
+    user_id?: string;
+    phone_number?: string;
+    status?: string;
+    last_seen?: string | null;
+    is_online?: boolean;
+    device_tokens?: string[];
+    language?: string;
+    country_code?: string;
+    verified_at?: string;
+    is_signup_confirm?: boolean;
+    created_at?: string;
+    updated_at?: string;
+    username?: string;
+    profile_photo?: string;
+  };
 }
 
+export interface User {
+  id: string;
+  username: string;
+  phoneNumber: string;
+  profilePhoto: string;
+  countryCode: string;
+  isOnline: boolean;
+  lastSeen: string;
+  createdAt: string;
+  updatedAt: string;
+}
 export interface WeSappCode {
   id: string;
   user: User;
@@ -332,7 +374,7 @@ export interface UseAuthReturn {
   error: string | null;
   
   // Actions
-  requestOTP: (phoneNumber: string) => Promise<void>;
+  requestOTP: (phoneNumber: string, countryCode: string) => Promise<void>;
   verifyOTP: (phoneNumber: string, otpCode: string) => Promise<void>;
   createProfile: (profileData: CreateProfilePayload) => Promise<void>;
   logout: () => Promise<void>;
