@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { View, Text, TouchableOpacity, TextInput, ScrollView, Image, ImageBackground, Alert, Clipboard, Vibration, KeyboardAvoidingView, Platform } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';  
 import { Ionicons } from '@expo/vector-icons';
@@ -20,9 +20,10 @@ import MicIcon from '~/assets/svgs/chat/mic';
 // Import des hooks API
 import { useMessages } from '~/hooks/api/useMessages';
 import { useWebSocket, WebSocketMessage } from '~/hooks/api/useWebSocket';
-import { useAuth } from '~/hooks/api/useAuth';
+import { useProfile } from '~/hooks/api/useProfile';
 import { useContacts } from '~/hooks/api/useContacts';
 import { useOnlineStatus } from '~/hooks/api/useOnlineStatus';
+import { SendMessagePayload } from '~/hooks/types';
 
 
 export default function ChatScreen() {
@@ -46,8 +47,9 @@ export default function ChatScreen() {
 
   // Hooks API
   const { 
-    isLoading: messagesLoading, 
+    isLoading, 
     getConversationWithMessages, 
+    fetchConversationById,
     sendMessage: sendMessageAPI, 
     createGroupConversation,
     setReaction: setMessageReaction,
@@ -66,7 +68,7 @@ export default function ChatScreen() {
     activeConversationId
   } = useWebSocket();
   
-  const { currentUser } = useAuth();
+  const { profile: currentUser } = useProfile();
   const { isLoading: contactsLoading, getWeSappUsers } = useContacts();
   const { 
     isConnected: statusConnected, 
@@ -75,173 +77,238 @@ export default function ChatScreen() {
     addStatusListener 
   } = useOnlineStatus();
   
-  const [isLoadingMessages, setIsLoadingMessages] = useState(true);
   const [contactInfo, setContactInfo] = useState<any>(null);
   const [isOnline, setIsOnline] = useState(false);
 
-  // Get contact data based on ID
-  const getContactData = (contactId: string) => {
-    switch (contactId) {
-      case '456-qsns-civ':
-        return {
-          name: '456-QSNS-CIV',
-          shortName: '456-QSNS-C...',
-          avatar: 'A',
-          avatarBg: 'bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500'
-        };
-      case 'narcisse-pro':
-        return {
-          name: 'Narcisse professionnels',
-          shortName: 'Narcisse...',
-          avatar: 'OEUFS',
-          avatarBg: 'bg-orange-400',
-          isSpecialAvatar: true
-        };
-      case 'akissi':
-        return {
-          name: 'Akissi ❤️',
-          shortName: 'Akissi ❤️',
-          avatar: 'A',
-          avatarBg: 'bg-pink-500'
-        };
-      case 'kamate-drissa':
-        return {
-          name: 'Kamaté drissa',
-          shortName: 'Kamaté...',
-          avatar: 'K',
-          avatarBg: 'bg-green-500'
-        };
-      default:
-        return {
-          name: 'Contact',
-          shortName: 'Contact',
-          avatar: 'C',
-          avatarBg: 'bg-gray-500'
-        };
-    }
-  };
 
-  const contact = getContactData(id as string);
-
-  // Initialize with mock messages
-  React.useEffect(() => {
-    const mockMessages: Message[] = [
-      {
-        id: '1',
-        type: 'text',
-        content: 'Salut ! Comment ça va ?',
-        isOwn: false,
-        timestamp: '14:30',
-        reactions: [{ emoji: '👍', users: ['user1'] }]
-      },
-      {
-        id: '2',
-        type: 'text', 
-        content: 'Ça va bien merci ! Et toi ?',
-        isOwn: true,
-        timestamp: '14:32'
-      },
-      {
-        id: '3',
-        type: 'image',
-        content: 'Regarde cette belle photo !',
-        imageUrl: 'https://picsum.photos/400/300?random=1',
-        isOwn: false,
-        timestamp: '14:35',
-        reactions: [{ emoji: '❤️', users: ['user1', 'user2'] }, { emoji: '😍', users: ['user1'] }]
-      },
-      {
-        id: '4',
-        type: 'audio',
-        content: '',
-        audioUrl: 'https://example.com/audio.mp3',
-        audioDuration: 45,
-        isOwn: true,
-        timestamp: '14:37'
-      },
-      {
-        id: '4b',
-        type: 'audio',
-        content: '',
-        audioUrl: 'https://example.com/audio2.mp3',
-        audioDuration: 23,
-        isOwn: false,
-        timestamp: '14:38'
-      },
-      {
-        id: '5',
-        type: 'text',
-        content: 'Super ! Tu fais quoi ce soir ?',
-        isOwn: false,
-        timestamp: '14:40',
-        replyTo: '2'
-      },
-      {
-        id: '6',
-        type: 'location',
-        content: '',
-        location: { lat: 48.8566, lng: 2.3522, name: 'Tour Eiffel, Paris' },
-        isOwn: true,
-        timestamp: '14:42'
-      },
-      {
-        id: '7',
-        type: 'text',
-        content: 'Parfait ! On se retrouve là-bas à 20h ?',
-        isOwn: false,
-        timestamp: '14:45',
-        replyTo: '6'
-      },
-      {
-        id: '8',
-        type: 'audio',
-        content: '',
-        audioUrl: 'https://example.com/long-audio.mp3',
-        audioDuration: 127, // 2:07
-        isOwn: true,
-        timestamp: '14:47'
-      },
-      {
-        id: '9',
-        type: 'text',
-        content: 'Exactement ! C\'était génial 👍',
-        isOwn: false,
-        timestamp: '14:50',
-        replyTo: '8' // Réponse à notre message audio
+  // Charger les données de conversation réelles
+  const loadConversationData = useCallback(async () => {
+      if (!id || !currentUser) {
+        console.log('[Chat] ID de conversation ou utilisateur manquant');
+        return;
       }
-    ];
-    setMessages(mockMessages);
+
+      try {
+        console.log('[Chat] Chargement de la conversation:', id);
+
+        // Charger la conversation avec ses messages
+        const conversationData = await getConversationWithMessages(id as string);
+        console.log('[Chat] Données de conversation récupérées:', conversationData);
+
+        if (conversationData) {
+          // Charger les informations de l'autre utilisateur
+          const otherUserData = await fetchConversationById(id as string, currentUser.id);
+          console.log('[Chat] Données de l\'autre utilisateur:', otherUserData);
+          
+          if (otherUserData?.connection) {
+            const data = otherUserData.connection;
+            setContactInfo({
+              name: data.username ,
+              shortName: data.username || data.code,
+              avatar: data.username ? data.username.charAt(0).toUpperCase() : 'U',
+              avatarBg: 'teal-500',
+              profileImage: data.userphoto || data.avatar
+            });
+          }
+
+          // Traiter les messages s'ils existent
+          if (conversationData.messages && Array.isArray(conversationData.messages)) {
+            const formattedMessages: Message[] = conversationData.messages.map((msg: any) => {
+              // Détecter le type de message basé sur le contenu et les champs
+              let messageType: 'text' | 'image' | 'audio' | 'video' | 'document' | 'location' | 'contact' = 'text';
+              
+              if (msg.media_url) {
+                if (msg.media_url.includes('image') || msg.media_url.match(/\.(jpg|jpeg|png|gif)$/i)) {
+                  messageType = 'image';
+                } else if (msg.media_url.includes('audio') || msg.media_url.match(/\.(mp3|wav|m4a)$/i)) {
+                  messageType = 'audio';
+                } else if (msg.media_url.includes('video') || msg.media_url.match(/\.(mp4|mov|avi)$/i)) {
+                  messageType = 'video';
+                } else {
+                  messageType = 'document';
+                }
+              } else if (msg.location_id) {
+                messageType = 'location';
+              }
+
+              const formattedMessage: Message = {
+                id: msg.id.toString(),
+                type: messageType,
+                content: msg.content || '',
+                isOwn: msg.sender?.id === currentUser.id,
+                timestamp: new Date(msg.timestamp).toLocaleTimeString('fr-FR', { 
+                  hour: '2-digit', 
+                  minute: '2-digit' 
+                }),
+                reactions: msg.reactions ? Object.entries(msg.reactions).map(([emoji, users]: [string, any]) => ({
+                  emoji,
+                  users: Array.isArray(users) ? users : []
+                })) : []
+              };
+
+              // Ajouter les propriétés spécifiques selon le type
+              if (messageType === 'image' && msg.media_url) {
+                formattedMessage.imageUrl = msg.media_url;
+              } else if (messageType === 'audio' && msg.media_url) {
+                formattedMessage.audioUrl = msg.media_url;
+                formattedMessage.audioDuration = msg.duration || 0;
+              } else if (messageType === 'video' && msg.media_url) {
+                formattedMessage.videoUrl = msg.media_url;
+                formattedMessage.videoDuration = msg.duration || 0;
+              } else if (messageType === 'document' && msg.media_url) {
+                formattedMessage.document = {
+                  name: msg.content || 'Document',
+                  url: msg.media_url,
+                  size: msg.file_size || 0,
+                  type: msg.media_type || 'unknown'
+                };
+              }
+
+              // Gérer les réponses
+              if (msg.reply) {
+                formattedMessage.replyTo = msg.reply.toString();
+              }
+
+              return formattedMessage;
+            });
+            
+            // Trier les messages par timestamp
+            formattedMessages.sort((a, b) => {
+              const timeA = new Date('1970-01-01 ' + a.timestamp).getTime();
+              const timeB = new Date('1970-01-01 ' + b.timestamp).getTime();
+              return timeA - timeB;
+            });
+            
+            setMessages(formattedMessages);
+            console.log('[Chat] Messages formatés:', formattedMessages.length);
+          }
+        }
+      } catch (error) {
+        console.error('[Chat] Erreur lors du chargement de la conversation:', error);
+      } 
+  }, [id, currentUser, getConversationWithMessages, fetchConversationById]);
+
+  useEffect(() => {
+    loadConversationData();
   }, []);
 
-  const handleSend = () => {
-    if (message.trim()) {
-      const newMessage: Message = {
-        id: Date.now().toString(),
-        type: 'text',
-        content: message,
-        isOwn: true,
-        timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-        replyTo: replyToMessage?.id
-      };
+  // Fonction pour gérer les nouveaux messages WebSocket
+  const handleNewMessage = useCallback((data: any) => {
+      console.log('[Chat] Nouveau message WebSocket:', data);
       
-      setMessages(prev => [...prev, newMessage]);
-      setMessage('');
-      setReplyToMessage(null);
-      
-      // Scroll to bottom
-      setTimeout(() => {
-        scrollViewRef.current?.scrollToEnd({ animated: true });
-      }, 100);
-    }
-  };
+      if (data.action === 'new_message' && data.message && data.message.conversation === id) {
+        const newMessage = data.message;
+        
+        // Formatter le message reçu
+        const formattedMessage: Message = {
+          id: newMessage.id.toString(),
+          type: 'text', // Adapter selon le type
+          content: newMessage.content || '',
+          isOwn: newMessage.sender?.id === currentUser.id,
+          timestamp: new Date(newMessage.timestamp).toLocaleTimeString('fr-FR', { 
+            hour: '2-digit', 
+            minute: '2-digit' 
+          }),
+          reactions: []
+        };
 
-  const handleSwipeReply = (messageId: string) => {
+        // Ajouter le message s'il n'existe pas déjà
+        setMessages(prev => {
+          const exists = prev.some(msg => msg.id === formattedMessage.id);
+          if (!exists) {
+            return [...prev, formattedMessage];
+          }
+          return prev;
+        });
+
+        // Scroll automatique si c'est un nouveau message
+        setTimeout(() => {
+          scrollViewRef.current?.scrollToEnd({ animated: true });
+        }, 100);
+      }
+  }, [id, currentUser]);
+
+  // Écouter les nouveaux messages WebSocket
+  useEffect(() => {
+    if (!id || !currentUser) return;
+
+    // S'abonner aux messages de cette conversation
+    subscribeToConversation(id as string);
+    addMessageListener('new_message', handleNewMessage);
+
+    return () => {
+      unsubscribeFromConversation(id as string);
+      removeMessageListener('new_message', handleNewMessage);
+    };
+  }, [id, currentUser, handleNewMessage]);
+
+  const handleSend = useCallback(async () => {
+    if (!message.trim() || !currentUser) return;
+
+    const messageContent = message.trim();
+    const replyToId = replyToMessage?.id;
+    
+    // Optimistic update - ajouter le message immédiatement à l'interface
+    const optimisticMessage: Message = {
+      id: `temp_${Date.now()}`,
+      type: 'text',
+      content: messageContent,
+      isOwn: true,
+      timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+      replyTo: replyToId
+    };
+    
+    setMessages(prev => [...prev, optimisticMessage]);
+    setMessage('');
+    setReplyToMessage(null);
+    
+    // Scroll to bottom
+    setTimeout(() => {
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+    }, 100);
+
+    try {
+      // Envoyer le message via l'API
+      const sendMessagePayload : SendMessagePayload = {
+        conversation: id as string,
+        content: messageContent,
+        message_type: 'text' as const,
+        reply_to: replyToId || null,
+        sender: currentUser.id
+      };
+
+      console.log('[Chat] Envoi du message:', sendMessagePayload);
+      await sendMessageAPI(sendMessagePayload);
+      
+      // Le message sera mis à jour via WebSocket ou on peut le remplacer ici
+      // Pour le moment, on garde l'optimistic update
+      
+    } catch (error) {
+      console.error('[Chat] Erreur lors de l\'envoi du message:', error);
+      
+      // En cas d'erreur, retirer le message optimistic
+      setMessages(prev => prev.filter(msg => msg.id !== optimisticMessage.id));
+      
+      // Remettre le message dans l'input
+      setMessage(messageContent);
+      if (replyToId) {
+        const originalReplyMessage = messages.find(m => m.id === replyToId);
+        if (originalReplyMessage) {
+          setReplyToMessage(originalReplyMessage);
+        }
+      }
+      
+      Alert.alert('Erreur', 'Impossible d\'envoyer le message');
+    }
+  }, [message, currentUser, id, replyToMessage, messages, sendMessageAPI]);
+
+  const handleSwipeReply = useCallback((messageId: string) => {
     const messageToReply = messages.find(m => m.id === messageId);
     if (messageToReply) {
       setReplyToMessage(messageToReply);
       Vibration.vibrate(50);
     }
-  };
+  }, [messages]);
 
   const handleLongPress = (messageId: string, position?: { x: number; y: number }) => {
     setSelectedMessageId(messageId);
@@ -317,9 +384,9 @@ export default function ChatScreen() {
     setShowReactionPicker(true);
   };
 
-  const findReplyToMessage = (replyToId: string) => {
+  const findReplyToMessage = useCallback((replyToId: string) => {
     return messages.find(m => m.id === replyToId);
-  };
+  }, [messages]);
 
   // Media handlers
 
@@ -431,22 +498,22 @@ export default function ChatScreen() {
     }
   };
 
-  const scrollToBottom = () => {
+  const scrollToBottom = useCallback(() => {
     setTimeout(() => {
       scrollViewRef.current?.scrollToEnd({ animated: true });
     }, 100);
-  };
+  }, []);
 
-  if (isLoadingMessages || !contactInfo) {
+  if (isLoading ) {
     return (
       <>
         <CustomHeader 
           showAvatar={true}
-          title={contact.shortName}
+          title={contactInfo?.shortName || 'Chat'}
           subtitle={isOnline ? 'En ligne' : 'Hors ligne'}
-          avatarBg={contact.avatarBg}
-          avatarText={contact.avatar}
-          isSpecialAvatar={contact.isSpecialAvatar}
+          avatarBg={contactInfo?.avatarBg || 'bg-gray-500'}
+          avatarText={contactInfo?.avatar || 'C'}
+          isSpecialAvatar={false}
           onAvatarPress={() => router.push(`/contact-profile/${id}`)}
           rightContent={
             <View className="flex-row items-center">
@@ -476,11 +543,11 @@ export default function ChatScreen() {
     <>
       <CustomHeader 
         showAvatar={true}
-        title={contact.shortName}
+        title={contactInfo?.shortName}
         subtitle={isOnline ? 'En ligne' : 'Hors ligne'}
-        avatarBg={contact.avatarBg}
-        avatarText={contact.avatar}
-        isSpecialAvatar={contact.isSpecialAvatar}
+        avatarBg={contactInfo?.avatarBg}
+        avatarText={contactInfo?.avatar}
+        avatarImage={contactInfo?.profileImage}
         onAvatarPress={() => router.push(`/contact-profile/${id}`)}
         rightContent={
           <View className="flex-row items-center">

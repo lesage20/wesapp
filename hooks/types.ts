@@ -217,9 +217,10 @@ export interface SendMessagePayload {
   conversation: string;
   content: string;
   message_type: MessageType;
-  reply_to?: string;
+  reply_to?: string | null;
   media_url?: string;
   location_id?: string;
+  sender: string;
 }
 
 export interface UpdateMessagePayload {
