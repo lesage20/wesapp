@@ -150,7 +150,7 @@ export const useGroups = (options: UseGroupsOptions = {}): UseGroupsReturn => {
   /**
    * Créer un nouveau groupe
    */
-  const createGroup = useCallback(async (payload: CreateGroupPayload): Promise<void> => {
+  const createGroup = useCallback(async (payload: CreateGroupPayload): Promise<Group> => {
     if (!payload.name?.trim()) {
       throw new Error('Le nom du groupe est requis');
     }
@@ -173,7 +173,10 @@ export const useGroups = (options: UseGroupsOptions = {}): UseGroupsReturn => {
       // Ajouter le nouveau groupe au début de la liste
       setGroups(prev => [result, ...prev]);
       setCurrentGroup(result);
+      return result;
     }
+    
+    throw new Error('Échec de la création du groupe');
   }, [createGroupApi]);
   
   /**

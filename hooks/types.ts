@@ -92,6 +92,8 @@ export interface WeSappCode {
   bio: string;
   label: string;
   profile_photo: string;
+  profile_image?: string; // Alias pour compatibilité
+  avatar?: string; // Alias pour compatibilité
   username: string;
   created_at: string;
   updated_at: string;
@@ -255,8 +257,10 @@ export interface Group {
 export interface CreateGroupPayload {
   name: string;
   description?: string;
-  profile_photo?: string;
+  profile_photo?: string | null;
   member_ids?: string[];
+  members?: string[];
+  admin?: string;
 }
 
 export interface UpdateGroupPayload {
@@ -327,12 +331,14 @@ export interface ApiResponse<T = any> {
 export interface UseAuthReturn {
   // États
   user: WeSappCode | null;
+  currentUser: WeSappCode | null;
+  profile: WeSappCode | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
   
   // Actions
-  requestOTP: (phoneNumber: string) => Promise<void>;
+  requestOTP: (phoneNumber: string, countryCode?: string) => Promise<void>;
   verifyOTP: (phoneNumber: string, otpCode: string) => Promise<void>;
   createProfile: (profileData: CreateProfilePayload) => Promise<void>;
   logout: () => Promise<void>;
@@ -347,29 +353,90 @@ export interface UseMessagesReturn {
   isLoading: boolean;
   error: string | null;
   
-  // Actions
-  loadConversations: () => Promise<void>;
-  loadMessages: (conversationId: string) => Promise<void>;
+  // Pagination
+  isLoadingMore: boolean;
+  hasMoreConversations: boolean;
+  hasMoreMessages: boolean;
+  
+  // Actions principales
+  loadConversations: (refresh?: boolean) => Promise<void>;
+  loadMessages: (conversationId: string, refresh?: boolean) => Promise<void>;
+  loadMoreConversations: () => Promise<void>;
+  loadMoreMessages: () => Promise<void>;
   sendMessage: (payload: SendMessagePayload) => Promise<void>;
   updateMessage: (messageId: string, payload: UpdateMessagePayload) => Promise<void>;
   deleteMessage: (messageId: string) => Promise<void>;
   createConversation: (participantIds: string[]) => Promise<void>;
+  
+  // Actions utilitaires
+  checkExistingConversation: (participantIds: string[]) => Promise<Conversation | null>;
+  addReaction: (messageId: string, emoji: string) => Promise<void>;
+  removeReaction: (messageId: string, emoji: string) => Promise<void>;
+  markAsRead: (messageIds: string[]) => Promise<void>;
+  refresh: () => Promise<void>;
+  
+  // Nouvelles fonctions harmonisées avec l'API existante
+  checkExistingConversationImproved: (participantIds: string[]) => Promise<Conversation | null>;
+  getOrCreateConversation: (participantIds: string[]) => Promise<Conversation>;
+  getConversationByIdImproved: (codeWeSapp: string) => Promise<any>;
+  getConversationWithMessages: (conversationId: string) => Promise<any>;
+  getMessagesByConversationId: (conversationId: string, page?: number, pageSize?: number) => Promise<any>;
+  setReplyToMessage: (messageId: string) => Promise<Message[]>;
+  setReaction: (messageId: string, reaction: string) => Promise<Message[]>;
+  createGroupConversation: (memberCodeIds: string[], groupName: string, currentCodeId: string, groupPhoto?: string | null) => Promise<any>;
+  fetchConversationById: (conversationId: string, currentCode: string) => Promise<any>;
+  
+  // État de la conversation courante
+  currentConversationId: string | null;
 }
 
 // Hook de contacts
 export interface UseContactsReturn {
   // États
   connections: UserConnection[];
+  blockedUsers: WesappUserBlocked[];
+  searchResults: WeSappCode[];
   isLoading: boolean;
   error: string | null;
   
-  // Actions
-  loadConnections: () => Promise<void>;
+  // Pagination
+  isLoadingMore: boolean;
+  hasMoreConnections: boolean;
+  
+  // Actions principales
+  loadConnections: (refresh?: boolean) => Promise<void>;
+  loadMoreConnections: () => Promise<void>;
   createConnection: (payload: CreateConnectionPayload) => Promise<void>;
   updateConnection: (connectionId: string, payload: UpdateConnectionPayload) => Promise<void>;
   deleteConnection: (connectionId: string) => Promise<void>;
   searchByPhone: (phoneNumber: string) => Promise<WeSappCode[]>;
-  getConnectionByCode: (code: string) => Promise<UserConnection>;
+  getConnectionByCode: (code: string) => Promise<UserConnection | null>;
+  updateConnectionByCode: (code: string, payload: UpdateConnectionPayload) => Promise<void>;
+  
+  // Gestion des blocages
+  loadBlockedUsers: () => Promise<void>;
+  blockUser: (payload: BlockUserPayload) => Promise<void>;
+  unblockUser: (blockedUserId: string) => Promise<void>;
+  checkIfBlocked: (weSappCodeId: string) => Promise<boolean>;
+  
+  // Nouvelles fonctions harmonisées avec l'API existante
+  checkCode: (code: string) => Promise<WeSappCode | null>;
+  fetchWeSappUsers: () => Promise<WeSappCode[]>;
+  getBlockedContacts: (code: string) => Promise<WesappUserBlocked[]>;
+  blockUserImproved: (weSappCodeId: string, blockedWeSappCodeId: string) => Promise<void>;
+  unblockUserImproved: (weSappCodeId: string, blockedWeSappCodeId: string) => Promise<void>;
+  deleteConnectionImproved: (connectionId: string) => Promise<void>;
+  
+  // Actions utilitaires
+  addToFavorites: (connectionId: string) => Promise<void>;
+  removeFromFavorites: (connectionId: string) => Promise<void>;
+  muteConnection: (connectionId: string, muteUntil?: string) => Promise<void>;
+  unmuteConnection: (connectionId: string) => Promise<void>;
+  searchConnections: (query: string) => UserConnection[];
+  getFavoriteConnections: () => UserConnection[];
+  getMutedConnections: () => UserConnection[];
+  getBlockedConnections: () => UserConnection[];
+  refresh: () => Promise<void>;
 }
 
 // Hook de profil
@@ -391,15 +458,61 @@ export interface UseProfileReturn {
 export interface UseGroupsReturn {
   // États
   groups: Group[];
+  currentGroup: Group | null;
+  groupMembers: WeSappCode[];
   isLoading: boolean;
   error: string | null;
   
-  // Actions
-  loadGroups: () => Promise<void>;
-  createGroup: (payload: CreateGroupPayload) => Promise<void>;
+  // Pagination
+  isLoadingMore: boolean;
+  hasMoreGroups: boolean;
+  
+  // Actions principales
+  loadGroups: (refresh?: boolean) => Promise<void>;
+  loadMoreGroups: () => Promise<void>;
+  getGroup: (groupId: string) => Promise<Group | null>;
+  createGroup: (payload: CreateGroupPayload) => Promise<Group>;
   updateGroup: (groupId: string, payload: UpdateGroupPayload) => Promise<void>;
   deleteGroup: (groupId: string) => Promise<void>;
+  
+  // Gestion des membres
   addMembers: (groupId: string, memberIds: string[]) => Promise<void>;
   removeMember: (groupId: string, memberId: string) => Promise<void>;
   leaveGroup: (groupId: string) => Promise<void>;
+  getGroupMembers: (groupId: string) => Promise<WeSappCode[]>;
+  
+  // Nouvelles fonctions harmonisées avec l'API existante
+  createGroupImproved: (name: string, description: string, members: string[], admin: string, profilePhoto?: string) => Promise<Group>;
+  updateGroupImproved: (id: string, name?: string, description?: string, members?: string[], admin?: string, profilePhoto?: string) => Promise<Group>;
+  addMembersToGroupImproved: (id: string, members: string[], conversationId: string) => Promise<Group>;
+  deleteGroupImproved: (id: string) => Promise<void>;
+  leaveGroupImproved: (groupId: string, conversationId: string, code: string) => Promise<any>;
+  removeMemberFromGroupImproved: (groupId: string, conversationId: string, memberId: string) => Promise<any>;
+  getGroupByIdImproved: (id: string, code: string) => Promise<Group>;
+  
+  // Fonctions utilitaires
+  isUserAdmin: (group: Group, userId: string) => boolean;
+  isUserMember: (group: Group, userId: string) => boolean;
+  getMemberCount: (group: Group) => number;
+  getGroupsByAdmin: (adminId: string) => Group[];
+  searchGroups: (query: string) => Group[];
+  
+  // Mises à jour rapides
+  updateGroupName: (groupId: string, name: string) => Promise<void>;
+  updateGroupDescription: (groupId: string, description: string) => Promise<void>;
+  updateGroupPhoto: (groupId: string, profilePhoto: string) => Promise<void>;
+  
+  // Gestion des permissions
+  canEditGroup: (group: Group, userId: string) => boolean;
+  canAddMembers: (group: Group, userId: string) => boolean;
+  canRemoveMembers: (group: Group, userId: string) => boolean;
+  canDeleteGroup: (group: Group, userId: string) => boolean;
+  
+  // Statistiques
+  getTotalGroupsCount: () => number;
+  getAdminGroupsCount: (adminId: string) => number;
+  getTotalMembersCount: () => number;
+  
+  // Actions générales
+  refresh: () => Promise<void>;
 }
