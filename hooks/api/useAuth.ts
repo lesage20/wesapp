@@ -9,7 +9,6 @@ import { useState, useCallback, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuthStore } from '~/store/store';
 import { useApi } from '../useApi';
-import { useProfile } from './useProfile';
 import { 
   API_ENDPOINTS, 
   AUTH_CONFIG,
@@ -49,10 +48,9 @@ const formatPhoneNumber = (phone: string): string => {
 };
 
 export const useAuth = (): UseAuthReturn => {
-  const { user, login, logout: storeLogout } = useAuthStore();
+  const { user, userData, login, logout: storeLogout } = useAuthStore();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { loadProfile } = useProfile();
   // Hooks API spécialisés pour chaque endpoint
   const otpApi = useApi<any>({ showToast: true });
   const verifyApi = useApi<TokenResponse>({ showToast: true });
@@ -60,7 +58,7 @@ export const useAuth = (): UseAuthReturn => {
   const refreshApi = useApi<TokenResponse>({ showToast: false });
   
   // État d'authentification dérivé
-  const isAuthenticated = !!user;
+  const isAuthenticated = !!user || !!userData;
   
   // Fonction utilitaire pour gérer les erreurs
   const handleError = useCallback((errorMessage: string) => {
@@ -280,11 +278,13 @@ export const useAuth = (): UseAuthReturn => {
             updatedAt: userDataFromResponse.updated_at || new Date().toISOString(),
           };
   
+          // Sauvegarder les données utilisateur basiques
           login(validUserData);
           await AsyncStorage.setItem('userData', JSON.stringify(validUserData));
-          await loadProfile(validUserData);
+          
+          // Le profil complet sera automatiquement chargé par useProfile grâce au useEffect
           router.replace('/(drawer)/(tabs)');
-          console.log('Données utilisateur sauvegardées:', validUserData);
+          console.log('Données utilisateur basiques sauvegardées:', validUserData);
   
           result.user = validUserData;
           result.token = response.token;
@@ -443,7 +443,7 @@ export const useAuth = (): UseAuthReturn => {
       const userDataString = userData[1];
       
       if (authToken && userDataString) {
-        const parsedUserData: WeSappCode = JSON.parse(userDataString);
+        const parsedUserData: User = JSON.parse(userDataString);
         login(parsedUserData);
       }
     } catch (error) {
@@ -481,7 +481,8 @@ export const useAuth = (): UseAuthReturn => {
   
   return {
     // États
-    user,
+    user,           // WeSappCode (profile complet)
+    userData,       // User (données basiques)
     currentUser: user, // Alias pour correspondre aux usages dans les composants
     profile: user, // Alias pour correspondre aux usages dans les composants
     isAuthenticated,

@@ -47,8 +47,9 @@ interface CreatePremiumProfilePayload {
 
 export const useProfile = (options: UseProfileOptions = {}): UseProfileReturn => {
   const { autoLoad = false, loadUserSettings = false } = options;
-  const { user, login, logout } = useAuthStore();
-  console.log('user from profile hook', user);
+  const { user, userData, login, logout } = useAuthStore();
+  console.log('user (WeSappCode) from profile hook', user);
+  console.log('userData (User) from profile hook', userData);
   // États locaux
   const [profile, setProfile] = useState<WeSappCode | null>(user);
   const [userAccount, setUserAccount] = useState<User | null>(null);
@@ -107,21 +108,30 @@ export const useProfile = (options: UseProfileOptions = {}): UseProfileReturn =>
   /**
    * Charger le profil utilisateur actuel
    */
-  const loadProfile = useCallback(async (userData: User | null = null, index: number = 0): Promise<void> => {
-    if (!user?.id && !userData) {
-      throw new Error('Utilisateur non authentifié');
+  const loadProfile = useCallback(async (userDataParam: User | null = null, index: number = 0): Promise<void> => {
+    // Utiliser le paramètre passé, sinon userData du store
+    const currentUserData = userDataParam || userData;
+    
+    if (!user?.id && !currentUserData) {
+      throw new Error('Utilisateur non authentifié - aucune donnée utilisateur disponible');
     }
     
-    const url = `${API_ENDPOINTS.USERS.SEARCH_BY_PHONE}?phone_number=${userData?.phoneNumber || user.phoneNumber}`;
+    // Utiliser le phoneNumber du user (WeSappCode) ou des userData (User)
+    const phoneNumber = currentUserData?.phoneNumber || user?.user?.phoneNumber;
+    if (!phoneNumber) {
+      throw new Error('Numéro de téléphone non disponible');
+    }
+    
+    const url = `${API_ENDPOINTS.USERS.SEARCH_BY_PHONE}?phone_number=${phoneNumber}`;
     const result = await profileApi.get(url);
 
     if (result) {
       setProfile(result[index]);
-      // Mettre à jour aussi le store global
+      // Mettre à jour le store global avec le WeSappCode complet
       login(result[index]);
-      console.log('profile from profile hook', profile);
+      console.log('profile WeSappCode chargé et sauvegardé:', result[index]);
     }
-  }, [profileApi, user?.id, login]);
+  }, [profileApi, user?.id, userData, login]);
   
   /**
    * Mettre à jour le profil WeSapp
@@ -546,6 +556,16 @@ export const useProfile = (options: UseProfileOptions = {}): UseProfileReturn =>
       }
     }
   }, [autoLoad, loadUserSettings, loadProfile, loadSettings]);
+  
+  // Charger automatiquement le profil quand userData est disponible mais user ne l'est pas
+  useEffect(() => {
+    if (userData && !user && !profile) {
+      console.log('userData disponible mais user vide, chargement automatique du profil...');
+      loadProfile(userData).catch(error => {
+        console.error('Erreur lors du chargement automatique du profil:', error);
+      });
+    }
+  }, [userData, user, profile, loadProfile]);
   
   // Synchroniser le profil avec le store global
   useEffect(() => {

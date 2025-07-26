@@ -362,9 +362,10 @@ export interface ApiResponse<T = any> {
 // Hook d'authentification
 export interface UseAuthReturn {
   // États
-  user: WeSappCode | null;
-  currentUser: WeSappCode | null;
-  profile: WeSappCode | null;
+  user: WeSappCode | null;          // Profile complet
+  userData: User | null;            // Données utilisateur basiques
+  currentUser: WeSappCode | null;   // Alias pour user
+  profile: WeSappCode | null;       // Alias pour user
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
