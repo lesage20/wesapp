@@ -106,7 +106,6 @@ export default function ConversationsScreen() {
     // Gérer les nouveaux messages reçus
     const handleNewMessage = (data: any) => {
       try {
-        console.log('handling new message');
         if (data.action === 'new_message' && data.message) {
         setConversations(prev => {
           const updatedConversations = prev.map(conv => {
@@ -249,30 +248,13 @@ export default function ConversationsScreen() {
         console.error('[Conversations] Erreur lors du traitement de la nouvelle conversation:', error);
       }
     };
-    const handleConversationUpdate = (data: any) => {
-      console.log('🎯 Event reçu:', data);
-      console.log('🎯 Action:', data.action);
-      console.log('🎯 Message:', data.message);
-      // console.log('🎯 Conversations actuelles:', conversations.length);
-      // Appeler d'abord le handler générique
-      // handleMessage(data);
-      // Ajouter les listeners spécifiques
-      // if (data.action === 'new_message') {
-      //   handleNewMessage(data);
-      // } else if (data.action === 'message_sent') {
-      //   handleMessageSent(data);
-      // } else if (data.action === 'messages_read') { 
-      //   handleMessagesRead(data);
-      // } else if (data.action === 'conversation_created') {
-      //   handleConversationCreated(data);
-      // }
-    };
+
 
     // Ajouter tous les listeners
-    addMessageListener('new_message', handleConversationUpdate);
-    addMessageListener('message_sent', handleConversationUpdate);
-    addMessageListener('messages_read', handleConversationUpdate);
-    addMessageListener('conversation_created', handleConversationUpdate);
+    addMessageListener('new_message', handleNewMessage);
+    addMessageListener('message_sent', handleMessageSent);
+    addMessageListener('messages_read', handleMessagesRead);
+    addMessageListener('conversation_created', handleConversationCreated);
     
     return () => {
       // Nettoyer tous les listeners

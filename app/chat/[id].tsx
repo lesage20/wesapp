@@ -182,7 +182,6 @@ export default function ChatScreen() {
           // });
 
           setMessages(formattedMessages);
-          console.log('[Chat] Messages formatés:', formattedMessages.length);
         }
       }
     } catch (error) {
@@ -191,7 +190,6 @@ export default function ChatScreen() {
   }, [id, currentUser, getConversationWithMessages, fetchConversationById]);
 
   useEffect(() => {
-    console.log('[Chat] id', id);
     loadConversationData();
     // websocketService.connect(id as string);
 
@@ -199,38 +197,35 @@ export default function ChatScreen() {
 
   // Fonction pour gérer les nouveaux messages WebSocket
   const handleNewMessage = useCallback((data: any) => {
-    console.log('[Chat] Nouveau message WebSocket:', data);
+    if (data.action === 'new_message' && data.message && data.message.conversation_id === id && data.message.sender_id !== currentUser?.id) {
+      const newMessage = data.message;
+      // Formatter le message reçu
+      const formattedMessage: Message = {
+        id: newMessage.id.toString(),
+        type: 'text', // Adapter selon le type
+        content: newMessage.content || '',
+        isOwn: newMessage.sender?.id === currentUser.id,
+        timestamp: new Date(newMessage.timestamp).toLocaleTimeString('fr-FR', {
+          hour: '2-digit',
+          minute: '2-digit'
+        }),
+        reactions: []
+      };
 
-    // if (data.action === 'new_message' && data.message && data.message.conversation === id) {
-    //   const newMessage = data.message;
-    //   console.log('newMessage', newMessage);
-    //   // Formatter le message reçu
-    //   const formattedMessage: Message = {
-    //     id: newMessage.id.toString(),
-    //     type: 'text', // Adapter selon le type
-    //     content: newMessage.content || '',
-    //     isOwn: newMessage.sender?.id === currentUser.id,
-    //     timestamp: new Date(newMessage.timestamp).toLocaleTimeString('fr-FR', {
-    //       hour: '2-digit',
-    //       minute: '2-digit'
-    //     }),
-    //     reactions: []
-    //   };
+      // Ajouter le message s'il n'existe pas déjà
+      setMessages(prev => {
+        const exists = prev.some(msg => msg.id === formattedMessage.id);
+        if (!exists) {
+          return [...prev, formattedMessage];
+        }
+        return prev;
+      });
 
-    //   // Ajouter le message s'il n'existe pas déjà
-    //   setMessages(prev => {
-    //     const exists = prev.some(msg => msg.id === formattedMessage.id);
-    //     if (!exists) {
-    //       return [...prev, formattedMessage];
-    //     }
-    //     return prev;
-    //   });
-
-    //   // Scroll automatique si c'est un nouveau message
-    //   setTimeout(() => {
-    //     scrollViewRef.current?.scrollToEnd({ animated: true });
-    //   }, 100);
-    // }
+      // Scroll automatique si c'est un nouveau message
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: true });
+      }, 100);
+    }
   }, [id, currentUser]);
 
   // Écouter les nouveaux messages WebSocket
@@ -240,17 +235,11 @@ export default function ChatScreen() {
     // S'abonner aux messages de cette conversation
     subscribeToConversation(id as string)
     // websocketService.subscribeToConversation(id as string);
-    console.log('=============================================');
-    console.log('websocketService', websocketService.isConnected());
-    console.log('=============================================');
 
     websocketService.addMessageListener('new_message', (data) => {
-      console.log('new_message from front', data);
-      // handleNewMessage(data);
+      handleNewMessage(data);
     });
-    websocketService.addMessageListener('send_message', (data) => {
-      console.log('send_message', data);
-    });
+
 
     onlineService.addMessageListener('online_status', (data) => {
 

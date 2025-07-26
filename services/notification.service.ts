@@ -85,7 +85,7 @@ Notifications.setNotificationHandler({
   handleNotification: async (notification) => {
     try {
       const data = notification.request.content.data || {};
-      console.log('Received notification:', notification);
+      // console.log('Received notification:', notification);
 
       // Récupérer le son depuis le store
       const receiverCode = currentCode?.code || '';
@@ -126,7 +126,7 @@ Notifications.addNotificationResponseReceivedListener(async (response) => {
   try {
     const { actionIdentifier, notification, userText } = response;
     const data = notification.request.content.data || {};
-    console.log('Notification response:', { actionIdentifier, userText, data });
+    // console.log('Notification response:', { actionIdentifier, userText, data });
 
     if (data.type === 'new_message') {
       if (actionIdentifier === 'REPLY' && userText) {
