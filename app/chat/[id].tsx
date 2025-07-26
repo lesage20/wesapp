@@ -571,7 +571,7 @@ export default function ChatScreen() {
         avatarBg={contactInfo?.avatarBg}
         avatarText={contactInfo?.avatar}
         avatarImage={contactInfo?.profileImage}
-        onAvatarPress={() => router.push(`/contact-profile/${id}`)}
+        onAvatarPress={() => router.push(`/contact-profile/${contactInfo?.usercode}`)}
         rightContent={
           <View className="flex-row items-center">
             <TouchableOpacity className="p-2 mr-2">
