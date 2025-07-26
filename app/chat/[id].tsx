@@ -257,11 +257,11 @@ export default function ChatScreen() {
       // unsubscribeFromConversation(id as string);
       // removeMessageListener('new_message', handleNewMessage);
     };
-  }, [id, currentUser, handleMessage]);
+  }, [id, currentUser, contactInfo, handleMessage]);
 
   useEffect(() => {
     if (!id || !currentUser) return;
-    // onlineService.connect(currentUser.id);
+    onlineService.connect(currentUser.id);
     onlineService.requestUserStatus(contactInfo?.usercode || '');
   }, [id, contactInfo]);
 
