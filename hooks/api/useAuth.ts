@@ -9,6 +9,7 @@ import { useState, useCallback, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuthStore } from '~/store/store';
 import { useApi } from '../useApi';
+import { useProfile } from './useProfile';
 import { 
   API_ENDPOINTS, 
   AUTH_CONFIG,
@@ -51,7 +52,7 @@ export const useAuth = (): UseAuthReturn => {
   const { user, login, logout: storeLogout } = useAuthStore();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+  const { loadProfile } = useProfile();
   // Hooks API spécialisés pour chaque endpoint
   const otpApi = useApi<any>({ showToast: true });
   const verifyApi = useApi<TokenResponse>({ showToast: true });
@@ -211,6 +212,8 @@ export const useAuth = (): UseAuthReturn => {
   // }, [verifyApi, saveTokens, handleError]);
   const verifyOTP = useCallback(
     async (phoneNumber: string, otpCode: string): Promise<void> => {
+      await AsyncStorage.setItem('phoneNumber', phoneNumber);
+
       if (!phoneNumber.trim() || !otpCode.trim()) {
         handleError('Le numéro de téléphone et le code OTP sont requis');
         return;
@@ -277,7 +280,9 @@ export const useAuth = (): UseAuthReturn => {
             updatedAt: userDataFromResponse.updated_at || new Date().toISOString(),
           };
   
+          login(validUserData);
           await AsyncStorage.setItem('userData', JSON.stringify(validUserData));
+          await loadProfile(validUserData);
           router.replace('/(drawer)/(tabs)');
           console.log('Données utilisateur sauvegardées:', validUserData);
   

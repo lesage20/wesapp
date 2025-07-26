@@ -48,7 +48,7 @@ interface CreatePremiumProfilePayload {
 export const useProfile = (options: UseProfileOptions = {}): UseProfileReturn => {
   const { autoLoad = false, loadUserSettings = false } = options;
   const { user, login, logout } = useAuthStore();
-  
+  console.log('user from profile hook', user);
   // États locaux
   const [profile, setProfile] = useState<WeSappCode | null>(user);
   const [userAccount, setUserAccount] = useState<User | null>(null);
@@ -107,12 +107,12 @@ export const useProfile = (options: UseProfileOptions = {}): UseProfileReturn =>
   /**
    * Charger le profil utilisateur actuel
    */
-  const loadProfile = useCallback(async (index: number = 0): Promise<void> => {
-    if (!user?.id) {
+  const loadProfile = useCallback(async (userData: User | null = null, index: number = 0): Promise<void> => {
+    if (!user?.id && !userData) {
       throw new Error('Utilisateur non authentifié');
     }
     
-    const url = `${API_ENDPOINTS.USERS.SEARCH_BY_PHONE}?phone_number=${user.phoneNumber}`;
+    const url = `${API_ENDPOINTS.USERS.SEARCH_BY_PHONE}?phone_number=${userData?.phoneNumber || user.phoneNumber}`;
     const result = await profileApi.get(url);
 
     if (result) {

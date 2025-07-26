@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useAuthStore } from '~/store/store';
+import { useAuth } from '~/hooks/api/useAuth';
 import { AccountIcon, NotificationIcon, SecurityIcon, QrCodeIcon } from '~/assets/svgs/settings';
 import InviteIcon from '~/assets/svgs/settings/add-account';
 import CustomHeader from '~/components/CustomHeader';
@@ -18,7 +18,7 @@ interface SettingsItem {
 
 export default function SettingsScreen() {
   const router = useRouter();
-  const { user, logout } = useAuthStore();
+  const { user, logout } = useAuth();
 
   const settingsItems: SettingsItem[] = [
     {

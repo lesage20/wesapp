@@ -216,11 +216,15 @@ export interface Conversation {
 export interface SendMessagePayload {
   conversation: string;
   content: string;
-  message_type: MessageType;
-  reply_to?: string | null;
+  type: string;
+  reply_to_id?: string | null;
   media_url?: string;
   location_id?: string;
-  sender: string;
+  sender_id: string;
+  sender_code?: string;
+  sender_username?: string;
+  sender_profile_photo?: string;
+  file?: string;
 }
 
 export interface UpdateMessagePayload {
@@ -476,7 +480,7 @@ export interface UseProfileReturn {
   error: string | null;
   
   // Actions
-  loadProfile: () => Promise<void>;
+  loadProfile: (userData?: User | null, index?: number) => Promise<void>;
   updateProfile: (payload: Partial<WeSappCode>) => Promise<void>;
   loadSettings: () => Promise<void>;
   updateSettings: (payload: Partial<UserSettings>) => Promise<void>;
@@ -543,4 +547,8 @@ export interface UseGroupsReturn {
   
   // Actions générales
   refresh: () => Promise<void>;
+}
+
+export interface WebSocketAction {
+  action: "send_message"  | 'send_file' | 'mark_message_as_read' | 'delete_message';
 }

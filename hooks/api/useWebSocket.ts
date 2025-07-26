@@ -1,7 +1,9 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
 import websocketService from '~/services/websocket.service';
+import { SendMessagePayload, WebSocketAction } from '../types';
 
 export type WebSocketConnectionStatus = 'connecting' | 'connected' | 'disconnected' | 'error';
+
 
 export interface WebSocketMessage {
   action: string;
@@ -12,7 +14,7 @@ export interface WebSocketMessage {
 export interface UseWebSocketReturn {
   isConnected: boolean;
   connectionStatus: WebSocketConnectionStatus;
-  sendMessage: (action: string, payload: any) => boolean;
+  sendMessage: (action: WebSocketAction, payload: SendMessagePayload) => boolean;
   subscribeToConversation: (conversationId: string) => Promise<boolean>;
   unsubscribeFromConversation: () => void;
   markMessageAsRead: (messageId: string) => Promise<boolean>;
@@ -64,7 +66,7 @@ export const useWebSocket = (): UseWebSocketReturn => {
   }, []);
 
   // Fonction pour envoyer un message
-  const sendMessage = useCallback((action: string, payload: any): boolean => {
+  const sendMessage = useCallback((action: string, payload: SendMessagePayload): boolean => {
     return websocketService.sendMessage(action, payload);
   }, []);
 

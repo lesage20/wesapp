@@ -29,7 +29,10 @@ export const useAuthStore = create<AuthState>()(
     (set) => ({
       isAuthenticated: false,
       user: null,
-      login: (user) => set({ isAuthenticated: true, user }),
+      login: (user) => {
+        set({ isAuthenticated: true, user });
+        console.log('user from store', user);
+      },
       logout: () => set({ isAuthenticated: false, user: null }),
       updateProfile: (updates) =>
         set((state) => ({

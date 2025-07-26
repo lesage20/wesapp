@@ -45,7 +45,6 @@ export default function VerificationScreen() {
   
     try {
       await verifyOTP(phoneNumber as string, verificationCode);
-      loadProfile();
 
     } catch (err) {
       console.error('Erreur lors de la vérification OTP:', err);

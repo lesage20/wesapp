@@ -104,7 +104,7 @@ export default function ConversationsScreen() {
     try {
       // Lancer les requêtes pour charger les données dans les hooks
       await Promise.all([
-        getConversationById(currentUser?.code || currentUser?.id).catch((err) => {
+        getConversationById(currentUser?.code ).catch((err) => {
           console.error('[Conversations] Erreur lors du chargement des conversations:', err);
         }),
         getUserGroups(true).catch((err) => {

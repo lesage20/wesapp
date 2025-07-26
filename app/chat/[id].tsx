@@ -23,8 +23,8 @@ import { useWebSocket, WebSocketMessage } from '~/hooks/api/useWebSocket';
 import { useProfile } from '~/hooks/api/useProfile';
 import { useContacts } from '~/hooks/api/useContacts';
 import { useOnlineStatus } from '~/hooks/api/useOnlineStatus';
-import { SendMessagePayload } from '~/hooks/types';
-
+import { SendMessagePayload, WebSocketAction } from '~/hooks/types';
+import websocketService from '~/services/websocket.service';
 
 export default function ChatScreen() {
   const { id } = useLocalSearchParams();
@@ -62,6 +62,7 @@ export default function ChatScreen() {
     subscribeToConversation,
     unsubscribeFromConversation,
     addMessageListener,
+    sendMessage: sendMessageWS,
     removeMessageListener,
     markMessageAsRead,
     deleteMessage: deleteMessageWS,
@@ -189,7 +190,9 @@ export default function ChatScreen() {
   }, [id, currentUser, getConversationWithMessages, fetchConversationById]);
 
   useEffect(() => {
+    console.log('[Chat] id', id);
     loadConversationData();
+    // websocketService.connect(id as string);
   }, []);
 
   // Fonction pour gérer les nouveaux messages WebSocket
@@ -269,17 +272,22 @@ export default function ChatScreen() {
 
     try {
       // Envoyer le message via l'API
-      const sendMessagePayload : SendMessagePayload = {
+      const messagePayload : SendMessagePayload = {
         conversation: id as string,
         content: messageContent,
-        message_type: 'text' as const,
-        reply_to: replyToId || null,
-        sender: currentUser.id
+        sender_id: currentUser.id,
+        sender_code: currentUser.code || '',
+        sender_username: currentUser.username || '',
+        sender_profile_photo: currentUser.profile_photo || '',
+        file: '',
+        type: 'text',
+        reply_to_id: replyToId,
       };
-
-      console.log('[Chat] Envoi du message:', sendMessagePayload);
-      await sendMessageAPI(sendMessagePayload);
       
+
+      // websocketService.sendMessage('send_message'  , messagePayload);
+      sendMessageWS('send_message'  , messagePayload);
+
       // Le message sera mis à jour via WebSocket ou on peut le remplacer ici
       // Pour le moment, on garde l'optimistic update
       
