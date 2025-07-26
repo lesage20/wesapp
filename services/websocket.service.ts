@@ -112,8 +112,17 @@ class WebSocketService {
       this.socket.onerror = this.handleError.bind(this);
       // this.socket.onmessage = this.handleMessage.bind(this);
       this.socket.onmessage = (event) => {
-        console.log('message from websocket', event);
-        this.handleMessage(event);
+        console.log('message from websocket', event.data);
+        try {
+          const data = JSON.parse(event.data);
+          const type = data?.action;
+          console.log('type', type);
+          if (type && this.messageListeners.has(type)) {
+            this.messageListeners.get(type)!.forEach(cb => cb(data));
+          }
+        } catch (err) {
+          console.error("Erreur parsing message:", err);
+        }
       };
     } catch (error) {
       console.error('Erreur lors de la connexion WebSocket:', error);
@@ -305,9 +314,8 @@ class WebSocketService {
 
   handleMessage(event: MessageEvent): void {
     try {
-      const data = JSON.parse(event.data);
-      console.log('WebSocket message reçu:', data);
-      
+      const data = event.data;
+
       // Traitement spécifique pour le format {action: 'new_message', message: {...}}
       if (data && data.action) {
         // Notifier tous les écouteurs pour ce type d'action

@@ -56,7 +56,7 @@ export const useAuth = (): UseAuthReturn => {
   const verifyApi = useApi<TokenResponse>({ showToast: true });
   const profileApi = useApi<WeSappCode>({ showToast: true });
   const refreshApi = useApi<TokenResponse>({ showToast: false });
-  
+  const saveTokenApi = useApi<TokenResponse>({ showToast: false });
   // État d'authentification dérivé
   const isAuthenticated = !!user || !!userData;
   
@@ -102,7 +102,9 @@ export const useAuth = (): UseAuthReturn => {
       throw new Error('Impossible de sauvegarder les tokens d\'authentification');
     }
   }, []);
-  
+  const saveFcmToken = async (token: string): Promise<void> => {
+    await saveTokenApi.post(API_ENDPOINTS.USERS.SAVE_TOKEN, { token });
+  };
   // Fonction utilitaire pour sauvegarder les données utilisateur
   const saveUserData = useCallback(async (userData: WeSappCode) => {
     try {
@@ -495,6 +497,7 @@ export const useAuth = (): UseAuthReturn => {
     createProfile,
     logout,
     refreshToken,
+    saveFcmToken
   };
 };
 

@@ -376,6 +376,7 @@ export interface UseAuthReturn {
   createProfile: (profileData: CreateProfilePayload) => Promise<void>;
   logout: () => Promise<void>;
   refreshToken: () => Promise<void>;
+  saveFcmToken: (token: string) => Promise<void>;
 }
 
 // Hook de messages

@@ -25,6 +25,7 @@ import { useContacts } from '~/hooks/api/useContacts';
 import { useOnlineStatus } from '~/hooks/api/useOnlineStatus';
 import { SendMessagePayload, WebSocketAction } from '~/hooks/types';
 import onlineService from '~/services/websocket_status.service';
+import websocketService from '~/services/websocket.service';
 
 export default function ChatScreen() {
   const { id } = useLocalSearchParams();
@@ -200,36 +201,36 @@ export default function ChatScreen() {
   const handleNewMessage = useCallback((data: any) => {
     console.log('[Chat] Nouveau message WebSocket:', data);
 
-    if (data.action === 'new_message' && data.message && data.message.conversation === id) {
-      const newMessage = data.message;
+    // if (data.action === 'new_message' && data.message && data.message.conversation === id) {
+    //   const newMessage = data.message;
+    //   console.log('newMessage', newMessage);
+    //   // Formatter le message reçu
+    //   const formattedMessage: Message = {
+    //     id: newMessage.id.toString(),
+    //     type: 'text', // Adapter selon le type
+    //     content: newMessage.content || '',
+    //     isOwn: newMessage.sender?.id === currentUser.id,
+    //     timestamp: new Date(newMessage.timestamp).toLocaleTimeString('fr-FR', {
+    //       hour: '2-digit',
+    //       minute: '2-digit'
+    //     }),
+    //     reactions: []
+    //   };
 
-      // Formatter le message reçu
-      const formattedMessage: Message = {
-        id: newMessage.id.toString(),
-        type: 'text', // Adapter selon le type
-        content: newMessage.content || '',
-        isOwn: newMessage.sender?.id === currentUser.id,
-        timestamp: new Date(newMessage.timestamp).toLocaleTimeString('fr-FR', {
-          hour: '2-digit',
-          minute: '2-digit'
-        }),
-        reactions: []
-      };
+    //   // Ajouter le message s'il n'existe pas déjà
+    //   setMessages(prev => {
+    //     const exists = prev.some(msg => msg.id === formattedMessage.id);
+    //     if (!exists) {
+    //       return [...prev, formattedMessage];
+    //     }
+    //     return prev;
+    //   });
 
-      // Ajouter le message s'il n'existe pas déjà
-      setMessages(prev => {
-        const exists = prev.some(msg => msg.id === formattedMessage.id);
-        if (!exists) {
-          return [...prev, formattedMessage];
-        }
-        return prev;
-      });
-
-      // Scroll automatique si c'est un nouveau message
-      setTimeout(() => {
-        scrollViewRef.current?.scrollToEnd({ animated: true });
-      }, 100);
-    }
+    //   // Scroll automatique si c'est un nouveau message
+    //   setTimeout(() => {
+    //     scrollViewRef.current?.scrollToEnd({ animated: true });
+    //   }, 100);
+    // }
   }, [id, currentUser]);
 
   // Écouter les nouveaux messages WebSocket
@@ -237,17 +238,22 @@ export default function ChatScreen() {
     if (!id || !currentUser) return;
 
     // S'abonner aux messages de cette conversation
-    subscribeToConversation(id as string).then((success) => {
-      console.log('subscribeToConversation', success);
+    subscribeToConversation(id as string)
+    // websocketService.subscribeToConversation(id as string);
+    console.log('=============================================');
+    console.log('websocketService', websocketService.isConnected());
+    console.log('=============================================');
+
+    websocketService.addMessageListener('new_message', (data) => {
+      console.log('new_message from front', data);
+      // handleNewMessage(data);
     });
-    addMessageListener('new_message', handleNewMessage);
-    addMessageListener('send_message', (data) => {
+    websocketService.addMessageListener('send_message', (data) => {
       console.log('send_message', data);
     });
 
     onlineService.addMessageListener('online_status', (data) => {
-      console.log('online_status', data);
-      console.log('contactInfo', contactInfo);
+
       if (data.user_code === contactInfo?.usercode) {
         setIsOnline(data.is_online);
       }

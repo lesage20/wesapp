@@ -3,11 +3,12 @@ import { View, Text } from 'react-native';
 import { icons } from '~/assets/svgs/tabbar-icon';
 import { getTailwindColor } from '~/utils/colors';
 import onlineService from '~/services/websocket_status.service';
-import { useProfile } from '~/hooks/api/useProfile';
+import { useAuth } from '~/hooks/api/useAuth';
 import { useEffect } from 'react';
+import { NotificationService } from '~/services/notification.service';
 
 export default function TabLayout() {
-  const { profile: currentUser } = useProfile();
+  const { user: currentUser, saveFcmToken } = useAuth();
   const TabBarIcon = ({ name, focused }: { name: keyof typeof icons; focused: boolean }) => {
     const IconComponent = icons[name];
     return (
@@ -31,6 +32,11 @@ export default function TabLayout() {
   useEffect(() => {
     if (currentUser) {
       onlineService.connect(currentUser.id);
+      const setupNotifications = async () => {
+        await NotificationService.registerForPushNotificationsAsync(saveFcmToken);
+        // await NotificationService.setupNotificationCategories(currentUser);
+      }
+      setupNotifications();
     }
   }, [currentUser]);
 

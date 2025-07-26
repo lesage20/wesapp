@@ -253,19 +253,19 @@ export default function ConversationsScreen() {
       console.log('🎯 Event reçu:', data);
       console.log('🎯 Action:', data.action);
       console.log('🎯 Message:', data.message);
-      console.log('🎯 Conversations actuelles:', conversations.length);
+      // console.log('🎯 Conversations actuelles:', conversations.length);
       // Appeler d'abord le handler générique
-      handleMessage(data);
+      // handleMessage(data);
       // Ajouter les listeners spécifiques
-      if (data.action === 'new_message') {
-        handleNewMessage(data);
-      } else if (data.action === 'message_sent') {
-        handleMessageSent(data);
-      } else if (data.action === 'messages_read') { 
-        handleMessagesRead(data);
-      } else if (data.action === 'conversation_created') {
-        handleConversationCreated(data);
-      }
+      // if (data.action === 'new_message') {
+      //   handleNewMessage(data);
+      // } else if (data.action === 'message_sent') {
+      //   handleMessageSent(data);
+      // } else if (data.action === 'messages_read') { 
+      //   handleMessagesRead(data);
+      // } else if (data.action === 'conversation_created') {
+      //   handleConversationCreated(data);
+      // }
     };
 
     // Ajouter tous les listeners
