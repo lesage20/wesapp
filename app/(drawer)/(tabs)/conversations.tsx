@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { View, Text, TouchableOpacity, TextInput, ScrollView, ImageBackground, Alert } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { Stack, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { DrawerActions } from '@react-navigation/native';
@@ -47,6 +48,36 @@ export default function ConversationsScreen() {
   useEffect(() => {
     loadConversationsData();
   }, []);
+  
+  // Formater le temps du message (défini tôt pour être utilisé dans les useEffect)
+  const formatMessageTime = useCallback((timestamp: string | null) => {
+    if (!timestamp) return 'Maintenant';
+    
+    const messageDate = new Date(timestamp);
+    const now = new Date();
+    const diffMs = now.getTime() - messageDate.getTime();
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) {
+      return messageDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    } else if (diffDays === 1) {
+      return 'Hier';
+    } else if (diffDays < 7) {
+      return `il y a ${diffDays} jours`;
+    } else {
+      return messageDate.toLocaleDateString('fr-FR');
+    }
+  }, []);
+
+  // Rafraîchir les conversations quand on revient sur la page
+  useFocusEffect(
+    useCallback(() => {
+      if (currentUser) {
+        console.log('[Conversations] Page focused, refreshing data...');
+        loadConversationsData();
+      }
+    }, [currentUser])
+  );
 
   // Charger les utilisateurs une seule fois au montage
   useEffect(() => {
@@ -69,31 +100,168 @@ export default function ConversationsScreen() {
     }
   }, [currentUser, usersLoaded]); // Plus de fetchWeSappUsers dans les dépendances
 
-  // Écouter les nouveaux messages via WebSocket
+  // Écouter les événements WebSocket pour les mises à jour temps réel
   useEffect(() => {
+    // Gérer les nouveaux messages reçus
     const handleNewMessage = (data: any) => {
-      if (data.action === 'new_message' && data.message) {
-        // Mettre à jour la conversation avec le nouveau message
+      try {
+        if (data.action === 'new_message' && data.message) {
+        setConversations(prev => {
+          const updatedConversations = prev.map(conv => {
+            if (conv.id === data.message.conversation_id) {
+              const isOwnMessage = data.message.sender_id === currentUser?.id;
+              return {
+                ...conv,
+                lastMessage: data.message.content || 'Nouveau message',
+                lastMessageTime: formatMessageTime(data.message.timestamp),
+                lastMessageTimeRaw: data.message.timestamp,
+                // Incrémenter seulement si ce n'est pas notre message
+                unreadCount: isOwnMessage ? conv.unreadCount : (conv.unreadCount || 0) + 1
+              };
+            }
+            return conv;
+          });
+          
+          // Trier par timestamp pour remonter la conversation mise à jour
+          return updatedConversations.sort((a, b) => {
+            const timeA = new Date(a.lastMessageTimeRaw).getTime();
+            const timeB = new Date(b.lastMessageTimeRaw).getTime();
+            return timeB - timeA;
+          });
+        });
+        }
+      } catch (error) {
+        console.error('[Conversations] Erreur lors du traitement du nouveau message:', error);
+      }
+    };
+
+    // Gérer les messages envoyés (depuis d'autres appareils ou onglets)
+    const handleMessageSent = (data: any) => {
+      try {
+        if (data.action === 'message_sent' && data.message) {
+        setConversations(prev => {
+          const updatedConversations = prev.map(conv => {
+            if (conv.id === data.message.conversation_id) {
+              return {
+                ...conv,
+                lastMessage: data.message.content || 'Message envoyé',
+                lastMessageTime: formatMessageTime(data.message.timestamp),
+                lastMessageTimeRaw: data.message.timestamp
+                // Pas de modification du unreadCount pour les messages envoyés
+              };
+            }
+            return conv;
+          });
+          
+          // Trier par timestamp
+          return updatedConversations.sort((a, b) => {
+            const timeA = new Date(a.lastMessageTimeRaw).getTime();
+            const timeB = new Date(b.lastMessageTimeRaw).getTime();
+            return timeB - timeA;
+          });
+        });
+        }
+      } catch (error) {
+        console.error('[Conversations] Erreur lors du traitement du message envoyé:', error);
+      }
+    };
+
+    // Gérer les messages lus (décrémentation du compteur)
+    const handleMessagesRead = (data: any) => {
+      try {
+        if (data.action === 'messages_read' && data.conversation_id) {
         setConversations(prev => prev.map(conv => {
-          if (conv.id === data.message.conversation_id) {
+          if (conv.id === data.conversation_id) {
             return {
               ...conv,
-              lastMessage: data.message.content || 'Nouveau message',
-              lastMessageTime: formatMessageTime(data.message.timestamp),
-              unreadCount: (conv.unreadCount || 0) + (data.message.sender_id !== currentUser?.id ? 1 : 0)
+              unreadCount: 0 // Reset à zéro quand les messages sont lus
             };
           }
           return conv;
         }));
+        }
+      } catch (error) {
+        console.error('[Conversations] Erreur lors du traitement des messages lus:', error);
       }
     };
 
+    // Gérer les nouvelles conversations créées
+    const handleConversationCreated = (data: any) => {
+      try {
+        if (data.action === 'conversation_created' && data.conversation) {
+        const newConv = data.conversation;
+        let otherUser = null;
+        let formattedConv = null;
+        
+        if (!newConv.is_group) {
+          // Conversation individuelle
+          otherUser = newConv.participants.find((participant: any) => participant.id !== currentUser?.id);
+          if (!otherUser) {
+            otherUser = newConv.participants.find((participant: any) => participant.id === currentUser?.id);
+            otherUser.username = `${currentUser?.username} ( Vous )`;
+          }
+          
+          formattedConv = {
+            id: newConv.id,
+            name: otherUser.username || otherUser.code,
+            lastMessage: newConv.last_message || 'Conversation créée',
+            lastMessageTime: formatMessageTime(newConv.created_at),
+            lastMessageTimeRaw: newConv.created_at,
+            isGroup: false,
+            unreadCount: 0,
+            profileImage: otherUser.profile_photo || otherUser.avatar,
+            isOnline: false
+          };
+        } else {
+          // Conversation de groupe
+          formattedConv = {
+            id: newConv.id,
+            name: newConv.name || 'Groupe',
+            lastMessage: newConv.last_message || 'Groupe créé',
+            lastMessageTime: formatMessageTime(newConv.created_at),
+            lastMessageTimeRaw: newConv.created_at,
+            isGroup: true,
+            unreadCount: 0,
+            profileImage: newConv.profile_photo,
+            participants: newConv.members || []
+          };
+        }
+        
+        if (formattedConv) {
+          setConversations(prev => {
+            // Vérifier si la conversation n'existe pas déjà
+            const exists = prev.some(conv => conv.id === formattedConv.id);
+            if (!exists) {
+              const updated = [formattedConv, ...prev];
+              return updated.sort((a, b) => {
+                const timeA = new Date(a.lastMessageTimeRaw).getTime();
+                const timeB = new Date(b.lastMessageTimeRaw).getTime();
+                return timeB - timeA;
+              });
+            }
+            return prev;
+          });
+        }
+        }
+      } catch (error) {
+        console.error('[Conversations] Erreur lors du traitement de la nouvelle conversation:', error);
+      }
+    };
+
+    // Ajouter tous les listeners
     addMessageListener('new_message', handleNewMessage);
+    addMessageListener('message_sent', handleMessageSent);
+    addMessageListener('messages_read', handleMessagesRead);
+    addMessageListener('conversation_created', handleConversationCreated);
     
     return () => {
+      // Nettoyer tous les listeners
       removeMessageListener('new_message', handleNewMessage);
+      removeMessageListener('message_sent', handleMessageSent);
+      removeMessageListener('messages_read', handleMessagesRead);
+      removeMessageListener('conversation_created', handleConversationCreated);
     };
-  }, [currentUser, addMessageListener, removeMessageListener]);
+  }, [currentUser, addMessageListener, removeMessageListener, formatMessageTime]);
 
   const loadConversationsData = async () => {
     if (!currentUser) {
@@ -135,7 +303,7 @@ export default function ConversationsScreen() {
             let unreadCount = 0;
             let lastMessage = conv.last_message || conv.messages.at(-1)?.content || 'Aucun message'
             let lastMessageTime = conv.last_message || conv.messages.at(-1)?.timestamp || conv.created_at
-            unreadCount = conv.participants.find((participant: any) => participant.id === currentUser?.id)?.unread_count || 0;
+            unreadCount = conv.participants.find((participant: any) => participant.id !== currentUser?.id)?.unread_messages || 0;
             if (!conv.is_group) {
               otherUser = conv.participants.find((participant: any) => participant.id !== currentUser?.id);
               
@@ -151,7 +319,7 @@ export default function ConversationsScreen() {
                 lastMessageTimeRaw: lastMessageTime,
                 isGroup: false,
                 unreadCount,
-                profileImage: otherUser.profile_image || otherUser.avatar,
+                profileImage: otherUser.profile_photo || otherUser.avatar,
                 isOnline: false // TODO: Intégrer le statut en ligne
               };
               formattedConversations.push(formattedConv);
@@ -195,25 +363,6 @@ export default function ConversationsScreen() {
     }
   }, [hookConversations, hookGroups, currentUser, usersData, isLoading, groupsLoading, usersLoaded]);
 
-  // Formater le temps du message
-  const formatMessageTime = (timestamp: string | null) => {
-    if (!timestamp) return 'Maintenant';
-    
-    const messageDate = new Date(timestamp);
-    const now = new Date();
-    const diffMs = now.getTime() - messageDate.getTime();
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-    
-    if (diffDays === 0) {
-      return messageDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-    } else if (diffDays === 1) {
-      return 'Hier';
-    } else if (diffDays < 7) {
-      return `il y a ${diffDays} jours`;
-    } else {
-      return messageDate.toLocaleDateString('fr-FR');
-    }
-  };
 
   // Filtrer les conversations selon la recherche
   const filteredConversations = useMemo(() => {
@@ -228,7 +377,22 @@ export default function ConversationsScreen() {
   }, [conversations, searchText]);
 
   const handleConversationPress = (conversationId: string) => {
+    // Marquer les messages comme lus immédiatement pour l'UX
+    setConversations(prev => prev.map(conv => {
+      if (conv.id === conversationId) {
+        return {
+          ...conv,
+          unreadCount: 0
+        };
+      }
+      return conv;
+    }));
+    
+    // Naviguer vers la conversation
     router.push(`/chat/${conversationId}`);
+    
+    // TODO: Envoyer une requête API pour marquer les messages comme lus
+    // markMessagesAsRead(conversationId);
   };
 
   const handleAddPress = () => {
@@ -370,8 +534,8 @@ export default function ConversationsScreen() {
                     )}
                   </View>
                   
-                  <View className="flex-1">
-                    <View className="flex-row items-center justify-between mb-1">
+                  <View className="flex-1 flex-row justify-between">
+                    <View className="flex-column  justify-between flex-1">
                       <View className="flex-row items-center flex-1">
                         <Text className="text-gray-900 font-semibold text-lg mr-2" numberOfLines={1}>
                           {conversation.name}
@@ -380,7 +544,12 @@ export default function ConversationsScreen() {
                           <Ionicons name="people" size={16} color="#6B7280" />
                         )}
                       </View>
-                      <View className="flex-row items-center">
+                      <Text className="text-gray-600" numberOfLines={1}>
+                        {conversation.isGroup ? '👥 ' : ''}{conversation.lastMessage}
+                      </Text>
+                    </View>
+                    
+                    <View className="flex-column justify-between items-end">
                         <Text className="text-gray-500 text-sm">
                           {conversation.lastMessageTime}
                         </Text>
@@ -392,10 +561,6 @@ export default function ConversationsScreen() {
                           </View>
                         )}
                       </View>
-                    </View>
-                    <Text className="text-gray-600" numberOfLines={1}>
-                      {conversation.isGroup ? '👥 ' : ''}{conversation.lastMessage}
-                    </Text>
                   </View>
                 </TouchableOpacity>
               ))

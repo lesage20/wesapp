@@ -48,8 +48,6 @@ interface CreatePremiumProfilePayload {
 export const useProfile = (options: UseProfileOptions = {}): UseProfileReturn => {
   const { autoLoad = false, loadUserSettings = false } = options;
   const { user, userData, login, logout } = useAuthStore();
-  console.log('user (WeSappCode) from profile hook', user);
-  console.log('userData (User) from profile hook', userData);
   // États locaux
   const [profile, setProfile] = useState<WeSappCode | null>(user);
   const [userAccount, setUserAccount] = useState<User | null>(null);
@@ -126,9 +124,6 @@ export const useProfile = (options: UseProfileOptions = {}): UseProfileReturn =>
     const result = await profileApi.get(url);
 
     if (result) {
-      console.log('result from profile hook', result);
-      console.log('index from profile hook', index);
-      console.log('index === null', index === null);
       let p = null;
       if (index == null) {
         p = result.find((item: WeSappCode) => item.is_default);
@@ -138,7 +133,6 @@ export const useProfile = (options: UseProfileOptions = {}): UseProfileReturn =>
       setProfile(p);
       // Mettre à jour le store global avec le WeSappCode complet
       login(p);
-      console.log('profile WeSappCode chargé et sauvegardé:', p);
     }
   }, [profileApi, user?.id, userData, login]);
   
@@ -453,7 +447,6 @@ export const useProfile = (options: UseProfileOptions = {}): UseProfileReturn =>
       ));
     }
     
-    console.log('Code WeSapp mis à jour:', result);
     return result;
   }, [updateProfileApi, profile, login]);
 
@@ -541,7 +534,6 @@ export const useProfile = (options: UseProfileOptions = {}): UseProfileReturn =>
       ));
     }
     
-    console.log('Messages non lus mis à jour:', result);
   }, [profileApi, profile]);
 
   /**
@@ -569,7 +561,6 @@ export const useProfile = (options: UseProfileOptions = {}): UseProfileReturn =>
   // Charger automatiquement le profil quand userData est disponible mais user ne l'est pas
   useEffect(() => {
     if (userData && !user && !profile) {
-      console.log('userData disponible mais user vide, chargement automatique du profil...');
       loadProfile(userData).catch(error => {
         console.error('Erreur lors du chargement automatique du profil:', error);
       });
