@@ -110,7 +110,11 @@ class WebSocketService {
       this.socket.onopen = this.handleOpen.bind(this);
       this.socket.onclose = this.handleClose.bind(this);
       this.socket.onerror = this.handleError.bind(this);
-      this.socket.onmessage = this.handleMessage.bind(this);
+      // this.socket.onmessage = this.handleMessage.bind(this);
+      this.socket.onmessage = (event) => {
+        console.log('message from websocket', event);
+        this.handleMessage(event);
+      };
     } catch (error) {
       console.error('Erreur lors de la connexion WebSocket:', error);
       this.isConnecting = false;
@@ -225,6 +229,7 @@ class WebSocketService {
 
   // Ajouter un écouteur pour un type de message spécifique
   addMessageListener(type: string, callback: (data: any) => void): void {
+    console.log('adding message listener', type);
     if (!this.messageListeners.has(type)) {
       this.messageListeners.set(type, []);
     }
@@ -379,7 +384,7 @@ class WebSocketService {
    * Marque un message comme lu via WebSocket
    * @param messageId - L'ID du message à marquer comme lu
    */
-  async markMessageAsRead(messageId: string): Promise<boolean> {
+  async markMessageAsRead(messageId: string, conversationId?: string): Promise<boolean> {
     if (!messageId) {
       console.error('ID de message requis pour marquer comme lu');
       return false;
@@ -392,11 +397,12 @@ class WebSocketService {
         console.error('Impossible de récupérer l\'ID de l\'utilisateur pour marquer le message comme lu');
         return false;
       }
-      
-      console.log(`Marquer le message ${messageId} comme lu avec sender_id ${user.id}`);
+      console.log('conversationId', conversationId);
+      console.log('this.activeConversationId', this.activeConversationId);
+      console.log(`Marquer le message ${messageId} comme lu avec sender_id ${user.id} dans la conversation ${this.activeConversationId || conversationId}` );
       return this.sendMessage('mark_message_as_read', {
         
-          conversation_id: this.activeConversationId,
+          conversation_id: this.activeConversationId || conversationId,
           sender_id: user.id,
           message_id: messageId
         

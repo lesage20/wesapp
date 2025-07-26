@@ -17,7 +17,8 @@ export interface UseWebSocketReturn {
   sendMessage: (action: WebSocketAction, payload: SendMessagePayload) => boolean;
   subscribeToConversation: (conversationId: string) => Promise<boolean>;
   unsubscribeFromConversation: () => void;
-  markMessageAsRead: (messageId: string) => Promise<boolean>;
+  markMessageAsRead: (messageId: string, conversationId?: string) => Promise<boolean>;
+  handleMessage: (event: MessageEvent) => void;
   deleteMessage: (messageIds: string) => Promise<boolean>;
   addMessageListener: (type: string, callback: (data: WebSocketMessage) => void) => void;
   removeMessageListener: (type: string, callback: (data: WebSocketMessage) => void) => void;
@@ -75,7 +76,7 @@ export const useWebSocket = (): UseWebSocketReturn => {
     setConnectionStatus('connecting');
     
     try {
-      const success = await websocketService.subscribeToConversation(conversationId);
+      const success = await websocketService.connect(conversationId);
       
       if (success) {
         setActiveConversationId(conversationId);
@@ -100,8 +101,12 @@ export const useWebSocket = (): UseWebSocketReturn => {
   }, []);
 
   // Fonction pour marquer un message comme lu
-  const markMessageAsRead = useCallback(async (messageId: string): Promise<boolean> => {
-    return await websocketService.markMessageAsRead(messageId);
+  const markMessageAsRead = useCallback(async (messageId: string, conversationId?: string): Promise<boolean> => {
+    return await websocketService.markMessageAsRead(messageId, conversationId);
+  }, []);
+
+  const handleMessage = useCallback((event: MessageEvent) => {
+    websocketService.handleMessage(event);
   }, []);
 
   // Fonction pour supprimer un message
@@ -113,6 +118,7 @@ export const useWebSocket = (): UseWebSocketReturn => {
   const addMessageListener = useCallback((type: string, callback: (data: WebSocketMessage) => void) => {
     // Stocker le callback dans la ref pour pouvoir le supprimer plus tard
     listenersRef.current.set(`${type}_${callback.toString()}`, callback);
+    console.log('adding message listener', type);
     websocketService.addMessageListener(type, callback);
   }, []);
 
@@ -130,6 +136,7 @@ export const useWebSocket = (): UseWebSocketReturn => {
     subscribeToConversation,
     unsubscribeFromConversation,
     markMessageAsRead,
+    handleMessage,
     deleteMessage,
     addMessageListener,
     removeMessageListener,

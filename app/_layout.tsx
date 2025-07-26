@@ -42,6 +42,7 @@ export default function RootLayout() {
           await NavigationBar.setBackgroundColorAsync(isDark ? '#000000' : '#ffffff');
           await NavigationBar.setButtonStyleAsync(isDark ? 'light' : 'dark');
         }
+
       } catch (error) {
         console.warn('Failed to configure system UI:', error);
       }

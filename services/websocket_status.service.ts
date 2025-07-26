@@ -101,6 +101,7 @@ class OnlineStatusWebSocketService {
     const listeners = this.messageListeners.get(type)!;
     if (!listeners.includes(callback)) {
       listeners.push(callback);
+      
     }
   }
 

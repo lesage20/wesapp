@@ -27,6 +27,7 @@ interface ConversationItem {
   profileImage?: string;
   participants?: any[];
   isOnline?: boolean;
+  messages?: any[];
 }
 
 export default function ConversationsScreen() {
@@ -42,7 +43,7 @@ export default function ConversationsScreen() {
   const { profile: currentUser } = useAuth();
   const [usersData, setUsersData] = useState<any[]>([]);
   const [usersLoaded, setUsersLoaded] = useState(false);
-  const { addMessageListener, removeMessageListener } = useWebSocket();
+  const { addMessageListener, removeMessageListener, markMessageAsRead, handleMessage } = useWebSocket();
 
   // Charger les conversations au montage
   useEffect(() => {
@@ -105,6 +106,7 @@ export default function ConversationsScreen() {
     // Gérer les nouveaux messages reçus
     const handleNewMessage = (data: any) => {
       try {
+        console.log('handling new message');
         if (data.action === 'new_message' && data.message) {
         setConversations(prev => {
           const updatedConversations = prev.map(conv => {
@@ -247,21 +249,39 @@ export default function ConversationsScreen() {
         console.error('[Conversations] Erreur lors du traitement de la nouvelle conversation:', error);
       }
     };
+    const handleConversationUpdate = (data: any) => {
+      console.log('🎯 Event reçu:', data);
+      console.log('🎯 Action:', data.action);
+      console.log('🎯 Message:', data.message);
+      console.log('🎯 Conversations actuelles:', conversations.length);
+      // Appeler d'abord le handler générique
+      handleMessage(data);
+      // Ajouter les listeners spécifiques
+      if (data.action === 'new_message') {
+        handleNewMessage(data);
+      } else if (data.action === 'message_sent') {
+        handleMessageSent(data);
+      } else if (data.action === 'messages_read') { 
+        handleMessagesRead(data);
+      } else if (data.action === 'conversation_created') {
+        handleConversationCreated(data);
+      }
+    };
 
     // Ajouter tous les listeners
-    addMessageListener('new_message', handleNewMessage);
-    addMessageListener('message_sent', handleMessageSent);
-    addMessageListener('messages_read', handleMessagesRead);
-    addMessageListener('conversation_created', handleConversationCreated);
+    addMessageListener('new_message', handleConversationUpdate);
+    addMessageListener('message_sent', handleConversationUpdate);
+    addMessageListener('messages_read', handleConversationUpdate);
+    addMessageListener('conversation_created', handleConversationUpdate);
     
     return () => {
       // Nettoyer tous les listeners
-      removeMessageListener('new_message', handleNewMessage);
-      removeMessageListener('message_sent', handleMessageSent);
-      removeMessageListener('messages_read', handleMessagesRead);
-      removeMessageListener('conversation_created', handleConversationCreated);
+      // removeMessageListener('new_message', handleNewMessage);
+      // removeMessageListener('message_sent', handleMessageSent);
+      // removeMessageListener('messages_read', handleMessagesRead);
+      // removeMessageListener('conversation_created', handleConversationCreated);
     };
-  }, [currentUser, addMessageListener, removeMessageListener, formatMessageTime]);
+  }, [currentUser, addMessageListener,  formatMessageTime]);
 
   const loadConversationsData = async () => {
     if (!currentUser) {
@@ -303,7 +323,8 @@ export default function ConversationsScreen() {
             let unreadCount = 0;
             let lastMessage = conv.last_message || conv.messages.at(-1)?.content || 'Aucun message'
             let lastMessageTime = conv.last_message || conv.messages.at(-1)?.timestamp || conv.created_at
-            unreadCount = conv.participants.find((participant: any) => participant.id !== currentUser?.id)?.unread_messages || 0;
+            unreadCount = conv.messages.filter((message: any) => message.sender?.id !== currentUser?.id && !message.is_read).length;
+            // participants.find((participant: any) => participant.id !== currentUser?.id)?.unread_messages || 0;
             if (!conv.is_group) {
               otherUser = conv.participants.find((participant: any) => participant.id !== currentUser?.id);
               
@@ -320,6 +341,7 @@ export default function ConversationsScreen() {
                 isGroup: false,
                 unreadCount,
                 profileImage: otherUser.profile_photo || otherUser.avatar,
+                messages: conv.messages || [],
                 isOnline: false // TODO: Intégrer le statut en ligne
               };
               formattedConversations.push(formattedConv);
@@ -334,7 +356,8 @@ export default function ConversationsScreen() {
                 isGroup: true,
                 unreadCount,
                 profileImage: conv.profile_photo,
-                participants: conv.members || []
+                participants: conv.members || [],
+                messages: conv.messages || [],
               });
             }
                         
@@ -376,21 +399,21 @@ export default function ConversationsScreen() {
     return filtered;
   }, [conversations, searchText]);
 
-  const handleConversationPress = (conversationId: string) => {
+  const handleConversationPress = async (conversation: ConversationItem) => {
     // Marquer les messages comme lus immédiatement pour l'UX
-    setConversations(prev => prev.map(conv => {
-      if (conv.id === conversationId) {
-        return {
-          ...conv,
-          unreadCount: 0
-        };
-      }
-      return conv;
-    }));
-    
-    // Naviguer vers la conversation
-    router.push(`/chat/${conversationId}`);
-    
+    if (conversation.id && conversation.messages?.length) {
+      if (!conversation.isGroup) {
+
+        await markMessageAsRead(conversation.messages.at(-1)?.id, conversation.id);
+      } 
+      setTimeout(() => {
+        // Naviguer vers la conversation
+        router.push(`/chat/${conversation.id}`);
+      }, 1000);
+    }
+    else {
+      router.push(`/chat/${conversation.id}`);
+    }
     // TODO: Envoyer une requête API pour marquer les messages comme lus
     // markMessagesAsRead(conversationId);
   };
@@ -496,7 +519,7 @@ export default function ConversationsScreen() {
                 <TouchableOpacity
                   key={conversation.id}
                   className="flex-row items-center py-4 border-b border-gray-100"
-                  onPress={() => handleConversationPress(conversation.id)}
+                  onPress={() => handleConversationPress(conversation)}
                 >
                   <View className="mr-4 relative">
                     {conversation.isGroup ? (

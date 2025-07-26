@@ -117,8 +117,7 @@ export const useMessages = (options: UseMessagesOptions = {}): UseMessagesReturn
     
     const url = `${API_ENDPOINTS.CONVERSATIONS.BASE}?${queryParams}`;
     const result = await conversationsApi.get(url);
-    console.log('[Conversations] url:', url);
-    console.log('[Conversations] result:', result);
+
     if (result) {
       if (refresh) {
         setConversations(result.results);
@@ -386,7 +385,6 @@ export const useMessages = (options: UseMessagesOptions = {}): UseMessagesReturn
       const sortedIds = [...participantIds].sort();
       
       const url = `${API_ENDPOINTS.CONVERSATIONS.CHECK_EXISTING}?participant_id=${sortedIds[0]}&participant_id_2=${sortedIds[1]}`;
-      console.log('Vérification de l\'existence d\'une conversation entre', sortedIds);
       
       const response = await checkExistingApi.get(url);
       
@@ -419,11 +417,9 @@ export const useMessages = (options: UseMessagesOptions = {}): UseMessagesReturn
       }
       
       // Si aucune conversation existante, en créer une nouvelle
-      console.log('Création d\'une nouvelle conversation avec les participants:', participantIds);
       
       const response =  await createConversation(participantIds);
       
-      console.log('Nouvelle conversation créée:', response);
       return response;
     } catch (error) {
       console.error('Erreur lors de la création/récupération de conversation:', error);

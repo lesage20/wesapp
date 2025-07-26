@@ -2,9 +2,12 @@ import { Tabs } from 'expo-router';
 import { View, Text } from 'react-native';
 import { icons } from '~/assets/svgs/tabbar-icon';
 import { getTailwindColor } from '~/utils/colors';
+import onlineService from '~/services/websocket_status.service';
+import { useProfile } from '~/hooks/api/useProfile';
+import { useEffect } from 'react';
 
 export default function TabLayout() {
-  
+  const { profile: currentUser } = useProfile();
   const TabBarIcon = ({ name, focused }: { name: keyof typeof icons; focused: boolean }) => {
     const IconComponent = icons[name];
     return (
@@ -24,6 +27,12 @@ export default function TabLayout() {
       </View>
     );
   };
+
+  useEffect(() => {
+    if (currentUser) {
+      onlineService.connect(currentUser.id);
+    }
+  }, [currentUser]);
 
   return (
     <Tabs
