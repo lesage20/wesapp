@@ -108,7 +108,7 @@ export const useProfile = (options: UseProfileOptions = {}): UseProfileReturn =>
   /**
    * Charger le profil utilisateur actuel
    */
-  const loadProfile = useCallback(async (userDataParam: User | null = null, index: number = 0): Promise<void> => {
+  const loadProfile = useCallback(async (userDataParam: User | null = null, index: number | null = null): Promise<void> => {
     // Utiliser le paramètre passé, sinon userData du store
     const currentUserData = userDataParam || userData;
     
@@ -126,10 +126,19 @@ export const useProfile = (options: UseProfileOptions = {}): UseProfileReturn =>
     const result = await profileApi.get(url);
 
     if (result) {
-      setProfile(result[index]);
+      console.log('result from profile hook', result);
+      console.log('index from profile hook', index);
+      console.log('index === null', index === null);
+      let p = null;
+      if (index == null) {
+        p = result.find((item: WeSappCode) => item.is_default);
+      } else {
+        p = result[index];
+      }
+      setProfile(p);
       // Mettre à jour le store global avec le WeSappCode complet
-      login(result[index]);
-      console.log('profile WeSappCode chargé et sauvegardé:', result[index]);
+      login(p);
+      console.log('profile WeSappCode chargé et sauvegardé:', p);
     }
   }, [profileApi, user?.id, userData, login]);
   

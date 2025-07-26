@@ -19,6 +19,7 @@ interface ConversationItem {
   name: string;
   lastMessage: string;
   lastMessageTime: string;
+  lastMessageTimeRaw: string;
   isGroup: boolean;
   unreadCount?: number;
   avatar?: string;
@@ -130,47 +131,54 @@ export default function ConversationsScreen() {
         // Traitement des conversations individuelles depuis le hook
         if (Array.isArray(hookConversations)) {
           hookConversations.forEach((conv: any, index) => {
-            const otherUser = conv.participants.find((participant: any) => participant.id !== currentUser?.id);
-                        
-            
+            let otherUser = null;
+            let unreadCount = 0;
+            let lastMessage = conv.last_message || conv.messages.at(-1)?.content || 'Aucun message'
+            let lastMessageTime = conv.last_message || conv.messages.at(-1)?.timestamp || conv.created_at
+            if (!conv.is_group) {
+              otherUser = conv.participants.find((participant: any) => participant.id !== currentUser?.id);
+              unreadCount = conv.participants.find((participant: any) => participant.id === currentUser?.id)?.unread_count || 0;
+              if (!otherUser) {
+                return
+              }
               const formattedConv = {
                 id: conv.id,
                 name: otherUser.username || otherUser.code,
-                lastMessage: conv.last_message || 'Aucun message',
-                lastMessageTime: formatMessageTime(conv.last_message_time),
+                lastMessage,
+                lastMessageTime: formatMessageTime(lastMessageTime),
+                lastMessageTimeRaw: lastMessageTime,
                 isGroup: false,
-                unreadCount: conv.unread_count || 0,
+                unreadCount,
                 profileImage: otherUser.profile_image || otherUser.avatar,
                 isOnline: false // TODO: Intégrer le statut en ligne
               };
-              
               formattedConversations.push(formattedConv);
+            } else {
+
+              formattedConversations.push({
+                id: conv.id,
+                name: conv.name || 'Groupe',
+                lastMessage,
+                lastMessageTime: formatMessageTime(lastMessageTime),
+                lastMessageTimeRaw: lastMessageTime,
+                isGroup: true,
+                unreadCount: conv.unread_count || 0,
+                profileImage: conv.profile_photo,
+                participants: conv.members || []
+              });
+            }
+                        
+              
             
           });
-        }
-        
-        // Traitement des groupes depuis le hook
-        if (Array.isArray(hookGroups)) {
-          hookGroups.forEach((group: any) => {
-            formattedConversations.push({
-              id: group.id,
-              name: group.name,
-              lastMessage: group.last_message || 'Groupe créé',
-              lastMessageTime: formatMessageTime(group.last_message_time || group.created_at),
-              isGroup: true,
-              unreadCount: group.unread_count || 0,
-              profileImage: group.profile_photo,
-              participants: group.members || []
-            });
+
+          formattedConversations.sort((a, b) => {
+            const timeA = new Date(a.lastMessageTimeRaw).getTime();
+            const timeB = new Date(b.lastMessageTimeRaw).getTime();
+            return timeB - timeA;
           });
         }
         
-        // Trier par temps du dernier message
-        formattedConversations.sort((a, b) => {
-          const timeA = new Date(a.lastMessageTime).getTime();
-          const timeB = new Date(b.lastMessageTime).getTime();
-          return timeB - timeA;
-        });
         
         setConversations(formattedConversations);
         
