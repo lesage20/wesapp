@@ -135,11 +135,13 @@ export default function ConversationsScreen() {
             let unreadCount = 0;
             let lastMessage = conv.last_message || conv.messages.at(-1)?.content || 'Aucun message'
             let lastMessageTime = conv.last_message || conv.messages.at(-1)?.timestamp || conv.created_at
+            unreadCount = conv.participants.find((participant: any) => participant.id === currentUser?.id)?.unread_count || 0;
             if (!conv.is_group) {
               otherUser = conv.participants.find((participant: any) => participant.id !== currentUser?.id);
-              unreadCount = conv.participants.find((participant: any) => participant.id === currentUser?.id)?.unread_count || 0;
+              
               if (!otherUser) {
-                return
+                otherUser = conv.participants.find((participant: any) => participant.id === currentUser?.id);
+                otherUser.username = `${currentUser?.username} ( Vous )`  ;
               }
               const formattedConv = {
                 id: conv.id,
@@ -162,7 +164,7 @@ export default function ConversationsScreen() {
                 lastMessageTime: formatMessageTime(lastMessageTime),
                 lastMessageTimeRaw: lastMessageTime,
                 isGroup: true,
-                unreadCount: conv.unread_count || 0,
+                unreadCount,
                 profileImage: conv.profile_photo,
                 participants: conv.members || []
               });

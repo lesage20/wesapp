@@ -90,16 +90,13 @@ export default function ChatScreen() {
       }
 
       try {
-        console.log('[Chat] Chargement de la conversation:', id);
 
         // Charger la conversation avec ses messages
         const conversationData = await getConversationWithMessages(id as string);
-        console.log('[Chat] Données de conversation récupérées:', conversationData);
 
         if (conversationData) {
           // Charger les informations de l'autre utilisateur
           const otherUserData = await fetchConversationById(id as string, currentUser.id);
-          console.log('[Chat] Données de l\'autre utilisateur:', otherUserData);
           
           if (otherUserData?.connection) {
             const data = otherUserData.connection;
@@ -174,11 +171,11 @@ export default function ChatScreen() {
             });
             
             // Trier les messages par timestamp
-            formattedMessages.sort((a, b) => {
-              const timeA = new Date('1970-01-01 ' + a.timestamp).getTime();
-              const timeB = new Date('1970-01-01 ' + b.timestamp).getTime();
-              return timeA - timeB;
-            });
+            // formattedMessages.sort((a, b) => {
+            //   const timeA = new Date('1970-01-01 ' + a.timestamp).getTime();
+            //   const timeB = new Date('1970-01-01 ' + b.timestamp).getTime();
+            //   return timeA - timeB;
+            // });
             
             setMessages(formattedMessages);
             console.log('[Chat] Messages formatés:', formattedMessages.length);
